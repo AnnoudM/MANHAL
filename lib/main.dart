@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+FirebaseAuth auth = FirebaseAuth.instance;
+
+Future<void> signIn() async {
+  await auth.signInWithEmailAndPassword(email: "alanoud.ibrahim5@gmail.com", password: "password123");
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensures Flutter is initialized
@@ -36,7 +42,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: SignUpPage(),
     );
   }
 }

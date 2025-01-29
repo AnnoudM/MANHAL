@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "1040869076363",
-    "project_id": "manhal-3b099",
-    "storage_bucket": "manhal-3b099.firebasestorage.app"
+    "project_number": "972491493758",
+    "project_id": "manhal-e2276",
+    "storage_bucket": "manhal-e2276.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1040869076363:android:e6dab638d92b9f175a538e",
+        "mobilesdk_app_id": "1:972491493758:android:725dcc6a281b134c19e32f",
         "android_client_info": {
           "package_name": "com.example.manhal"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBnXBsgvRmuzYY9HV8Rloq_Pu7EBW52VBA"
+          "current_key": "AIzaSyC-8-Fm-Huh5uuF7-FTCcRGrwSL-Tm4k4A"
         }
       ],
       "services": {
