@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:manhal/Sprint1/InitialPage.dart';
 import 'firebase_options.dart'; // تأكد من استيراد ملف الإعدادات
 
 FirebaseAuth auth = FirebaseAuth.instance;
@@ -15,7 +16,7 @@ Future<void> signIn() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     runApp(const MyApp());
   } catch (e) {
     print("Error initializing Firebase: $e");
@@ -30,11 +31,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Firestore Test',
+      locale: const Locale('ar'), // تعيين اللغة العربية
+      builder: (context, child) {
+        return Directionality(
+          textDirection: TextDirection.rtl, // جعل كل شيء يبدأ من اليمين
+          child: child!,
+        );
+      },
       theme: ThemeData(
+        fontFamily: 'Tajawal', // استخدم خطًا عربياً إذا أردت
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Firestore Test'),
+      home: const InitialPage(),
     );
   }
 }
@@ -89,6 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: TextField(
+                textDirection: TextDirection.rtl, // إدخال النص من اليمين
                 controller: _nameController,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
