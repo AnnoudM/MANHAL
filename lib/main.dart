@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:manhal/Sprint1/InitialPage.dart';
+import 'package:manhal/Sprint1/HomePage.dart';
 import 'firebase_options.dart'; // تأكد من استيراد ملف الإعدادات
 
 FirebaseAuth auth = FirebaseAuth.instance;
@@ -43,7 +44,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const InitialPage(),
+      home: HomePage(), //home: const InitialPage(),
     );
   }
 }
