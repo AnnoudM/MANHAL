@@ -14,7 +14,7 @@ class ArabicLetterPage extends StatefulWidget {
 class _ArabicLetterPageState extends State<ArabicLetterPage> {
   final LetterController _controller = LetterController();
   LetterModel? letterData;
-  bool isLoading = true;
+  bool isLoading = true; 
 
   @override
   void initState() {

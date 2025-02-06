@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
       home: ArabicLetterPage(letter: "أ"),
     );
   }
-}
+} 
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});

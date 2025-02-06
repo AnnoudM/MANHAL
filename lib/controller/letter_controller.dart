@@ -9,7 +9,7 @@ class LetterController {
   final FlutterTts _flutterTts = FlutterTts();
 
   // التهيئة
-  LetterController() {
+  LetterController() { 
     _initializeTts();
   }
 

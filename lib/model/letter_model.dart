@@ -7,7 +7,7 @@ class LetterModel {
   LetterModel({
     required this.examples,
     required this.images,
-    required this.letterSound,
+    required this.letterSound, 
     required this.songUrl,
   });
 
