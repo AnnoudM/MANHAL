@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:manhal/Sprint1/InitialPage.dart';
+import 'package:manhal/view/letter_view.dart';
 import 'firebase_options.dart'; // تأكد من استيراد ملف الإعدادات
 
 FirebaseAuth auth = FirebaseAuth.instance;
@@ -16,7 +16,8 @@ Future<void> signIn() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
     runApp(const MyApp());
   } catch (e) {
     print("Error initializing Firebase: $e");
@@ -30,6 +31,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
+
       title: 'Flutter Firestore Test',
       locale: const Locale('ar'), // تعيين اللغة العربية
       builder: (context, child) {
@@ -43,7 +46,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const InitialPage(),
+      home: ArabicLetterPage(letter: "أ"),
     );
   }
 }

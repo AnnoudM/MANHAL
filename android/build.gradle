@@ -1,3 +1,19 @@
+// إضافة الإعدادات الضرورية لـ Gradle
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.2.2' // نسخة متوافقة مع Gradle
+        classpath 'com.google.gms:google-services:4.3.15' // نسخة متوافقة
+    }
+}
+
+plugins {
+    id "com.google.gms.google-services" apply false // نقلنا الـ Plugin هنا
+}
+
 allprojects {
     repositories {
         google()
@@ -6,21 +22,11 @@ allprojects {
 }
 
 rootProject.buildDir = "../build"
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
-    project.evaluationDependsOn(":app")
 }
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
-}
-
-dependencies {
-    classpath 'com.google.gms:google-services:4.4.0' // أو أحدث
-}
-
-plugins{
-    id 'com.google.gms.google-services' version '4.4.2' apply false
 }
