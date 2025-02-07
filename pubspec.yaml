@@ -34,7 +34,7 @@ dependencies:
   firebase_auth: ^4.15.0
   cloud_firestore: ^4.13.1
   flutter_tts: ^4.2.2
-  cloud_text_to_speech: ^2.3.2
+  audioplayers: ^6.1.1
   firebase_storage: ^11.7.7
   
 

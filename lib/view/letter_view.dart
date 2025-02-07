@@ -14,12 +14,19 @@ class ArabicLetterPage extends StatefulWidget {
 class _ArabicLetterPageState extends State<ArabicLetterPage> {
   final LetterController _controller = LetterController();
   LetterModel? letterData;
-  bool isLoading = true; 
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     fetchData();
+  }
+
+  @override
+  void dispose() {
+    // إيقاف الصوت عند الانتقال بين الصفحات
+    _controller.stopAudio();
+    super.dispose();
   }
 
   Future<void> fetchData() async {
@@ -109,13 +116,12 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
                   icon: Image.asset(
                     "assets/images/high-volume.png",
                   ),
-                  iconSize: 72, // تحديد حجم الأيقونة
-                  padding: EdgeInsets.zero, // إزالة المسافة الداخلية
-                  constraints: const BoxConstraints(
-                  ),
+                  iconSize: 72,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   onPressed: () {
                     if (letterData?.letterSound != null) {
-                      _controller.speak(letterData!.letterSound);
+                      _controller.playAudio(letterData!.letterSound);
                     }
                   },
                 ),
@@ -157,7 +163,7 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
               height: 40,
             ),
             onPressed: () {
-              _controller.speak(letterData!.examples[index]);
+              _controller.playAudio(letterData!.examples[index]);
             },
           ),
           Expanded(
@@ -207,7 +213,9 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
               height: 40,
             ),
             onPressed: () {
-              _controller.speak(letterData!.songUrl);
+              if (letterData?.songUrl != null) {
+                _controller.playAudio(letterData!.songUrl);
+              }
             },
           ),
           Expanded(
@@ -233,7 +241,9 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
       height: 55,
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          // تنفيذ الإجراء المناسب
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xffD1E3F1),
           shape:
