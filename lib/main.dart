@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:manhal/Sprint1/InitialPage.dart';
-import 'package:manhal/controller/HomePageController.dart';
 import '../view/letter_view.dart';
 import 'firebase_options.dart'; // تأكد من استيراد ملف الإعدادات
+import 'package:manhal/view/InitialView.dart';
+import 'package:manhal/view/signup_view.dart';
+import 'package:manhal/controller/HomePageController.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
 FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -48,7 +49,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-     home : HomePageController(), // home: ArabicLetterPage(letter: "أ"),
+      home: SignUpView(),
     );
   }
 } 
