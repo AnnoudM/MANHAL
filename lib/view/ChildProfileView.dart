@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:manhal/view/SelectImageView.dart';
 
 class ChildProfileView extends StatelessWidget {
   final String name; // اسم المستخدم
@@ -66,7 +67,12 @@ class ChildProfileView extends StatelessWidget {
                       backgroundImage: const AssetImage('assets/images/dog.png'),
                     ),
                     IconButton(
-                      onPressed: onEditProfile,
+                        onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SelectImageView()),
+                        );
+                      },
                       icon: const Icon(
                         Icons.edit,
                         color: Colors.black,
