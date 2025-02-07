@@ -10,7 +10,7 @@ class LetterController {
 
   // التهيئة
   LetterController() { 
-    _initializeTts();
+  _initializeTts();
   }
 
   // إعداد Text-to-Speech
