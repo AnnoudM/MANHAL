@@ -6,7 +6,7 @@ import '../view/letter_view.dart';
 import 'firebase_options.dart'; // تأكد من استيراد ملف الإعدادات
 import 'package:manhal/view/InitialView.dart';
 import 'package:manhal/view/signup_view.dart';
-
+import 'package:manhal/controller/HomePageController.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
 FirebaseFirestore firestore = FirebaseFirestore.instance;
