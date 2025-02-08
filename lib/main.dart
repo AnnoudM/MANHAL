@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
         );
       },
       theme: ThemeData(
-        fontFamily: 'Tajawal', // استخدم خطًا عربياً إذا أردت
+        fontFamily: 'Blabeloo', 
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),

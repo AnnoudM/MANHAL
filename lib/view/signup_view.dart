@@ -87,23 +87,13 @@ class SignUpView extends StatelessWidget {
                     const SizedBox(height: 30),
                     _buildButton(
                       text: 'متابعة',
-                      onPressed: () async {
+                      onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          String? result = await controller.registerParent(
-                            SignUpModel(
-                              name: controller.nameController.text,
-                              email: controller.emailController.text,
-                              password: controller.passwordController.text,
-                            ),
-                          );
-
-                          if (result != null && result.length > 5) {
-                            controller.proceedToChildInfo(context);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(result ?? "حدث خطأ أثناء التسجيل.")),
-                            );
-                          }
+                          controller.proceedToChildInfo(context, SignUpModel(
+                            name: controller.nameController.text,
+                            email: controller.emailController.text,
+                            password: controller.passwordController.text,
+                          ));
                         }
                       },
                     ),
