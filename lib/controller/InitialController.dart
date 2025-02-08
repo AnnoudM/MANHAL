@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../model/initialModel.dart';
-import '../Sprint1/LogIn.dart';
+import '../view/Login_view.dart';
 import '../view/Signup_view.dart';
 
 class InitialPageController {
@@ -16,7 +16,7 @@ class InitialPageController {
   void navigateToLogIn(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const LogIn()),
+      MaterialPageRoute(builder: (context) => LoginView()),
     );
   }
 }

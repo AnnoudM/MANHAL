@@ -6,8 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../view/HomePageView.dart';  // استيراد صفحة HomePageView
 
 class ChildInfoView extends StatefulWidget {
-  final SignUpModel parentData;
-  ChildInfoView({required this.parentData});
+  final SignUpModel? parentData;
+  ChildInfoView({this.parentData});
 
   @override
   _ChildInfoViewState createState() => _ChildInfoViewState();
@@ -23,49 +23,36 @@ class _ChildInfoViewState extends State<ChildInfoView> {
   final SignUpController _controller = SignUpController();
 
   void _submit() async {
-    if (_formKey.currentState!.validate()) {
-      String? parentId = _auth.currentUser?.uid;
+  if (_formKey.currentState!.validate()) {
+    String? parentId = FirebaseAuth.instance.currentUser?.uid;
 
-      if (parentId != null) {
-        Child child = Child(
-          name: _nameController.text.trim(),
-          gender: _selectedGender!,
-          age: _age!,
-        );
-
-        try {
-          await _controller.addChild(parentId, child);  // حفظ بيانات الطفل في Subcollection
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('تم تسجيل الطفل بنجاح.')),
-          );
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomePageView(
-                userName: widget.parentData.name,  // تمرير اسم الوالد المسجل
-                onUserNameClick: () {
-                  print('User name clicked');
-                },
-                onScanImageClick: () {
-                  print('Scan image clicked');
-                },
-              ),
-            ),  // الانتقال للصفحة الرئيسية
-          );
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('حدث خطأ أثناء تسجيل الطفل: $e')),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حدث خطأ أثناء تسجيل الطفل.')),
-        );
+    if (parentId != null) {
+      // إذا كان المستخدم جديدًا، سجل بيانات الوالد
+      if (widget.parentData != null) {
+        await _controller.saveParentData(parentId, widget.parentData!);
       }
+
+      // سجل بيانات الطفل
+      Child child = Child(
+        name: _nameController.text.trim(),
+        gender: _selectedGender!,
+        age: _age!,
+      );
+      await _controller.addChild(parentId, child);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('تم تسجيل الطفل بنجاح.')),
+      );
+
+      Navigator.pushReplacementNamed(context, '/home'); // الانتقال للصفحة الرئيسية
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('حدث خطأ أثناء تسجيل الطفل.')),
+      );
     }
   }
+}
+
 
   Widget _buildTextField({
     required String hintText,

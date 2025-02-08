@@ -25,6 +25,7 @@ class SignUpController {
         email: parent.email,
         password: parent.password,
       );
+      await saveParentData(userCredential.user!.uid, parent);
       await sendEmailVerification();
       return userCredential.user!.uid;
     } catch (e) {
