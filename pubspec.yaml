@@ -85,6 +85,9 @@ flutter:
     - family: Blabeloo
       fonts:
         - asset: assets/fonts/Blabeloo-font-v.1.0.ttf
+    - family: Uthman
+      fonts:
+        - asset: assets/fonts/UthmanicHafs_V22.ttf
   
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
