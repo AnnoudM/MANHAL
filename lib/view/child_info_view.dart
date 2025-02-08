@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../controller/signup_controller.dart';
 import '../model/child_model.dart';
 import '../model/signup_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../view/HomePageView.dart';  // استيراد صفحة HomePageView
 
 class ChildInfoView extends StatefulWidget {
   final SignUpModel parentData;
@@ -14,6 +16,7 @@ class ChildInfoView extends StatefulWidget {
 class _ChildInfoViewState extends State<ChildInfoView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   String? _selectedGender;
   int? _age;
 
@@ -21,27 +24,44 @@ class _ChildInfoViewState extends State<ChildInfoView> {
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      String? parentId = await _controller.registerParent(widget.parentData);
+      String? parentId = _auth.currentUser?.uid;
 
-      if (parentId != null && parentId.length > 5) {
-        await _controller.saveParentData(parentId, widget.parentData);
-
+      if (parentId != null) {
         Child child = Child(
           name: _nameController.text.trim(),
           gender: _selectedGender!,
           age: _age!,
         );
-        await _controller.addChild(parentId, child);
-        await _controller.sendEmailVerification();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني.')),
-        );
+        try {
+          await _controller.addChild(parentId, child);  // حفظ بيانات الطفل في Subcollection
 
-        _controller.checkEmailVerification(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('تم تسجيل الطفل بنجاح.')),
+          );
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomePageView(
+                userName: widget.parentData.name,  // تمرير اسم الوالد المسجل
+                onUserNameClick: () {
+                  print('User name clicked');
+                },
+                onScanImageClick: () {
+                  print('Scan image clicked');
+                },
+              ),
+            ),  // الانتقال للصفحة الرئيسية
+          );
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('حدث خطأ أثناء تسجيل الطفل: $e')),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حدث خطأ أثناء تسجيل الحساب.')),
+          SnackBar(content: Text('حدث خطأ أثناء تسجيل الطفل.')),
         );
       }
     }
@@ -52,11 +72,13 @@ class _ChildInfoViewState extends State<ChildInfoView> {
     required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
+    void Function(String)? onChanged,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
+      onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hintText,
         filled: true,
@@ -178,6 +200,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                       validator: (value) => (value == null || int.tryParse(value) == null)
                           ? 'يرجى إدخال عمر صحيح'
                           : null,
+                      onChanged: (value) => _age = int.tryParse(value),
                     ),
                     const SizedBox(height: 30),
                     _buildButton(

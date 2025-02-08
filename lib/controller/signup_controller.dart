@@ -5,7 +5,6 @@ import '../model/child_model.dart';
 import 'package:flutter/material.dart';
 import '../view/child_info_view.dart';
 
-
 class SignUpController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -16,88 +15,111 @@ class SignUpController {
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
 
- Future<String?> registerParent(SignUpModel parent) async {
+  // تسجيل الوالد وإرسال رابط التحقق
+  Future<String?> registerParent(SignUpModel parent) async {
     try {
-       if (parent.password != confirmPasswordController.text) {
+      if (parent.password != confirmPasswordController.text) {
         throw Exception("كلمتا المرور غير متطابقتين.");
       }
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: parent.email,
         password: parent.password,
       );
+      await sendEmailVerification();
       return userCredential.user!.uid;
     } catch (e) {
       return e.toString();
     }
   }
 
-   Future<void> saveParentData(String uid, SignUpModel parent) async {
+  // حفظ بيانات الوالد في Firestore
+  Future<void> saveParentData(String uid, SignUpModel parent) async {
     await _firestore.collection('Parent').doc(uid).set(parent.toMap());
   }
 
+  // إضافة بيانات الطفل تحت الوالد في Firestore
   Future<void> addChild(String parentId, Child child) async {
-    await _firestore.collection('Parent').doc(parentId).collection('Children').add(child.toMap());
-     await sendEmailVerification(); // إرسال رابط التحقق بعد تسجيل الطفل
+    try {
+      await _firestore
+          .collection('Parent')
+          .doc(parentId)
+          .collection('Children')
+          .add(child.toMap());
+    } catch (e) {
+      print('Error adding child: $e');
+    }
   }
-   Future<void> sendEmailVerification() async {
-  User? user = _auth.currentUser;
 
-  if (user != null) {
-    print('Current User Email: ${user.email}');  // تأكيد وجود المستخدم
-    if (!user.emailVerified) {
+  // إرسال رابط التحقق بالبريد الإلكتروني
+  Future<void> sendEmailVerification() async {
+    User? user = _auth.currentUser;
+    if (user != null && !user.emailVerified) {
       await user.sendEmailVerification();
       print('Verification email sent to ${user.email}');
-    } else {
-      print('Email already verified');
     }
-  } else {
-    print('No user is currently signed in');
   }
-}
 
-
+  // التحقق من تأكيد البريد الإلكتروني
   Future<void> checkEmailVerification(BuildContext context) async {
     await _auth.currentUser?.reload();
-  User? user = _auth.currentUser;
-  await user?.reload();
-  
-  if (user != null && user.emailVerified) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('تم تأكيد البريد الإلكتروني'),
-          content: Text('تم تأكيد بريدك الإلكتروني بنجاح.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // إغلاق الديالوق
-                Navigator.pushReplacementNamed(context, '/home'); // الانتقال للصفحة الرئيسية
-              },
-              child: Text('حسناً'),
-            ),
-          ],
-        );
-      },
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('يرجى تأكيد بريدك الإلكتروني من الرابط المرسل.')),
+    User? user = _auth.currentUser;
+
+    if (user != null && user.emailVerified) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('تم تأكيد البريد الإلكتروني'),
+            content: Text('تم تأكيد بريدك الإلكتروني بنجاح.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  proceedToChildInfo(
+                    context,
+                    SignUpModel(
+                      name: nameController.text,
+                      email: emailController.text,
+                      password: passwordController.text,
+                    ),
+                  );
+                },
+                child: Text('متابعة'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('تأكيد البريد الإلكتروني'),
+            content: Text('الرجاء تأكيد بريدك الإلكتروني عبر الرابط المرسل.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('حسناً'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  // الانتقال إلى صفحة إدخال بيانات الطفل
+  void proceedToChildInfo(BuildContext context, SignUpModel parent) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChildInfoView(parentData: parent),
+      ),
     );
   }
-}
 
-
-  void proceedToChildInfo(BuildContext context, SignUpModel parent) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ChildInfoView(parentData: parent),
-    ),
-  );
-}
-
-
+  // الانتقال إلى صفحة تسجيل الدخول
   void navigateToLogin(BuildContext context) {
     Navigator.pushNamed(context, '/login');
   }
