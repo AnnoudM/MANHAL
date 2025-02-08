@@ -1,31 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../model/ChildProfileModel.dart';
 
 class ChildProfileController {
-  final String childID; // معرف الطفل
+  final String childID;
 
   ChildProfileController({required this.childID});
 
-  Future<ChildProfileModel?> fetchChildData() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-
-      if (user != null) {
-        final snapshot = await FirebaseFirestore.instance
-            .collection('Parent')
-            .doc(user.uid)
-            .collection('Children') // تعديل المسار الصحيح
-            .doc(childID) // استخدام معرف الطفل
-            .get();
-
-        if (snapshot.exists) {
-          return ChildProfileModel.fromFirestore(snapshot.data()!);
-        }
-      }
-    } catch (e) {
-      print('Error fetching user data: $e');
+  Stream<DocumentSnapshot> childStream() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception("No user logged in");
     }
-    return null; // إذا لم تكن البيانات موجودة
+
+    return FirebaseFirestore.instance
+        .collection('Parent')
+        .doc(user.uid)
+        .collection('Children')
+        .doc(childID)
+        .snapshots(); // 🔹 جلب البيانات كـ Stream لتحديث الصورة فورًا عند تغييرها
   }
 }

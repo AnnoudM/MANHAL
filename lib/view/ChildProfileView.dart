@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../controller/ChildProfileController.dart';
 import '../view/SelectImageView.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ChildProfileView extends StatelessWidget {
+class ChildProfileView extends StatefulWidget {
   final String name;
   final String gender;
   final int age;
@@ -18,6 +20,19 @@ class ChildProfileView extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _ChildProfileViewState createState() => _ChildProfileViewState();
+}
+
+class _ChildProfileViewState extends State<ChildProfileView> {
+  late ChildProfileController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ChildProfileController(childID: widget.childID);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -32,7 +47,7 @@ class ChildProfileView extends StatelessWidget {
             ),
           ),
 
-          // زر الرجوع
+          // زر الرجوع في أعلى اليمين
           Positioned(
             top: 40,
             right: 20,
@@ -48,98 +63,108 @@ class ChildProfileView extends StatelessWidget {
             ),
           ),
 
-          // المحتوى الرئيسي
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // صورة الطفل مع زر التعديل
-                Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    CircleAvatar(
-                      backgroundImage: AssetImage(photoUrl),
-                      radius: 70,
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SelectImageView(childID: childID),
-                          ),
-                        );
-                      },
-                      icon: const Icon(
-                        Icons.edit,
-                        color: Colors.black,
+          // المحتوى
+          StreamBuilder<DocumentSnapshot>(
+            stream: _controller.childStream(), // 🔹 متابعة أي تغييرات على الطفل
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || !snapshot.data!.exists) {
+                return const Center(child: Text("⚠️ لا توجد بيانات متاحة"));
+              }
+
+              var childData = snapshot.data!.data() as Map<String, dynamic>;
+              String updatedPhotoUrl =
+                  childData['photoUrl'] ?? 'assets/images/girl.png';
+
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: AssetImage(updatedPhotoUrl),
+                        radius: 70,
                       ),
-                      iconSize: 24,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-
-                // اسم الطفل
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontFamily: 'Blabeloo',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SelectImageView(
+                                childID: widget.childID,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.edit, color: Colors.black),
+                        iconSize: 40,
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 25),
-
-                // العمر والجنس جنب بعض
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildInfoBox(title: "العمر", value: "$age"),
-                    const SizedBox(width: 40), // مسافة بين العناصر
-                    _buildInfoBox(title: "الجنس", value: gender),
-                  ],
-                ),
-              ],
-            ),
+                  const SizedBox(height: 10),
+                  Text(
+                    childData['name'] ?? "غير معروف",
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontFamily: 'Blabeloo',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Column(
+                        children: [
+                          const Text(
+                            "العمر:",
+                            style: TextStyle(fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            "${childData['age'] ?? 'غير محدد'}",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 20),
+                      Column(
+                        children: [
+                          const Text(
+                            "الجنس:",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            childData['gender'] ?? "غير محدد",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
-    );
-  }
-
-  // 🔹 عنصر معلومات العمر والجنس
-  Widget _buildInfoBox({required String title, required String value}) {
-    return Column(
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Blabeloo',
-            color: Colors.grey, // لون رمادي للعناوين
-          ),
-        ),
-        const SizedBox(height: 5), // مسافة بين العنوان والقيمة
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 20, // تكبير الخط
-              fontWeight: FontWeight.bold,fontFamily: 'Blabeloo',
-              color: Colors.black,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

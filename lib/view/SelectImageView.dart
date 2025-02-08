@@ -108,12 +108,10 @@ class _SelectImageViewState extends State<SelectImageView> {
                     ),
                     onPressed: () {
                       if (selectedImage != null) {
-                        _controller.updateChildImage(widget.childID, selectedImage!);
-                        Navigator.pop(context); // العودة إلى الصفحة السابقة
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        _controller.updateChildImage(context, widget.childID, selectedImage!);
+                      } else {ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text("الرجاء اختيار صورة"),
+                            content: Text("❌ الرجاء اختيار صورة!"),
                             duration: Duration(seconds: 2),
                           ),
                         );
