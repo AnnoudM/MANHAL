@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 class HomePageView extends StatelessWidget {
   final String userName; // اسم المستخدم المسترجع
+  final String gender;
+  final int age;
+  final String photoUrl;
   final VoidCallback onUserNameClick; // عند النقر على اسم المستخدم
   final VoidCallback onScanImageClick; // عند النقر على زر مسح الصورة
 
@@ -10,6 +13,9 @@ class HomePageView extends StatelessWidget {
     required this.userName,
     required this.onUserNameClick,
     required this.onScanImageClick,
+    required this.age,
+    required this.gender,
+    required this.photoUrl,
   }) : super(key: key);
 
   @override

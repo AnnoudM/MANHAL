@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../view/HomePageView.dart';
+import '../controller/HomePageController.dart';
 import '../view/child_info_view.dart';
-import '../model/child_model.dart';
 
 class ChildListView extends StatefulWidget {
   @override
@@ -18,11 +17,11 @@ class _ChildListViewState extends State<ChildListView> {
   @override
   void initState() {
     super.initState();
-    parentId = _auth.currentUser?.uid ?? '';
+    parentId = _auth.currentUser?.uid ?? ''; // جلب معرف الوالد الحالي
   }
 
-  Future<List<Child>> fetchChildren() async {
-    List<Child> children = [];
+  Future<List<Map<String, dynamic>>> fetchChildren() async {
+    List<Map<String, dynamic>> children = [];
     if (parentId.isNotEmpty) {
       var snapshot = await _firestore
           .collection('Parent')
@@ -31,7 +30,10 @@ class _ChildListViewState extends State<ChildListView> {
           .get();
 
       for (var doc in snapshot.docs) {
-        children.add(Child.fromMap(doc.data()));
+        children.add({
+          'id': doc.id, // معرف الطفل (Document ID)
+          'data': doc.data(), // بيانات الطفل
+        });
       }
     }
     return children;
@@ -47,7 +49,7 @@ class _ChildListViewState extends State<ChildListView> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -67,19 +69,19 @@ class _ChildListViewState extends State<ChildListView> {
                 ),
                 const SizedBox(height: 30),
                 Expanded(
-                  child: FutureBuilder<List<Child>>(
+                  child: FutureBuilder<List<Map<String, dynamic>>>(
                     future: fetchChildren(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
+                        return const CircularProgressIndicator();
                       } else if (snapshot.hasError) {
-                        return Text('حدث خطأ أثناء تحميل البيانات');
+                        return const Text('حدث خطأ أثناء تحميل البيانات');
                       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Text('لا يوجد أطفال مسجلين');
+                        return const Text('لا يوجد أطفال مسجلين');
                       } else {
                         var children = snapshot.data!;
                         return GridView.builder(
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             crossAxisSpacing: 20,
                             mainAxisSpacing: 20,
@@ -89,7 +91,8 @@ class _ChildListViewState extends State<ChildListView> {
                             if (index == children.length) {
                               return _buildAddChildButton();
                             } else {
-                              return _buildChildAvatar(children[index]);
+                              var child = children[index];
+                              return _buildChildAvatar(child['id'], child['data']);
                             }
                           },
                         );
@@ -105,17 +108,15 @@ class _ChildListViewState extends State<ChildListView> {
     );
   }
 
-  Widget _buildChildAvatar(Child child) {
+  /// بناء عنصر لكل طفل
+  Widget _buildChildAvatar(String childId, Map<String, dynamic> childData) {
     return GestureDetector(
       onTap: () {
+        print("تم اختيار الطفل بمعرف: $childId"); // التحقق من معرف الطفل قبل الإرسال
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomePageView(
-              userName: child.name,
-              onUserNameClick: () {},
-              onScanImageClick: () {},
-            ),
+            builder: (context) => HomePageController(childID: childId),
           ),
         );
       },
@@ -123,12 +124,14 @@ class _ChildListViewState extends State<ChildListView> {
         children: [
           CircleAvatar(
             radius: 40,
-            backgroundImage: AssetImage('assets/images/default_avatar.png'), // استبدل هذا بمسار صورة الطفل
+            backgroundImage: childData['photoUrl']?.isNotEmpty == true
+                ? NetworkImage(childData['photoUrl'])
+                : const AssetImage('assets/images/default_avatar.png') as ImageProvider,
             backgroundColor: Colors.yellow[100],
           ),
           const SizedBox(height: 10),
           Text(
-            child.name,
+            childData['name'] ?? 'غير معروف',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -140,13 +143,14 @@ class _ChildListViewState extends State<ChildListView> {
     );
   }
 
+  /// بناء زر لإضافة طفل جديد
   Widget _buildAddChildButton() {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChildInfoView(), // تعديل حسب الحاجة
+            builder: (context) => ChildInfoView(),
           ),
         );
       },
