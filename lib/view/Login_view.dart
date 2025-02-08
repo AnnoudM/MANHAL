@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import '../controller/Login_controller.dart';
-import '../view/ChildListView.dart'; // استيراد صفحة قائمة الأطفال
+import '../view/ChildListView.dart';
 
-class LoginView extends StatelessWidget {
+class LoginView extends StatefulWidget {
+  @override
+  _LoginViewState createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<LoginView> {
   final LoginController _controller = LoginController();
   final _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -55,45 +62,53 @@ class LoginView extends StatelessWidget {
                     _buildTextField(
                       hintText: 'كلمة المرور',
                       controller: _controller.passwordController,
-                      obscureText: true,
+                      obscureText: _obscurePassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'يرجى إدخال كلمة المرور';
-                        } else if (value.length < 6) {
-                          return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 15),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'نسيت كلمة المرور؟',
-                          style: TextStyle(color: Colors.black54),
-                        ),
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        _errorMessage!,
+                        style: TextStyle(color: Colors.red),
                       ),
-                    ),
+                    ],
                     const SizedBox(height: 20),
                     _buildButton(
                       text: 'تسجيل',
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          _controller.loginUser(
+                          final result = await _controller.loginUser(
                             email: _controller.emailController.text,
                             password: _controller.passwordController.text,
-                            context: context,
-                            onLoginSuccess: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChildListView(),
-                                ),
-                              );
-                            },
                           );
+                          if (result != null) {
+                            setState(() {
+                              _errorMessage = result;
+                            });
+                          } else {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChildListView(),
+                              ),
+                            );
+                          }
                         }
                       },
                     ),
@@ -114,6 +129,31 @@ class LoginView extends StatelessWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: () async {
+                        if (_controller.emailController.text.isEmpty) {
+                          setState(() {
+                            _errorMessage = 'يرجى إدخال البريد الإلكتروني لإعادة تعيين كلمة المرور';
+                          });
+                        } else {
+                          setState(() {
+                            _errorMessage = null;
+                          });
+                          await _controller.resetPassword(
+                            _controller.emailController.text,
+                            context,
+                          );
+                        }
+                      },
+                      child: const Text(
+                        'نسيت كلمة المرور؟',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -129,6 +169,7 @@ class LoginView extends StatelessWidget {
     required TextEditingController controller,
     bool obscureText = false,
     String? Function(String?)? validator,
+    Widget? suffixIcon,
   }) {
     return TextFormField(
       controller: controller,
@@ -143,6 +184,7 @@ class LoginView extends StatelessWidget {
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        suffixIcon: suffixIcon,
       ),
     );
   }
