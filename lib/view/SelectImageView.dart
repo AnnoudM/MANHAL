@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
+import '../controller/SelectImageController.dart';
+import '../model/SelectImageModel.dart';
 
-class SelectImageView extends StatelessWidget {
-  const SelectImageView({Key? key}) : super(key: key);
+class SelectImageView extends StatefulWidget {
+  final String childID; // معرف الطفل
+
+  const SelectImageView({Key? key, required this.childID}) : super(key: key);
+
+  @override
+  _SelectImageViewState createState() => _SelectImageViewState();
+}
+
+class _SelectImageViewState extends State<SelectImageView> {
+  final SelectImageController _controller = SelectImageController();
+  final SelectImageModel _model = SelectImageModel();
+  String? selectedImage; // الصورة المختارة
 
   @override
   Widget build(BuildContext context) {
-    final List<String> images = [
-     'assets/images/boy1.png',
-      'assets/images/boy1.png',
-      'assets/images/boy2.png',
-      'assets/images/boy3.png',
-      'assets/images/boy4.png',
-      'assets/images/boy5.png',
-      'assets/images/girl.png',
-      'assets/images/girl1.png',
-      'assets/images/girl2.png',
-      'assets/images/girl3.png',
-      'assets/images/girl4.png',
-      'assets/images/girl5.png',
-    ];
-
     return Scaffold(
       body: Stack(
         children: [
@@ -43,14 +41,13 @@ class SelectImageView extends StatelessWidget {
                 size: 30,
               ),
               onPressed: () {
-                Navigator.pop(context); // العودة إلى الشاشة السابقة
+                Navigator.pop(context);
               },
             ),
           ),
-          // المحتوى الرئيسي
           Column(
             children: [
-              const SizedBox(height: 60), // مساحة أعلى للعنوان
+              const SizedBox(height: 60),
               const Text(
                 "اختر صورة",
                 style: TextStyle(
@@ -65,27 +62,38 @@ class SelectImageView extends StatelessWidget {
                   child: GridView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3, // عدد الصور في كل صف
+                      crossAxisCount: 3,
                       crossAxisSpacing: 15,
                       mainAxisSpacing: 15,
                     ),
-                    itemCount: images.length,
+                    itemCount: _model.images.length,
                     itemBuilder: (context, index) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Image.asset(
-                          images[index],
-                          fit: BoxFit.cover,
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedImage = _model.images[index]; // تحديد الصورة المختارة
+                          });
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: selectedImage == _model.images[index]
+                                  ? Colors.blue
+                                  : Colors.grey,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Image.asset(
+                            _model.images[index],
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       );
                     },
                   ),
                 ),
               ),
-              // زر الحفظ
               Padding(
                 padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
                 child: SizedBox(
@@ -93,13 +101,23 @@ class SelectImageView extends StatelessWidget {
                   height: 50,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFF3CD), // لون الزر
+                      backgroundColor: const Color(0xFFFFF3CD),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15), // حواف دائرية
+                        borderRadius: BorderRadius.circular(15),
                       ),
                     ),
                     onPressed: () {
-                      Navigator.pop(context); // يغلق الصفحة عند الضغط
+                      if (selectedImage != null) {
+                        _controller.updateChildImage(widget.childID, selectedImage!);
+                        Navigator.pop(context); // العودة إلى الصفحة السابقة
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("الرجاء اختيار صورة"),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
                     },
                     child: const Text(
                       "حفظ",

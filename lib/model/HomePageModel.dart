@@ -17,7 +17,7 @@ class HomePageModel {
       userName: data['name'] ?? 'غير معروف',
       gender: data['gender'] ?? 'غير محدد',
       age: data['age'] ?? 0,
-      photoUrl: data['photoUrl'] ?? 'assets/images/default.png',
+      photoUrl: data['photoUrl'] ?? 'assets/images/girl.png',
     );
   }
 }

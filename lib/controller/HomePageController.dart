@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../view/HomePageView.dart';
+import 'package:manhal/view/ChildProfileView.dart';
 
 class HomePageController extends StatefulWidget {
   final String childID; // معرف الطفل
@@ -84,6 +85,20 @@ class _HomePageControllerState extends State<HomePageController> {
       age: childData!['age'] ?? 'غير معروف',
       gender: childData!['gender'] ?? 'غير معروف',
       photoUrl: childData!['photoUrl'] ?? 'غير معروف',
+      childID : widget.childID,
+      onProfileClick: (){ // التنقل إلى صفحة ChildProfileView عند النقر على "ملفي الشخصي"
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChildProfileView(
+      childID : widget.childID,
+              name: childData!['name'] ?? 'غير معروف',
+              age: childData!['age'] ?? 'غير معروف',
+              gender: childData!['gender'] ?? 'غير معروف',
+              photoUrl: childData!['photoUrl'] ?? 'assets/images/girl.png',
+            ),
+          ),
+        );},
       onUserNameClick: () {
         print('تم النقر على اسم الطفل');
       },
@@ -92,4 +107,6 @@ class _HomePageControllerState extends State<HomePageController> {
       },
     );
   }
+   
+      
 }

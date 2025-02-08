@@ -5,17 +5,21 @@ class HomePageView extends StatelessWidget {
   final String gender;
   final int age;
   final String photoUrl;
+  final String childID;
   final VoidCallback onUserNameClick; // عند النقر على اسم المستخدم
   final VoidCallback onScanImageClick; // عند النقر على زر مسح الصورة
+  final VoidCallback onProfileClick; // عند النقر على زر ملفي الشخصي
 
   const HomePageView({
     Key? key,
     required this.userName,
-    required this.onUserNameClick,
-    required this.onScanImageClick,
     required this.age,
+    required this.childID,
     required this.gender,
     required this.photoUrl,
+    required this.onUserNameClick,
+    required this.onScanImageClick,
+    required this.onProfileClick, // إضافة زر ملفي الشخصي
   }) : super(key: key);
 
   @override
@@ -28,7 +32,7 @@ class HomePageView extends StatelessWidget {
             decoration: const BoxDecoration(
               image: DecorationImage(
                 image: AssetImage('assets/images/BackGroundManhal.jpg'),
-                fit: BoxFit.cover, // لجعل الصورة تغطي الخلفية بالكامل
+                fit: BoxFit.cover,
               ),
             ),
           ),
@@ -45,9 +49,9 @@ class HomePageView extends StatelessWidget {
                   ),
                 ],
               ),
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 50,
-                backgroundImage: AssetImage('assets/avatar.png'),
+                backgroundImage: AssetImage(photoUrl),
               ),
               const SizedBox(height: 10),
 
@@ -63,11 +67,31 @@ class HomePageView extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10), // مسافة بسيطة
+
+              // زر "ملفي الشخصي"
+              ElevatedButton(
+                onPressed: onProfileClick,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.yellow[200],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  'ملفي الشخصي',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'Blabeloo',
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20), // مسافة بين الزر وباقي المحتوى
 
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 20.0, right:20, top: 40),
+                  padding: const EdgeInsets.only(left: 20.0, right: 20, top: 1),
                   child: GridView.count(
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
@@ -90,8 +114,7 @@ class HomePageView extends StatelessWidget {
                       _buildMenuItem(
                         title: 'رحلة الكلمات',
                         color: Colors.yellow[100]!,
-                        textColor: const Color(0xFFB1A782),
-                        iconText: 'ن ت ع ل م',
+                        textColor: const Color(0xFFB1A782),iconText: 'ن ت ع ل م',
                         iconSize: 70,
                         fontSize: 35,
                       ),
@@ -106,16 +129,19 @@ class HomePageView extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
 
+              // زر "مسح الصورة"
               Padding(
-                padding: const EdgeInsets.only(left: 20.0, right:20, bottom: 50),
+                padding: const EdgeInsets.only(left: 20.0, right: 20, bottom: 50),
                 child: ElevatedButton(
                   onPressed: onScanImageClick,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 197, 243, 235),
                     minimumSize: const Size(double.infinity, 100),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -131,14 +157,13 @@ class HomePageView extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 20,
                           fontFamily: 'Blabeloo',
-                          color: const Color(0xFF547F77),
+                          color: Color(0xFF547F77),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 20), // مسافة بسيطة تحت الزر
             ],
           ),
         ],

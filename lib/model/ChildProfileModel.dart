@@ -8,7 +8,7 @@ class ChildProfileModel {
     required this.name,
     required this.gender,
     required this.age,
-    this.selectedImage = 'assets/images/default.png', // صورة افتراضية
+    this.selectedImage = 'assets/images/girl.png', // صورة افتراضية
   });
 
   // تحميل البيانات من Firestore
@@ -17,7 +17,7 @@ class ChildProfileModel {
       name: data['name'] ?? 'غير معروف',
       gender: data['gender'] ?? 'غير محدد',
       age: data['age'] ?? 0,
-      selectedImage: data['selectedImage'] ?? 'assets/images/default.png',
+      selectedImage: data['selectedImage'] ?? 'assets/images/girl.png',
     );
   }
 
