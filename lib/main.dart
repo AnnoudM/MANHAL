@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:manhal/splash_screen.dart';
 import '../view/letter_view.dart';
 import 'firebase_options.dart'; // تأكد من استيراد ملف الإعدادات
 import 'package:manhal/view/InitialView.dart';
 import 'package:manhal/view/signup_view.dart';
+import 'package:manhal/view/login_view.dart'; // استيراد صفحة تسجيل الدخول
 import 'package:manhal/controller/HomePageController.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
@@ -35,7 +37,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-
       title: 'Flutter Firestore Test',
       locale: const Locale('ar'), // تعيين اللغة العربية
       builder: (context, child) {
@@ -49,7 +50,12 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: InitialPage(),
+      //initialRoute: '/signup', // تعيين المسار الافتراضي
+      routes: {
+        '/signup': (context) => const SignUpView(),
+        '/login': (context) => LoginView(), // تعريف مسار تسجيل الدخول
+      },
+      home: SplashScreen(),
     );
   }
 } 
@@ -121,4 +127,4 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-}
+} 

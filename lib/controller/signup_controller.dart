@@ -33,6 +33,17 @@ class SignUpController {
     }
   }
 
+ Future<bool> isEmailRegistered(String email) async {
+  final result = await _firestore
+      .collection('Parent')
+      .where('email', isEqualTo: email)
+      .get();
+
+  return result.docs.isNotEmpty;
+}
+
+
+
   // حفظ بيانات الوالد في Firestore
   Future<void> saveParentData(String uid, SignUpModel parent) async {
     await _firestore.collection('Parent').doc(uid).set(parent.toMap());

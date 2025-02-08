@@ -2,18 +2,33 @@ import 'package:flutter/material.dart';
 import '../controller/signup_controller.dart';
 import '../model/signup_model.dart';
 
-class SignUpView extends StatelessWidget {
+class SignUpView extends StatefulWidget {
   const SignUpView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final controller = SignUpController();
-    final _formKey = GlobalKey<FormState>();
+  _SignUpViewState createState() => _SignUpViewState();
+}
 
+class _SignUpViewState extends State<SignUpView> {
+  final controller = SignUpController();
+  final _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  @override
+  Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
         body: Center(
           child: SingleChildScrollView(
             child: Padding(
@@ -57,24 +72,39 @@ class SignUpView extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 15),
-                    _buildTextField(
+                    _buildPasswordField(
                       hintText: 'كلمة المرور',
                       controller: controller.passwordController,
-                      obscureText: true,
+                      obscureText: _obscurePassword,
+                      toggleVisibility: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'يرجى إدخال كلمة المرور';
                         } else if (value.length < 6) {
-                          return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                          return 'كلمة المرور لم تحقق الشروط المطلوبة';
                         }
                         return null;
                       },
                     ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      'يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل وتتضمن حرف كبير وحرف صغير ورقم.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
                     const SizedBox(height: 15),
-                    _buildTextField(
+                    _buildPasswordField(
                       hintText: 'تأكيد كلمة المرور',
                       controller: controller.confirmPasswordController,
-                      obscureText: true,
+                      obscureText: _obscureConfirmPassword,
+                      toggleVisibility: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'يرجى تأكيد كلمة المرور';
@@ -85,37 +115,53 @@ class SignUpView extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 30),
-                    _buildButton(
-                      text: 'متابعة',
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          String? result = await controller.registerParent(SignUpModel(
-                            name: controller.nameController.text,
-                            email: controller.emailController.text,
-                            password: controller.passwordController.text,
-                          ));
+                   _buildButton(
+  text: 'متابعة',
+  onPressed: () async {
+    if (_formKey.currentState!.validate()) {
+      // تحقق من وجود البريد الإلكتروني
+      bool emailExists = await controller.isEmailRegistered(controller.emailController.text);
 
-                          if (result != null && result.length > 5) {
-                            await controller.sendEmailVerification();
-                            controller.checkEmailVerification(context);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(result ?? "حدث خطأ أثناء التسجيل.")),
-                            );
-                          }
-                        }
-                      },
-                    ),
+      if (emailExists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('هذا البريد الإلكتروني مسجل مسبقاً.')),
+        );
+      } else {
+        String? result = await controller.registerParent(SignUpModel(
+          name: controller.nameController.text,
+          email: controller.emailController.text,
+          password: controller.passwordController.text,
+        ));
+
+        if (result != null && result.length > 5) {
+          await controller.sendEmailVerification();
+          controller.checkEmailVerification(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result ?? "حدث خطأ أثناء التسجيل.")),
+          );
+        }
+      }
+    }
+  },
+),
+
                     const SizedBox(height: 15),
-                    GestureDetector(
-                      onTap: () => controller.navigateToLogin(context),
-                      child: const Text(
-                        'لديك حساب بالفعل؟ سجل هنا',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('لديك حساب بالفعل؟ '),
+                        GestureDetector(
+                          onTap: () => Navigator.pushNamed(context, '/login'),
+                          child: const Text(
+                            'سجل هنا',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -150,6 +196,34 @@ class SignUpView extends StatelessWidget {
     );
   }
 
+  Widget _buildPasswordField({
+    required String hintText,
+    required TextEditingController controller,
+    required bool obscureText,
+    required VoidCallback toggleVisibility,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      validator: validator,
+      decoration: InputDecoration(
+        hintText: hintText,
+        filled: true,
+        fillColor: const Color(0xFFFFF5CC),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        suffixIcon: IconButton(
+          icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility),
+          onPressed: toggleVisibility,
+        ),
+      ),
+    );
+  }
+
   Widget _buildButton({required String text, required VoidCallback onPressed}) {
     return SizedBox(
       width: double.infinity,
@@ -173,4 +247,4 @@ class SignUpView extends StatelessWidget {
       ),
     );
   }
-}
+} 
