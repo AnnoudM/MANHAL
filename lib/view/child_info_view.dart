@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:manhal/view/InitialView.dart';
 import '../controller/signup_controller.dart';
 import '../model/child_model.dart';
 import '../model/signup_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../view/HomePageView.dart';
-//import '../view/ChildPhoto.dart';  // استيراد صفحة اختيار صورة الطفل
+import '../view/InitialView.dart';
 
 class ChildInfoView extends StatefulWidget {
   final SignUpModel? parentData;
@@ -18,40 +15,29 @@ class ChildInfoView extends StatefulWidget {
 class _ChildInfoViewState extends State<ChildInfoView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   String? _selectedGender;
   int? _age;
-  String? _selectedPhoto; // متغير لحفظ الصورة المختارة
+  String? _selectedPhoto;
 
   final SignUpController _controller = SignUpController();
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      String? parentId = FirebaseAuth.instance.currentUser?.uid;
-
-      if (parentId != null) {
-        if (widget.parentData != null) {
-          await _controller.saveParentData(parentId, widget.parentData!);
-        }
-
-        Child child = Child(
-          name: _nameController.text.trim(),
-          gender: _selectedGender!,
-          age: _age!,
-          photo: _selectedPhoto, // تمرير الصورة المختارة
-        );
-        await _controller.addChild(parentId, child);
-
+      if (widget.parentData == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تم تسجيل الطفل بنجاح.')),
+          SnackBar(content: Text('بيانات الوالد غير متوفرة')),
         );
-
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حدث خطأ أثناء تسجيل الطفل.')),
-        );
+        return;
       }
+
+      Child child = Child(
+        name: _nameController.text.trim(),
+        gender: _selectedGender!,
+        age: _age!,
+        photo: _selectedPhoto,
+      );
+
+      await _controller.registerParentAndChild(context, child, widget.parentData!);
     }
   }
 
@@ -171,7 +157,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                       onTap: () async {
                         final selectedPhoto = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => InitialPage()), ////// هنا احط صفحة الصور
+                          MaterialPageRoute(builder: (context) => InitialPage()),
                         );
                         if (selectedPhoto != null) {
                           setState(() {

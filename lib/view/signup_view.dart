@@ -127,20 +127,12 @@ class _SignUpViewState extends State<SignUpView> {
           SnackBar(content: Text('هذا البريد الإلكتروني مسجل مسبقاً.')),
         );
       } else {
-        String? result = await controller.registerParent(SignUpModel(
+        await controller.saveParentDataTemp(SignUpModel(
           name: controller.nameController.text,
           email: controller.emailController.text,
           password: controller.passwordController.text,
         ));
-
-        if (result != null && result.length > 5) {
-          await controller.sendEmailVerification();
-          controller.checkEmailVerification(context);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result ?? "حدث خطأ أثناء التسجيل.")),
-          );
-        }
+        controller.proceedToChildInfo(context);
       }
     }
   },

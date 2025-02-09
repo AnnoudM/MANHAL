@@ -4,6 +4,7 @@ import '../model/signup_model.dart';
 import '../model/child_model.dart';
 import 'package:flutter/material.dart';
 import '../view/child_info_view.dart';
+import '../view/InitialView.dart';
 
 class SignUpController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -15,41 +16,29 @@ class SignUpController {
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
 
-  // تسجيل الوالد وإرسال رابط التحقق
-  Future<String?> registerParent(SignUpModel parent) async {
-    try {
-      if (parent.password != confirmPasswordController.text) {
-        throw Exception("كلمتا المرور غير متطابقتين.");
-      }
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: parent.email,
-        password: parent.password,
-      );
-      await saveParentData(userCredential.user!.uid, parent);
-      await sendEmailVerification();
-      return userCredential.user!.uid;
-    } catch (e) {
-      return e.toString();
-    }
+  SignUpModel? _tempParentData;
+
+  // Save temporary parent data
+  Future<void> saveParentDataTemp(SignUpModel parent) async {
+    _tempParentData = parent;
   }
 
- Future<bool> isEmailRegistered(String email) async {
-  final result = await _firestore
-      .collection('Parent')
-      .where('email', isEqualTo: email)
-      .get();
+  // Check if email is registered
+  Future<bool> isEmailRegistered(String email) async {
+    final result = await _firestore
+        .collection('Parent')
+        .where('email', isEqualTo: email)
+        .get();
 
-  return result.docs.isNotEmpty;
-}
+    return result.docs.isNotEmpty;
+  }
 
-
-
-  // حفظ بيانات الوالد في Firestore
+  // Save parent data to Firestore
   Future<void> saveParentData(String uid, SignUpModel parent) async {
     await _firestore.collection('Parent').doc(uid).set(parent.toMap());
   }
 
-  // إضافة بيانات الطفل تحت الوالد في Firestore
+  // Add child data under parent in Firestore
   Future<void> addChild(String parentId, Child child) async {
     try {
       await _firestore
@@ -62,7 +51,7 @@ class SignUpController {
     }
   }
 
-  // إرسال رابط التحقق بالبريد الإلكتروني
+  // Send email verification
   Future<void> sendEmailVerification() async {
     User? user = _auth.currentUser;
     if (user != null && !user.emailVerified) {
@@ -71,7 +60,7 @@ class SignUpController {
     }
   }
 
-  // التحقق من تأكيد البريد الإلكتروني
+  // Check email verification
   Future<void> checkEmailVerification(BuildContext context) async {
     await _auth.currentUser?.reload();
     User? user = _auth.currentUser;
@@ -87,16 +76,14 @@ class SignUpController {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  proceedToChildInfo(
+                  Navigator.pushReplacement(
                     context,
-                    SignUpModel(
-                      name: nameController.text,
-                      email: emailController.text,
-                      password: passwordController.text,
+                    MaterialPageRoute(
+                      builder: (context) => InitialPage(),
                     ),
                   );
                 },
-                child: Text('متابعة'),
+                child: Text('حسناً'),
               ),
             ],
           );
@@ -121,18 +108,56 @@ class SignUpController {
     }
   }
 
-  // الانتقال إلى صفحة إدخال بيانات الطفل
-  void proceedToChildInfo(BuildContext context, SignUpModel parent) {
+  // Proceed to Child Info page
+  void proceedToChildInfo(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ChildInfoView(parentData: parent),
+        builder: (context) => ChildInfoView(parentData: _tempParentData),
       ),
     );
   }
 
-  // الانتقال إلى صفحة تسجيل الدخول
-  void navigateToLogin(BuildContext context) {
-    Navigator.pushNamed(context, '/login');
+  // Register parent and child, and send email verification
+  Future<void> registerParentAndChild(BuildContext context, Child child, SignUpModel parentData) async {
+  try {
+    UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      email: parentData.email,
+      password: parentData.password,
+    );
+
+    String parentId = userCredential.user!.uid;
+    await saveParentData(parentId, parentData);
+    await addChild(parentId, child);
+    await sendEmailVerification();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('تم إرسال رابط التحقق'),
+          content: Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => InitialPage(),
+                  ),
+                );
+              },
+              child: Text('حسناً'),
+            ),
+          ],
+        );
+      },
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(e.toString())),
+    );
   }
+} 
 }
