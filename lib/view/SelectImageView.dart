@@ -5,7 +5,7 @@ import '../model/SelectImageModel.dart';
 class SelectImageView extends StatefulWidget {
   final String childID; // معرف الطفل
 
-  const SelectImageView({Key? key, required this.childID}) : super(key: key);
+  const SelectImageView({super.key, required this.childID});
 
   @override
   _SelectImageViewState createState() => _SelectImageViewState();

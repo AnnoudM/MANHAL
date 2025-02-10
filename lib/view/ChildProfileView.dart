@@ -76,7 +76,7 @@ class _ChildProfileViewState extends State<ChildProfileView> {
 
               var childData = snapshot.data!.data() as Map<String, dynamic>;
               String updatedPhotoUrl =
-                  childData['photoUrl'] ?? 'assets/images/girl.png';
+                  childData['photoUrl'] ?? 'assets/images/default_avatar.jpg';
 
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,

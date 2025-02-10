@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../view/ChildListView.dart';
 
 class LoginController {
   final FirebaseAuth _auth = FirebaseAuth.instance;

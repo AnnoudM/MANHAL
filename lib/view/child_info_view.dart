@@ -6,7 +6,7 @@ import '../view/InitialView.dart';
 
 class ChildInfoView extends StatefulWidget {
   final SignUpModel? parentData;
-  ChildInfoView({this.parentData});
+  const ChildInfoView({super.key, this.parentData});
 
   @override
   _ChildInfoViewState createState() => _ChildInfoViewState();

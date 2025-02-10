@@ -91,7 +91,7 @@ class HomePageView extends StatelessWidget {
 
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 20.0, right: 20, top: 1),
+                  padding: const EdgeInsets.only(left: 20.0, right: 20),
                   child: GridView.count(
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
@@ -133,7 +133,7 @@ class HomePageView extends StatelessWidget {
 
               // زر "مسح الصورة"
               Padding(
-                padding: const EdgeInsets.only(left: 20.0, right: 20, bottom: 50),
+                padding: const EdgeInsets.only(left: 20.0, right: 20, bottom: 45),
                 child: ElevatedButton(
                   onPressed: onScanImageClick,
                   style: ElevatedButton.styleFrom(

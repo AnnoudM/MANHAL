@@ -6,8 +6,7 @@ import '../view/ChildProfileView.dart';
 
 class HomePageController extends StatefulWidget {
   final String childID; // معرف الطفل
-
-  const HomePageController({Key? key, required this.childID}) : super(key: key);
+  const HomePageController({super.key, required this.childID});
 
   @override
   _HomePageControllerState createState() => _HomePageControllerState();
@@ -57,22 +56,18 @@ class _HomePageControllerState extends State<HomePageController> {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-
         if (!snapshot.hasData || !snapshot.data!.exists) {
           return const Scaffold(
             body: Center(child: Text('⚠️ لا توجد بيانات لهذا الطفل')),
           );
         }
-
         var childData = snapshot.data!.data() as Map<String, dynamic>;
-
         return HomePageView(
           userName: childData['name'] ?? 'غير معروف',
           age: childData['age'] ?? 0,
           gender: childData['gender'] ?? 'غير معروف',
-          photoUrl: childData['photoUrl'] ?? 'assets/images/girl.png',
+          photoUrl: childData['photoUrl'] ?? 'assets/images/default_avatar.jpg',
           childID: widget.childID,
-
           // التنقل إلى صفحة ملف الطفل
           onProfileClick: () {
             Navigator.push(
@@ -83,16 +78,14 @@ class _HomePageControllerState extends State<HomePageController> {
                   name: childData['name'] ?? 'غير معروف',
                   age: childData['age'] ?? 0,
                   gender: childData['gender'] ?? 'غير معروف',
-                  photoUrl: childData['photoUrl'] ?? 'assets/images/girl.png',
+                  photoUrl: childData['photoUrl'] ?? 'assets/images/default_avatar.jpg',
                 ),
               ),
             );
           },
-
           onUserNameClick: () {
             print('تم النقر على اسم الطفل');
           },
-
           onScanImageClick: () {
             print('تم النقر على زر مسح الصورة');
           },

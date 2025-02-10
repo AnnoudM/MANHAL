@@ -5,6 +5,8 @@ import '../controller/HomePageController.dart';
 import '../view/child_info_view.dart';
 
 class ChildListView extends StatefulWidget {
+  const ChildListView({super.key});
+
   @override
   _ChildListViewState createState() => _ChildListViewState();
 }

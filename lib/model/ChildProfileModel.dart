@@ -8,7 +8,7 @@ class ChildProfileModel {
     required this.name,
     required this.gender,
     required this.age,
-    this.selectedImage = 'assets/images/girl.png', // صورة افتراضية
+    this.selectedImage = 'assets/images/default_avatar.jpg', // صورة افتراضية
   });
 
   // تحميل البيانات من Firestore

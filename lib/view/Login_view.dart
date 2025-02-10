@@ -3,6 +3,8 @@ import '../controller/Login_controller.dart';
 import '../view/ChildListView.dart';
 
 class LoginView extends StatefulWidget {
+  const LoginView({super.key});
+
   @override
   _LoginViewState createState() => _LoginViewState();
 }
