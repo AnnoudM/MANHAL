@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../view/HomePageView.dart';
 import '../view/ChildProfileView.dart';
 import '../view/letter_view.dart';
+import '../view/ArabicLettersView.dart';
 //import '../view/NumbersView.dart';
 //import '../view/WordsView.dart';
 //import '../view/EthicalView.dart';
@@ -114,7 +115,7 @@ class _HomePageControllerState extends State<HomePageController> {
             Widget targetPage;
             switch (item) {
               case 'رحلة الأحرف':
-                targetPage = const ArabicLetterPage(letter:'أ'); //   استبدلوها بصفحة الاحرف وسوو لها امبورت
+                targetPage = const ArabicLettersView(); //   استبدلوها بصفحة الاحرف وسوو لها امبورت
                 break;
               case 'رحلة الأرقام':
                 targetPage = const ArabicLetterPage(letter:'أ'); // استبدلوها بصفحة الارقام
