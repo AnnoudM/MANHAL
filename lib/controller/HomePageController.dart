@@ -3,6 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../view/HomePageView.dart';
 import '../view/ChildProfileView.dart';
+import '../view/letter_view.dart';
+//import '../view/NumbersView.dart';
+//import '../view/WordsView.dart';
+//import '../view/EthicalView.dart';
+//import '../view/ScanView.dart';
 
 class HomePageController extends StatefulWidget {
   final String childID; // معرف الطفل
@@ -68,7 +73,8 @@ class _HomePageControllerState extends State<HomePageController> {
           gender: childData['gender'] ?? 'غير معروف',
           photoUrl: childData['photoUrl'] ?? 'assets/images/default_avatar.jpg',
           childID: widget.childID,
-          // التنقل إلى صفحة ملف الطفل
+          
+          // 🔹 التنقل إلى صفحة "ملفي الشخصي"
           onProfileClick: () {
             Navigator.push(
               context,
@@ -83,11 +89,49 @@ class _HomePageControllerState extends State<HomePageController> {
               ),
             );
           },
-          onUserNameClick: () {
-            print('تم النقر على اسم الطفل');
-          },
+
+          // 🔹 التنقل إلى صفحة "مسح الصورة"
           onScanImageClick: () {
-            print('تم النقر على زر مسح الصورة');
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ArabicLetterPage(letter: 'أ')),
+            );
+          },
+          onSettingsClick: (){Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ArabicLetterPage(letter: 'أ')), // add settings navigate 
+            );},
+
+              onStickersClick: (){
+                Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ArabicLetterPage(letter: 'أ')), // add stickers navigate
+            );},
+
+
+          // 🔹 التنقل إلى الصفحات بناءً على العنصر الذي يتم الضغط عليه في GridView
+          onItemClick: (String item) {
+            Widget targetPage;
+            switch (item) {
+              case 'رحلة الأحرف':
+                targetPage = const ArabicLetterPage(letter:'أ'); //   استبدلوها بصفحة الاحرف وسوو لها امبورت
+                break;
+              case 'رحلة الأرقام':
+                targetPage = const ArabicLetterPage(letter:'أ'); // استبدلوها بصفحة الارقام
+                break;
+              case 'رحلة الكلمات':
+                targetPage = const ArabicLetterPage(letter:'أ'); // استبدلوها بصفحة الكلمات
+                break;
+              case 'القيم الأخلاقية':
+                targetPage = const ArabicLetterPage(letter:'أ'); // استبدلوها بصفحة القيم
+                break;
+              default:
+                return;
+            }
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => targetPage),
+            );
           },
         );
       },
