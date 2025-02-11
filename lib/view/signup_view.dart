@@ -45,11 +45,12 @@ class _SignUpViewState extends State<SignUpView> {
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
+                        fontFamily: 'alfont',
                       ),
                     ),
                     const SizedBox(height: 30),
                     _buildTextField(
-                      hintText: 'الاسم',
+                      hintText: 'الاسم باللغة العربية',
                       controller: controller.nameController,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -92,8 +93,8 @@ class _SignUpViewState extends State<SignUpView> {
                     ),
                     const SizedBox(height: 5),
                     const Text(
-                      'يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل وتتضمن حرف كبير وحرف صغير ورقم.',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      'يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل وتتضمن حروف وأرقام.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'alfont'),
                     ),
                     const SizedBox(height: 15),
                     _buildPasswordField(
@@ -124,7 +125,7 @@ class _SignUpViewState extends State<SignUpView> {
 
       if (emailExists) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('هذا البريد الإلكتروني مسجل مسبقاً.')),
+          SnackBar(content: Text('هذا البريد الإلكتروني مسجل مسبقاً.', style: TextStyle(fontFamily: 'alfont'))),
         );
       } else {
         await controller.saveParentDataTemp(SignUpModel(
@@ -142,7 +143,7 @@ class _SignUpViewState extends State<SignUpView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('لديك حساب بالفعل؟ '),
+                        const Text('لديك حساب بالفعل؟ ', style: TextStyle(fontFamily: 'alfont')),
                         GestureDetector(
                           onTap: () => Navigator.pushNamed(context, '/login'),
                           child: const Text(
@@ -150,6 +151,7 @@ class _SignUpViewState extends State<SignUpView> {
                             style: TextStyle(
                               color: Colors.blue,
                               decoration: TextDecoration.underline,
+                              fontFamily: 'alfont',
                             ),
                           ),
                         ),
@@ -177,6 +179,7 @@ class _SignUpViewState extends State<SignUpView> {
       validator: validator,
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: const TextStyle(fontFamily: 'alfont'),
         filled: true,
         fillColor: const Color(0xFFFFF5CC),
         border: OutlineInputBorder(
@@ -185,6 +188,7 @@ class _SignUpViewState extends State<SignUpView> {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       ),
+      style: const TextStyle(fontFamily: 'alfont'),
     );
   }
 
@@ -201,6 +205,7 @@ class _SignUpViewState extends State<SignUpView> {
       validator: validator,
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: const TextStyle(fontFamily: 'alfont'),
         filled: true,
         fillColor: const Color(0xFFFFF5CC),
         border: OutlineInputBorder(
@@ -213,6 +218,7 @@ class _SignUpViewState extends State<SignUpView> {
           onPressed: toggleVisibility,
         ),
       ),
+      style: const TextStyle(fontFamily: 'alfont'),
     );
   }
 
@@ -234,9 +240,10 @@ class _SignUpViewState extends State<SignUpView> {
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Colors.black,
+            fontFamily: 'alfont',
           ),
         ),
       ),
     );
   }
-} 
+}

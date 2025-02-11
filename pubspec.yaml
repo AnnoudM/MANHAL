@@ -90,6 +90,10 @@ flutter:
     - family: Uthman
       fonts:
         - asset: assets/fonts/UthmanicHafs_V22.ttf
+
+    - family: alfont
+      fonts:
+        - asset: assets/fonts/alfont.otf
   
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

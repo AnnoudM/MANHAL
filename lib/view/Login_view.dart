@@ -45,6 +45,7 @@ class _LoginViewState extends State<LoginView> {
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
+                        fontFamily: 'alfont',
                       ),
                     ),
                     const SizedBox(height: 30),
@@ -87,7 +88,7 @@ class _LoginViewState extends State<LoginView> {
                       const SizedBox(height: 10),
                       Text(
                         _errorMessage!,
-                        style: TextStyle(color: Colors.red),
+                        style: TextStyle(color: Colors.red, fontFamily: 'alfont'),
                       ),
                     ],
                     const SizedBox(height: 20),
@@ -118,7 +119,7 @@ class _LoginViewState extends State<LoginView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('ليس لديك حساب؟ '),
+                        const Text('ليس لديك حساب؟ ', style: TextStyle(fontFamily: 'alfont')),
                         GestureDetector(
                           onTap: () => _controller.navigateToSignUp(context),
                           child: const Text(
@@ -126,6 +127,7 @@ class _LoginViewState extends State<LoginView> {
                             style: TextStyle(
                               color: Colors.blue,
                               decoration: TextDecoration.underline,
+                              fontFamily: 'alfont',
                             ),
                           ),
                         ),
@@ -153,6 +155,7 @@ class _LoginViewState extends State<LoginView> {
                         style: TextStyle(
                           color: Colors.grey,
                           decoration: TextDecoration.underline,
+                          fontFamily: 'alfont',
                         ),
                       ),
                     ),
@@ -179,6 +182,7 @@ class _LoginViewState extends State<LoginView> {
       validator: validator,
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: const TextStyle(fontFamily: 'alfont'),
         filled: true,
         fillColor: const Color(0xFFFFF5CC),
         border: OutlineInputBorder(
@@ -188,6 +192,7 @@ class _LoginViewState extends State<LoginView> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         suffixIcon: suffixIcon,
       ),
+      style: const TextStyle(fontFamily: 'alfont'),
     );
   }
 
@@ -209,6 +214,7 @@ class _LoginViewState extends State<LoginView> {
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Colors.black,
+            fontFamily: 'alfont',
           ),
         ),
       ),
