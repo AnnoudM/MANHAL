@@ -80,6 +80,7 @@ flutter:
   - assets/images/girl5.png
   - assets/images/splash.png
   - assets/images/default_avatar.jpg
+  - assets/images/stickers_icon.png
 
   fonts:
     - family: Blabeloo

@@ -82,25 +82,29 @@ class _ChildProfileViewState extends State<ChildProfileView> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Stack(
-                    alignment: Alignment.bottomRight,
+                    alignment: Alignment.topRight, // تغيير محاذاة الأيقونة للأعلى قليلاً
                     children: [
                       CircleAvatar(
                         backgroundImage: AssetImage(updatedPhotoUrl),
                         radius: 70,
                       ),
-                      IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SelectImageView(
-                                childID: widget.childID,
+                      Positioned(
+                        bottom: -10, // 🔹 رفع الأيقونة قليلاً للأعلى
+                        right: -10, // 🔹 إبعادها قليلاً عن الصورة
+                        child: IconButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SelectImageView(
+                                  childID: widget.childID,
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.edit, color: Colors.black),
-                        iconSize: 40,
+                            );
+                          },
+                          icon: const Icon(Icons.edit, color: Colors.black),
+                          iconSize: 30,
+                        ),
                       ),
                     ],
                   ),
@@ -114,14 +118,14 @@ class _ChildProfileViewState extends State<ChildProfileView> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Row(mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Column(
                         children: [
                           const Text(
                             "العمر:",
-                            style: TextStyle(fontSize: 18,
+                            style: TextStyle(
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
                             ),

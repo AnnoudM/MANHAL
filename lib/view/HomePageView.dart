@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
 class HomePageView extends StatelessWidget {
-  final String userName; // اسم المستخدم المسترجع
+  final String userName;
   final String gender;
   final int age;
   final String photoUrl;
   final String childID;
-  final VoidCallback onUserNameClick; // عند النقر على اسم المستخدم
-  final VoidCallback onScanImageClick; // عند النقر على زر مسح الصورة
-  final VoidCallback onProfileClick; // عند النقر على زر ملفي الشخصي
+  final VoidCallback onScanImageClick;
+  final VoidCallback onProfileClick;
+  final VoidCallback onSettingsClick; // تم إضافة التنقل إلى صفحة الإعدادات
+  final VoidCallback onStickersClick; // تم إضافة التنقل إلى صفحة الـ Stickers
+  final Function(String) onItemClick; // التنقل إلى الصفحات
 
   const HomePageView({
     Key? key,
@@ -17,9 +19,11 @@ class HomePageView extends StatelessWidget {
     required this.childID,
     required this.gender,
     required this.photoUrl,
-    required this.onUserNameClick,
     required this.onScanImageClick,
-    required this.onProfileClick, // إضافة زر ملفي الشخصي
+    required this.onProfileClick,
+    required this.onSettingsClick,
+    required this.onStickersClick,
+    required this.onItemClick,
   }) : super(key: key);
 
   @override
@@ -36,19 +40,34 @@ class HomePageView extends StatelessWidget {
               ),
             ),
           ),
-          // المحتوى
           Column(
             children: [
-              AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.settings, color: Colors.black),
-                    onPressed: () {},
-                  ),
-                ],
+              // ✅ الصف العلوي يحتوي على أيقونة الإعدادات و أيقونة الستكرز
+              Padding(
+                padding: const EdgeInsets.only(top: 35, left: 20, right: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // 🔹 أيقونة الستكرز
+                    GestureDetector(
+                      onTap: onStickersClick,
+                      child: Image.asset(
+                        'assets/images/stickers_icon.png', // استبدل بالمسار الصحيح
+                        width: 40,
+                        height: 40,
+                      ),
+                    ),
+                    // 🔹 أيقونة الإعدادات
+                    GestureDetector(
+                      onTap: onSettingsClick,
+                      child: const Icon(Icons.settings, color: Colors.black, size: 35),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(height: 20),
+
+              // صورة الطفل
               CircleAvatar(
                 radius: 50,
                 backgroundImage: AssetImage(photoUrl),
@@ -56,7 +75,6 @@ class HomePageView extends StatelessWidget {
               const SizedBox(height: 10),
 
               GestureDetector(
-                onTap: onUserNameClick,
                 child: Text(
                   'مرحبًا $userName!',
                   style: const TextStyle(
@@ -67,7 +85,7 @@ class HomePageView extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 10), // مسافة بسيطة
+              const SizedBox(height: 10),
 
               // زر "ملفي الشخصي"
               ElevatedButton(
@@ -87,22 +105,22 @@ class HomePageView extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 20), // مسافة بين الزر وباقي المحتوى
+              const SizedBox(height: 20),
 
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 20.0, right: 20),
+                 padding: const EdgeInsets.only(left: 20.0, right: 20),
                   child: GridView.count(
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                     children: [
-                      _buildMenuItem(
-                        title: 'رحلة الأحرف',
+                      _buildMenuItem(title: 'رحلة الأحرف',
                         color: Colors.lightBlue[100]!,
                         textColor: const Color(0xFF638297),
                         iconPath: 'assets/images/letterIcon.png',
                         iconSize: 60,
+                        onTap: () => onItemClick('رحلة الأحرف'),
                       ),
                       _buildMenuItem(
                         title: 'رحلة الأرقام',
@@ -110,13 +128,16 @@ class HomePageView extends StatelessWidget {
                         textColor: const Color(0xFF7A6B7D),
                         iconText: '١٢٣',
                         iconSize: 60,
+                        onTap: () => onItemClick('رحلة الأرقام'),
                       ),
                       _buildMenuItem(
                         title: 'رحلة الكلمات',
                         color: Colors.yellow[100]!,
-                        textColor: const Color(0xFFB1A782),iconText: 'ن ت ع ل م',
+                        textColor: const Color(0xFFB1A782),
+                        iconText: 'ن ت ع ل م',
                         iconSize: 70,
                         fontSize: 35,
+                        onTap: () => onItemClick('رحلة الكلمات'),
                       ),
                       _buildMenuItem(
                         title: 'القيم الأخلاقية',
@@ -124,6 +145,7 @@ class HomePageView extends StatelessWidget {
                         textColor: const Color.fromARGB(255, 124, 80, 108),
                         iconPath: 'assets/images/ethicalIcon.png',
                         iconSize: 60,
+                        onTap: () => onItemClick('القيم الأخلاقية'),
                       ),
                     ],
                   ),
@@ -133,7 +155,7 @@ class HomePageView extends StatelessWidget {
 
               // زر "مسح الصورة"
               Padding(
-                padding: const EdgeInsets.only(left: 20.0, right: 20, bottom: 45),
+                padding: const EdgeInsets.only(left: 20.0, right: 20, bottom: 30),
                 child: ElevatedButton(
                   onPressed: onScanImageClick,
                   style: ElevatedButton.styleFrom(
@@ -179,43 +201,46 @@ class HomePageView extends StatelessWidget {
     String? iconText,
     double iconSize = 50,
     double fontSize = 40,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (iconPath != null)
-              Image.asset(
-                iconPath,
-                width: iconSize,
-                height: iconSize,
-              ),
-            if (iconText != null)
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (iconPath != null)
+                Image.asset(
+                  iconPath,
+                  width: iconSize,
+                  height: iconSize,
+                ),
+              if (iconText != null)
+                Text(
+                  iconText,
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontFamily: 'Blabeloo',
+                    fontWeight: FontWeight.bold,
+                    color: textColor,),
+                ),
+              const SizedBox(height: 5),
               Text(
-                iconText,
+                title,
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: fontSize,
+                  fontSize: 16,
                   fontFamily: 'Blabeloo',
-                  fontWeight: FontWeight.bold,
                   color: textColor,
                 ),
               ),
-            const SizedBox(height: 5),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontFamily: 'Blabeloo',
-                color: textColor,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
