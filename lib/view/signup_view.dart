@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../controller/signup_controller.dart';
 import '../model/signup_model.dart';
 
@@ -14,6 +15,7 @@ class _SignUpViewState extends State<SignUpView> {
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  String? _emailError;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +51,7 @@ class _SignUpViewState extends State<SignUpView> {
                       ),
                     ),
                     const SizedBox(height: 30),
-                    _buildTextField(
+                    _buildNameField(
                       hintText: 'الاسم باللغة العربية',
                       controller: controller.nameController,
                       validator: (value) {
@@ -64,12 +66,25 @@ class _SignUpViewState extends State<SignUpView> {
                       hintText: 'البريد الإلكتروني',
                       controller: controller.emailController,
                       validator: (value) {
+                        final arabicCharRegex = RegExp(r'[\u0600-\u06FF]');
                         if (value == null || value.isEmpty) {
                           return 'يرجى إدخال البريد الإلكتروني';
+                        } else if (arabicCharRegex.hasMatch(value)) {
+                          return 'لا يسمح باستخدام الأحرف العربية في البريد الإلكتروني';
                         } else if (!value.contains('@')) {
                           return 'يرجى إدخال بريد إلكتروني صحيح';
+                        } else if (_emailError != null) {
+                          return _emailError;
                         }
                         return null;
+                      },
+                      onChanged: (value) {
+                        if (_emailError != null) {
+                          setState(() {
+                            _emailError = null;  // إزالة رسالة الخطأ عند التعديل
+                          });
+                          _formKey.currentState!.validate();  // إعادة التحقق مباشرة
+                        }
                       },
                     ),
                     const SizedBox(height: 15),
@@ -83,18 +98,23 @@ class _SignUpViewState extends State<SignUpView> {
                         });
                       },
                       validator: (value) {
+                        final passwordRegex = RegExp(r'^(?=.*[A-Za-z])(?=.*\d).{6,}\$');
                         if (value == null || value.isEmpty) {
                           return 'يرجى إدخال كلمة المرور';
-                        } else if (value.length < 6) {
-                          return 'كلمة المرور لم تحقق الشروط المطلوبة';
+                        } else if (!passwordRegex.hasMatch(value)) {
+                          return 'كلمة المرور لا تطابق الشروط المطلوبة!';
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 5),
-                    const Text(
-                      'يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل وتتضمن حروف وأرقام.',
-                      style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'alfont'),
+                    const Align(
+                      alignment: Alignment.centerRight,  // لضبط النص إلى اليمين
+                      child: Text(
+                        'يجب أن تحتوي كلمة المرور على 6 خانات على الأقل وتتضمن أحرف وأرقام.',
+                        style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'alfont'),
+                        textAlign: TextAlign.right,  // لضبط النص لليمين
+                      ),
                     ),
                     const SizedBox(height: 15),
                     _buildPasswordField(
@@ -120,24 +140,30 @@ class _SignUpViewState extends State<SignUpView> {
   text: 'متابعة',
   onPressed: () async {
     if (_formKey.currentState!.validate()) {
-      // تحقق من وجود البريد الإلكتروني
       bool emailExists = await controller.isEmailRegistered(controller.emailController.text);
 
       if (emailExists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('هذا البريد الإلكتروني مسجل مسبقاً.', style: TextStyle(fontFamily: 'alfont'))),
-        );
+        setState(() {
+          _emailError = 'هذا البريد الإلكتروني مسجل مسبقاً!';
+        });
+        _formKey.currentState!.validate();  // إعادة التحقق لإظهار رسالة الخطأ
       } else {
-        await controller.saveParentDataTemp(SignUpModel(
-          name: controller.nameController.text,
-          email: controller.emailController.text,
-          password: controller.passwordController.text,
-        ));
-        controller.proceedToChildInfo(context);
+        setState(() {
+          _emailError = null;
+        });
+        if (_formKey.currentState!.validate()) {  // إعادة التحقق لإخفاء الرسائل عند التصحيح
+          await controller.saveParentDataTemp(SignUpModel(
+            name: controller.nameController.text,
+            email: controller.emailController.text,
+            password: controller.passwordController.text,
+          ));
+          controller.proceedToChildInfo(context);
+        }
       }
     }
   },
 ),
+
 
                     const SizedBox(height: 15),
                     Row(
@@ -167,16 +193,19 @@ class _SignUpViewState extends State<SignUpView> {
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildNameField({
     required String hintText,
     required TextEditingController controller,
-    bool obscureText = false,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
-      obscureText: obscureText,
       validator: validator,
+      textDirection: TextDirection.rtl,
+      keyboardType: TextInputType.text,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[\u0600-\u06FF\s]')),
+      ],
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(fontFamily: 'alfont'),
@@ -187,10 +216,40 @@ class _SignUpViewState extends State<SignUpView> {
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
       ),
       style: const TextStyle(fontFamily: 'alfont'),
     );
   }
+
+  Widget _buildTextField({
+  required String hintText,
+  required TextEditingController controller,
+  bool obscureText = false,
+  String? Function(String?)? validator,
+  void Function(String)? onChanged,  // إضافة الباراميتر هنا
+}) {
+  return TextFormField(
+    controller: controller,
+    obscureText: obscureText,
+    validator: validator,
+    onChanged: onChanged,  // استخدام الباراميتر هنا
+    decoration: InputDecoration(
+      hintText: hintText,
+      hintStyle: const TextStyle(fontFamily: 'alfont'),
+      filled: true,
+      fillColor: const Color(0xFFFFF5CC),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
+    ),
+    style: const TextStyle(fontFamily: 'alfont'),
+  );
+}
+
 
   Widget _buildPasswordField({
     required String hintText,
@@ -217,6 +276,7 @@ class _SignUpViewState extends State<SignUpView> {
           icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility),
           onPressed: toggleVisibility,
         ),
+        errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
       ),
       style: const TextStyle(fontFamily: 'alfont'),
     );
