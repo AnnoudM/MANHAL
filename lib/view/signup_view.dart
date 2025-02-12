@@ -141,29 +141,37 @@ class _SignUpViewState extends State<SignUpView> {
                    _buildButton(
   text: 'متابعة',
   onPressed: () async {
-    if (_formKey.currentState!.validate()) {
-      bool emailExists = await controller.isEmailRegistered(controller.emailController.text);
+  if (_formKey.currentState!.validate()) {
+    bool emailExists = await controller.isEmailRegistered(controller.emailController.text);
 
-      if (emailExists) {
-        setState(() {
-          _emailError = 'هذا البريد الإلكتروني مسجل مسبقاً!';
-        });
-        _formKey.currentState!.validate();  // إعادة التحقق لإظهار رسالة الخطأ
-      } else {
-        setState(() {
-          _emailError = null;
-        });
-        if (_formKey.currentState!.validate()) {  // إعادة التحقق لإخفاء الرسائل عند التصحيح
-          await controller.saveParentDataTemp(SignUpModel(
-            name: controller.nameController.text,
-            email: controller.emailController.text,
-            password: controller.passwordController.text,
-          ));
-          controller.proceedToChildInfo(context);
+    if (emailExists) {
+      setState(() {
+        _emailError = 'هذا البريد الإلكتروني مسجل مسبقاً!';
+      });
+      _formKey.currentState!.validate();  // إعادة التحقق لإظهار رسالة الخطأ
+    } else {
+      setState(() {
+        _emailError = null;
+      });
+      if (_formKey.currentState!.validate()) {  // إعادة التحقق لإخفاء الرسائل عند التصحيح
+        await controller.saveParentDataTemp(SignUpModel(
+          name: controller.nameController.text,
+          email: controller.emailController.text,
+          password: controller.passwordController.text,
+        ));
+
+        // الحصول على معرف المستخدم (الوالد) من Firebase بعد التسجيل
+        String? parentId = FirebaseAuth.instance.currentUser?.uid;
+
+        // التأكد من أن الـ context لا يزال متاحاً قبل استدعاء الدالة
+        if (mounted && parentId != null) {
+          controller.proceedToChildInfo(context, parentId);  // تمرير معرف الوالد مع الـ context
         }
       }
     }
-  },
+  }
+},
+
 ),
 
 

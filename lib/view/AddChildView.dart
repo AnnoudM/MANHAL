@@ -2,51 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../controller/signup_controller.dart';
 import '../model/child_model.dart';
-import '../model/signup_model.dart';
-import '../view/InitialView.dart';
 import '../view/SelectImageView.dart';
+import '../controller/ChildController.dart';
 
-class ChildInfoView extends StatefulWidget {
-  final SignUpModel? parentData;
-  final String parentId; // إضافة معرف الوالد هنا
-
-  const ChildInfoView({super.key, this.parentData, required this.parentId});
+class AddChildView extends StatefulWidget {
+  final String parentId;
+  const AddChildView({super.key, required this.parentId});
 
   @override
-  _ChildInfoViewState createState() => _ChildInfoViewState();
+  _AddChildViewState createState() => _AddChildViewState();
 }
 
-
-class _ChildInfoViewState extends State<ChildInfoView> {
+class _AddChildViewState extends State<AddChildView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   String? _selectedGender;
   int? _age;
   String? _selectedPhoto;
 
-  final SignUpController _controller = SignUpController();
+  final ChildController _controller = ChildController();
+
 
   void _submit() async {
-  if (_formKey.currentState!.validate()) {
-    if (widget.parentData == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('بيانات الوالد غير متوفرة')),
+    if (_formKey.currentState!.validate()) {
+      Child child = Child(
+        name: _nameController.text.trim(),
+        gender: _selectedGender!,
+        age: _age!,
+        photoUrl: _selectedPhoto,
+        parentId: widget.parentId, 
       );
-      return;
+
+      await _controller.addChildToParent(context, widget.parentId, child);
     }
-
-    Child child = Child(
-      name: _nameController.text.trim(),
-      gender: _selectedGender!,
-      age: _age!,
-      photoUrl: _selectedPhoto, // تأكد من حفظ الصورة المختارة هنا
-      parentId: widget.parentId,
-    );
-
-    await _controller.registerParentAndChild(context, child, widget.parentData!);
   }
-}
-
 
   Widget _buildTextField({
     required String hintText,
@@ -146,7 +135,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () {
-              Navigator.pop(context, widget.parentData);
+              Navigator.pop(context);
             },
           ),
         ),
@@ -161,7 +150,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Text(
-                      'سجل طفلك الأول',
+                      'اضافة طفل',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
@@ -173,9 +162,9 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                     GestureDetector(
                       onTap: () async {
                         final selectedPhoto = await Navigator.push(
-  context,
-  MaterialPageRoute(builder: (context) => const SelectImageView()), // لا ترسل childID
-);
+                          context,
+                          MaterialPageRoute(builder: (context) => const SelectImageView()),
+                        );
                         if (selectedPhoto != null) {
                           setState(() {
                             _selectedPhoto = selectedPhoto;
@@ -228,7 +217,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                     ),
                     const SizedBox(height: 30),
                     _buildButton(
-                      text: 'تسجيل',
+                      text: 'اضافة',
                       onPressed: _submit,
                     ),
                   ],

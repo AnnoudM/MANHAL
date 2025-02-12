@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../controller/HomePageController.dart';
 import '../view/child_info_view.dart';
 import '../model/signup_model.dart';
-
+import '../view/AddChildView.dart';
 
 class ChildListView extends StatefulWidget {
   const ChildListView({super.key});
@@ -24,23 +24,12 @@ class _ChildListViewState extends State<ChildListView> {
     parentId = _auth.currentUser?.uid ?? ''; // جلب معرف الوالد الحالي
   }
 
-  Future<List<Map<String, dynamic>>> fetchChildren() async {
-    List<Map<String, dynamic>> children = [];
-    if (parentId.isNotEmpty) {
-      var snapshot = await _firestore
-          .collection('Parent')
-          .doc(parentId)
-          .collection('Children')
-          .get();
-
-      for (var doc in snapshot.docs) {
-        children.add({
-          'id': doc.id, // معرف الطفل (Document ID)
-          'data': doc.data(), // بيانات الطفل
-        });
-      }
-    }
-    return children;
+  Stream<QuerySnapshot> fetchChildrenStream() {
+    return _firestore
+        .collection('Parent')
+        .doc(parentId)
+        .collection('Children')
+        .snapshots(); // مراقبة التغيرات في قاعدة البيانات بشكل مباشر
   }
 
   @override
@@ -73,17 +62,17 @@ class _ChildListViewState extends State<ChildListView> {
                 ),
                 const SizedBox(height: 30),
                 Expanded(
-                  child: FutureBuilder<List<Map<String, dynamic>>>(
-                    future: fetchChildren(),
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: fetchChildrenStream(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const CircularProgressIndicator();
                       } else if (snapshot.hasError) {
                         return const Text('حدث خطأ أثناء تحميل البيانات');
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                         return const Text('لا يوجد أطفال مسجلين');
                       } else {
-                        var children = snapshot.data!;
+                        var children = snapshot.data!.docs;
                         return GridView.builder(
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
@@ -95,8 +84,8 @@ class _ChildListViewState extends State<ChildListView> {
                             if (index == children.length) {
                               return _buildAddChildButton();
                             } else {
-                              var child = children[index];
-                              return _buildChildAvatar(child['id'], child['data']);
+                              var childData = children[index].data() as Map<String, dynamic>;
+                              return _buildChildAvatar(children[index].id, childData);
                             }
                           },
                         );
@@ -148,14 +137,13 @@ class _ChildListViewState extends State<ChildListView> {
   }
 
   /// بناء زر لإضافة طفل جديد
-  /// بناء زر لإضافة طفل جديد
   Widget _buildAddChildButton() {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChildInfoView(),
+            builder: (context) => AddChildView(parentId: parentId),
           ),
         );
       },

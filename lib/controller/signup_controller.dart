@@ -109,14 +109,18 @@ class SignUpController {
   }
 
   // Proceed to Child Info page
-  void proceedToChildInfo(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChildInfoView(parentData: _tempParentData),
+  void proceedToChildInfo(BuildContext context, String parentId) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ChildInfoView(
+        parentData: _tempParentData,
+        parentId: parentId, // تمرير معرف الوالد
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   // Register parent and child, and send email verification
   Future<void> registerParentAndChild(BuildContext context, Child child, SignUpModel parentData) async {
@@ -127,9 +131,13 @@ class SignUpController {
       );
 
       String parentId = userCredential.user!.uid;
-      await saveParentData(parentId, parentData);
-      await addChild(parentId, child);
-      await sendEmailVerification();
+await saveParentData(parentId, parentData);
+await addChild(parentId, child);
+await sendEmailVerification();
+
+// استدعاء الصفحة بعد التسجيل
+proceedToChildInfo(context, parentId);
+
 
       showDialog(
         context: context,
