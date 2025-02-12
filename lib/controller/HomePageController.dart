@@ -102,7 +102,7 @@ class _HomePageControllerState extends State<HomePageController> {
           },
           onSettingsClick: (){Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const SettingsView()), // add settings navigate 
+              MaterialPageRoute(builder: (context) => SettingsView()), // add settings navigate 
             );},
 
               onStickersClick: (){
