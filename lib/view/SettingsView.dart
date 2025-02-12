@@ -1,91 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../view/InitialView.dart';
+import '../controller/SettingsCont.dart';
+import '../model/SettingsModel.dart';
 
 class SettingsView extends StatelessWidget {
-  const SettingsView({super.key});
+  final SettingsController controller = SettingsController();
 
-  Future<void> _logout(BuildContext context) async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'تم تسجيل الخروج بنجاح',
-            style: TextStyle(fontFamily: 'alfont'),
-          ),
-          backgroundColor: Colors.green[300],
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const InitialPage()),
-        (Route<dynamic> route) => false,
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'حدث خطأ أثناء تسجيل الخروج: $e',
-            style: const TextStyle(fontFamily: 'alfont'),
-          ),
-          backgroundColor: Colors.red[300],
-        ),
-      );
-    }
-  }
-
-  void _showLogoutConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'تأكيد تسجيل الخروج',
-            style: TextStyle(fontFamily: 'alfont'),
-          ),
-          content: const Text(
-            'هل أنت متأكد أنك تريد تسجيل الخروج؟',
-            style: TextStyle(fontFamily: 'alfont'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(fontFamily: 'alfont'),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _logout(context);
-              },
-              child: const Text(
-                'تسجيل الخروج',
-                style: TextStyle(fontFamily: 'alfont'),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  SettingsView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: Colors.transparent, // نفس لون الخلفية
           elevation: 0,
+          centerTitle: true, // وضع العنوان في المنتصف
           title: const Text(
             'الإعدادات',
             style: TextStyle(
               color: Colors.black,
-              fontSize: 24,
+              fontSize: 28,
               fontWeight: FontWeight.bold,
               fontFamily: 'alfont',
             ),
@@ -110,19 +46,10 @@ class SettingsView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.black),
-                    title: const Text(
-                      'تسجيل الخروج',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontFamily: 'alfont',
-                      ),
-                    ),
-                    onTap: () => _showLogoutConfirmation(context),
-                  ),
+                  for (var setting in settingsOptions)
+                    _buildSettingsOption(context, setting.title),
+                  const Spacer(),
+                  _buildLogoutButton(context),
                 ],
               ),
             ),
@@ -131,4 +58,62 @@ class SettingsView extends StatelessWidget {
       ),
     );
   }
-} 
+
+  Widget _buildSettingsOption(BuildContext context, String title) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ListTile(
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+            fontFamily: 'alfont',
+          ),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),  // تعديل اتجاه السهم
+        onTap: () => controller.onSettingSelected(context, title),
+      ),
+    ),
+  );
+}
+
+
+  Widget _buildLogoutButton(BuildContext context) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.redAccent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        shadowColor: Colors.grey.withOpacity(0.5),
+        elevation: 5,
+        padding: const EdgeInsets.symmetric(vertical: 15),
+      ),
+      onPressed: () => controller.logout(context),
+      child: const Text(
+        'تسجيل الخروج',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          fontFamily: 'alfont',
+        ),
+      ),
+    );
+  }
+}
