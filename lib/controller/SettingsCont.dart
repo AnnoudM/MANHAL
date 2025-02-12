@@ -1,22 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../view/InitialView.dart';
+import '../view/ChildListView.dart';
 
-class SettingsController {
+class SettingsController {  // ✅ تأكد أن كل الدوال داخل الكلاس
+
   void onSettingSelected(BuildContext context, String settingName) {
-    // حالياً فقط رسالة عند النقر
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$settingName تم النقر عليه!',
-          style: const TextStyle(fontFamily: 'alfont'),
+    if (settingName == 'أطفالي') {
+      _navigateToChildList(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '$settingName تم النقر عليه!',
+            style: const TextStyle(fontFamily: 'alfont'),
+          ),
+          backgroundColor: Colors.blueAccent,
+          duration: const Duration(seconds: 1),
         ),
-        backgroundColor: Colors.blueAccent,
-        duration: const Duration(seconds: 1),
-      ),
+      );
+    }
+  }
+
+  void _navigateToChildList(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ChildListView()),
     );
   }
 
+  // ✅ تأكد أن هذه الدالة داخل الكلاس
   void logout(BuildContext context) {
     showDialog(
       context: context,
@@ -40,8 +53,8 @@ class SettingsController {
             ),
             TextButton(
               onPressed: () async {
-                Navigator.of(context).pop(); // إغلاق نافذة التأكيد
-                await _signOutUser(context); // تنفيذ تسجيل الخروج
+                Navigator.of(context).pop();
+                await _signOutUser(context);
               },
               child: const Text(
                 'تسجيل الخروج',
@@ -56,9 +69,8 @@ class SettingsController {
 
   Future<void> _signOutUser(BuildContext context) async {
     try {
-      await FirebaseAuth.instance.signOut();  // تسجيل الخروج من فايربيس
+      await FirebaseAuth.instance.signOut();
 
-      // عرض رسالة نجاح
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
@@ -70,14 +82,12 @@ class SettingsController {
         ),
       );
 
-      // الانتقال إلى صفحة InitialPage بعد تسجيل الخروج
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const InitialPage()),
         (Route<dynamic> route) => false,
       );
     } catch (e) {
-      // في حال حدوث خطأ أثناء تسجيل الخروج
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
