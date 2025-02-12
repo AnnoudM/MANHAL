@@ -6,6 +6,7 @@ import '../view/ChildProfileView.dart';
 import '../view/letter_view.dart';
 import '../view/ArabicLettersView.dart';
 import '../view/SettingsView.dart';
+import '../view/ArabicNumberView.dart';
 //import '../view/NumbersView.dart';
 //import '../view/WordsView.dart';
 //import '../view/EthicalView.dart';
@@ -119,7 +120,7 @@ class _HomePageControllerState extends State<HomePageController> {
                 targetPage = const ArabicLettersView(); //   استبدلوها بصفحة الاحرف وسوو لها امبورت
                 break;
               case 'رحلة الأرقام':
-                targetPage = const ArabicLetterPage(letter:'أ'); // استبدلوها بصفحة الارقام
+                targetPage = const ArabicNumberView(); // استبدلوها بصفحة الارقام
                 break;
               case 'رحلة الكلمات':
                 targetPage = const ArabicLetterPage(letter:'أ'); // استبدلوها بصفحة الكلمات

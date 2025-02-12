@@ -82,6 +82,8 @@ flutter:
   - assets/images/splash.png
   - assets/images/default_avatar.jpg
   - assets/images/stickers_icon.png
+  - assets/images/carrot.png
+  - assets/images/NumberBackground.png
 
   fonts:
     - family: Blabeloo

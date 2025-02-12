@@ -1,90 +1,143 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; 
 import 'package:flutter_tts/flutter_tts.dart'; // For Text-to-Speech functionality
+import '../controller/NumbersController.dart';
 
-class LearnNumberPage extends StatelessWidget {
+class LearnNumberPage extends StatefulWidget {
+  final int number; // Receive the selected number
+  const LearnNumberPage({super.key, required this.number});
+
+  @override
+  _LearnNumberPageState createState() => _LearnNumberPageState();
+}
+
+class _LearnNumberPageState extends State<LearnNumberPage> {
   final FlutterTts flutterTts = FlutterTts(); // TTS instance
+  final NumbersController _controller = NumbersController();
+  Map<String, dynamic>? numberData;
+  bool isLoading = true;
 
-  // Function to speak the number "1" in Arabic
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  // Fetch data from Firebase
+  void fetchData() async {
+    try {
+      final data = await _controller.fetchData(widget.number);
+      setState(() {
+        numberData = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Error fetching data: $e");
+      setState(() => isLoading = false);
+    }
+  }
+
+  // Function to speak the number in Arabic
   void _speakNumber() async {
-    await flutterTts.setLanguage("ar-SA"); // Set language to Arabic
-    await flutterTts.speak("واحد"); // Speak the Arabic word for "one"
+    if (numberData != null && numberData!['arabic_word'] != null) {
+      await flutterTts.setLanguage("ar-SA"); // Set language to Arabic
+      await flutterTts.speak(numberData!['arabic_word']); // Speak from Firebase data
+    } else {
+      print("No Arabic word available to speak.");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // Top part white
-      body: Column(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Container(
-              color: Color(0xFFF9EAFB), // Light pink background for the main content
-              width: double.infinity ,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "١", // Arabic numeral for 1
-                    style: TextStyle(
-                      fontSize: 200, // Larger font size
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                      fontFamily:'Blabeloo',
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  GestureDetector(
-                    onTap: _speakNumber, // Trigger the sound on tap
-                    child: Image.asset(
-                      'assets/images/high-volume.png', // Sound icon from assets
-                      width: 60, // Increased size
-                      height: 60,
-                      fit: BoxFit.contain, 
-                    ),
-                  ),
-                  SizedBox(height: 30),
-                  Image.asset(
-                    'assets/images/carrot-vegetable.png', // Duck image
-                    width: 160, // Increased size
-                    height: 160,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Container(
-            color: Colors.white, // Bottom white background
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: InkWell(
-              onTap: () {
-                // Placeholder: Non-functional for now
-              },
-              child: Container(
-                width: double.infinity,
-                margin: EdgeInsets.symmetric(horizontal: 20),
-                padding: EdgeInsets.symmetric(vertical: 15),
-                decoration: BoxDecoration(
-                  color: Color(0xFFF9EAFB), // Light pink button color
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : numberData == null
+              ? Center(child: Text('❌ لا توجد بيانات لهذا الرقم'))
+              : Column(
                   children: [
-                    Icon(Icons.arrow_back, color: Colors.black), // Icon as a placeholder
-                    SizedBox(width: 10),
-                    Text(
-                      "التالي", // Arabic for "Next"
-                      style: TextStyle(fontSize: 40, color: Colors.black , fontFamily:'Blabeloo'),
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        color: Color(0xFFF9EAFB), // Light pink background for the main content
+                        width: double.infinity,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              numberData?['arabic_numeral'] ?? '-', // Dynamic Arabic numeral
+                              style: TextStyle(
+                                fontSize: 200, // Larger font size
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                                fontFamily: 'Blabeloo',
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            GestureDetector(
+                              onTap: _speakNumber, // Trigger the sound on tap
+                              child: Image.asset(
+                                'assets/images/high-volume.png', // Sound icon from assets
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            SizedBox(height: 30),
+                            // Display images dynamically based on the number
+                            if (numberData?['images'] != null)
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 10,
+                                runSpacing: 10,
+                                children: List.generate(
+                                  (numberData!['images'] as List).length,
+                                  (index) => Image.network(
+                                    numberData!['images'][index],
+                                    width: 200,
+                                    height: 200,
+                                  ),
+                                ),
+                              )
+                            else
+                              Icon(Icons.image_not_supported, size: 100),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      color: Colors.white, // Bottom white background
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.pop(context); // Go back to the previous page
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          margin: EdgeInsets.symmetric(horizontal: 20),
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                          decoration: BoxDecoration(
+                            color: Color(0xFFF9EAFB), // Light pink button color
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.arrow_back, color: Colors.black),
+                              SizedBox(width: 10),
+                              Text(
+                                "التالي", // Arabic for "Next"
+                                style: TextStyle(
+                                    fontSize: 40, color: Colors.black, fontFamily: 'Blabeloo'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
-}
+} 
