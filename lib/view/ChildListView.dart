@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../controller/HomePageController.dart';
 import '../view/child_info_view.dart';
+import '../model/signup_model.dart';
+
 
 class ChildListView extends StatefulWidget {
   const ChildListView({super.key});
@@ -127,7 +129,7 @@ class _ChildListViewState extends State<ChildListView> {
           CircleAvatar(
             radius: 40,
             backgroundImage: childData['photoUrl']?.isNotEmpty == true
-                ? NetworkImage(childData['photoUrl'])
+                ? AssetImage(childData['photoUrl'])
                 : const AssetImage('assets/images/default_avatar.png') as ImageProvider,
             backgroundColor: Colors.yellow[100],
           ),
@@ -145,6 +147,7 @@ class _ChildListViewState extends State<ChildListView> {
     );
   }
 
+  /// بناء زر لإضافة طفل جديد
   /// بناء زر لإضافة طفل جديد
   Widget _buildAddChildButton() {
     return GestureDetector(

@@ -3,11 +3,11 @@ import '../controller/SelectImageController.dart';
 import '../model/SelectImageModel.dart';
 
 class SelectImageView extends StatefulWidget {
-  final String childID; // معرف الطفل
+  final String? childID; // معرف الطفل اختياري
 
-  const SelectImageView({super.key, required this.childID});
+ const SelectImageView({super.key, this.childID});
 
-  @override
+   @override
   _SelectImageViewState createState() => _SelectImageViewState();
 }
 
@@ -107,16 +107,24 @@ class _SelectImageViewState extends State<SelectImageView> {
                       ),
                     ),
                     onPressed: () {
-                      if (selectedImage != null) {
-                        _controller.updateChildImage(context, widget.childID, selectedImage!);
-                      } else {ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("❌ الرجاء اختيار صورة!"),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    },
+  if (selectedImage != null) {
+    if (widget.childID != null) {
+      // تحديث صورة الطفل في قاعدة البيانات
+      _controller.updateChildImage(context, widget.childID!, selectedImage!);
+    } else {
+      // الحالة عند تسجيل الطفل، احفظ الصورة بشكل مؤقت أو مررها للخطوة التالية
+      Navigator.pop(context, selectedImage);
+    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("❌ الرجاء اختيار صورة!"),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+},
+
                     child: const Text(
                       "حفظ",
                       style: TextStyle(

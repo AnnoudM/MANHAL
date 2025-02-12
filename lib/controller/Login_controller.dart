@@ -24,9 +24,9 @@ class LoginController {
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found' || e.code == 'wrong-password') {
-        return 'البريد الإلكتروني أو الباسوورد خاطئ.';
+        return 'البريد الالكتروني أو كلمة المرور غير صحيحة';
       } else {
-        return 'حدث خطأ أثناء تسجيل الدخول. حاول مرة أخرى.';
+        return 'البريد الالكتروني أو كلمة المرور غير صحيحة';
       }
     } catch (e) {
       return 'حدث خطأ غير متوقع. حاول مرة أخرى.';

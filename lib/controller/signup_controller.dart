@@ -70,8 +70,8 @@ class SignUpController {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('تم تأكيد البريد الإلكتروني'),
-            content: Text('تم تأكيد بريدك الإلكتروني بنجاح.'),
+            title: Text('تم تأكيد البريد الإلكتروني', style: TextStyle(fontFamily: 'alfont')),
+            content: Text('تم تأكيد بريدك الإلكتروني بنجاح.', style: TextStyle(fontFamily: 'alfont')),
             actions: [
               TextButton(
                 onPressed: () {
@@ -83,7 +83,7 @@ class SignUpController {
                     ),
                   );
                 },
-                child: Text('حسناً'),
+                child: Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
               ),
             ],
           );
@@ -94,12 +94,12 @@ class SignUpController {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('تأكيد البريد الإلكتروني'),
-            content: Text('الرجاء تأكيد بريدك الإلكتروني عبر الرابط المرسل.'),
+            title: Text('تأكيد البريد الإلكتروني', style: TextStyle(fontFamily: 'alfont')),
+            content: Text('الرجاء تأكيد بريدك الإلكتروني عبر الرابط المرسل.', style: TextStyle(fontFamily: 'alfont')),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text('حسناً'),
+                child: Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
               ),
             ],
           );
@@ -120,44 +120,44 @@ class SignUpController {
 
   // Register parent and child, and send email verification
   Future<void> registerParentAndChild(BuildContext context, Child child, SignUpModel parentData) async {
-  try {
-    UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-      email: parentData.email,
-      password: parentData.password,
-    );
+    try {
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: parentData.email,
+        password: parentData.password,
+      );
 
-    String parentId = userCredential.user!.uid;
-    await saveParentData(parentId, parentData);
-    await addChild(parentId, child);
-    await sendEmailVerification();
+      String parentId = userCredential.user!.uid;
+      await saveParentData(parentId, parentData);
+      await addChild(parentId, child);
+      await sendEmailVerification();
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('تم إرسال رابط التحقق'),
-          content: Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => InitialPage(),
-                  ),
-                );
-              },
-              child: Text('حسناً'),
-            ),
-          ],
-        );
-      },
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e.toString())),
-    );
-  }
-} 
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('تم إرسال رابط التحقق', style: TextStyle(fontFamily: 'alfont')),
+            content: Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.', style: TextStyle(fontFamily: 'alfont')),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InitialPage(),
+                    ),
+                  );
+                },
+                child: Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString(), style: TextStyle(fontFamily: 'alfont'))),
+      );
+    }
+  } 
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../controller/signup_controller.dart';
 import '../model/signup_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class SignUpView extends StatefulWidget {
   const SignUpView({super.key});
@@ -98,7 +100,7 @@ class _SignUpViewState extends State<SignUpView> {
                         });
                       },
                       validator: (value) {
-                        final passwordRegex = RegExp(r'^(?=.*[A-Za-z])(?=.*\d).{6,}\$');
+                        final passwordRegex = RegExp(r'^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,}$');
                         if (value == null || value.isEmpty) {
                           return 'يرجى إدخال كلمة المرور';
                         } else if (!passwordRegex.hasMatch(value)) {

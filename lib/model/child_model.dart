@@ -2,13 +2,13 @@ class Child {
   String name;
   String gender;
   int age;
-  String? photo; // خاصية جديدة لحفظ مسار الصورة
+  String? photoUrl; // خاصية جديدة لحفظ مسار الصورة
 
   Child({
     required this.name,
     required this.gender,
     required this.age,
-    this.photo,
+    this.photoUrl,
   });
 
   // لتحويل الكائن إلى خريطة لتخزينها في Firestore
@@ -17,7 +17,7 @@ class Child {
       'name': name,
       'gender': gender,
       'age': age,
-      'photo': photo,  // إضافة الصورة إلى الخريطة
+      'photoUrl': photoUrl,  // إضافة الصورة إلى الخريطة
     };
   }
 
@@ -27,7 +27,7 @@ class Child {
       name: map['name'] ?? '',
       gender: map['gender'] ?? '',
       age: map['age'] ?? 0,
-      photo: map['photo'],  // استرجاع الصورة من البيانات
+      photoUrl: map['photoUrl'],  // استرجاع الصورة من البيانات
     );
   }
 }

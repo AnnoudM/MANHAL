@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../controller/signup_controller.dart';
 import '../model/child_model.dart';
 import '../model/signup_model.dart';
 import '../view/InitialView.dart';
+import '../view/SelectImageView.dart';
 
 class ChildInfoView extends StatefulWidget {
   final SignUpModel? parentData;
@@ -22,24 +24,25 @@ class _ChildInfoViewState extends State<ChildInfoView> {
   final SignUpController _controller = SignUpController();
 
   void _submit() async {
-    if (_formKey.currentState!.validate()) {
-      if (widget.parentData == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('بيانات الوالد غير متوفرة')),
-        );
-        return;
-      }
-
-      Child child = Child(
-        name: _nameController.text.trim(),
-        gender: _selectedGender!,
-        age: _age!,
-        photo: _selectedPhoto,
+  if (_formKey.currentState!.validate()) {
+    if (widget.parentData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('بيانات الوالد غير متوفرة')),
       );
-
-      await _controller.registerParentAndChild(context, child, widget.parentData!);
+      return;
     }
+
+    Child child = Child(
+      name: _nameController.text.trim(),
+      gender: _selectedGender!,
+      age: _age!,
+      photoUrl: _selectedPhoto, // تأكد من حفظ الصورة المختارة هنا
+    );
+
+    await _controller.registerParentAndChild(context, child, widget.parentData!);
   }
+}
+
 
   Widget _buildTextField({
     required String hintText,
@@ -47,14 +50,17 @@ class _ChildInfoViewState extends State<ChildInfoView> {
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
     void Function(String)? onChanged,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
       onChanged: onChanged,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: const TextStyle(fontFamily: 'alfont'),
         filled: true,
         fillColor: const Color(0xFFFFF5CC),
         border: OutlineInputBorder(
@@ -62,7 +68,9 @@ class _ChildInfoViewState extends State<ChildInfoView> {
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
       ),
+      style: const TextStyle(fontFamily: 'alfont'),
     );
   }
 
@@ -77,11 +85,12 @@ class _ChildInfoViewState extends State<ChildInfoView> {
       value: value,
       items: items.map((item) => DropdownMenuItem(
         value: item,
-        child: Text(item),
+        child: Text(item, style: const TextStyle(fontFamily: 'alfont')),
       )).toList(),
       onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: const TextStyle(fontFamily: 'alfont'),
         filled: true,
         fillColor: const Color(0xFFFFF5CC),
         border: OutlineInputBorder(
@@ -89,7 +98,9 @@ class _ChildInfoViewState extends State<ChildInfoView> {
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
       ),
+      style: const TextStyle(fontFamily: 'alfont'),
       validator: validator,
     );
   }
@@ -112,6 +123,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Colors.black,
+            fontFamily: 'alfont',
           ),
         ),
       ),
@@ -150,15 +162,16 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
+                        fontFamily: 'alfont',
                       ),
                     ),
                     const SizedBox(height: 30),
                     GestureDetector(
                       onTap: () async {
                         final selectedPhoto = await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => InitialPage()),
-                        );
+  context,
+  MaterialPageRoute(builder: (context) => const SelectImageView()), // لا ترسل childID
+);
                         if (selectedPhoto != null) {
                           setState(() {
                             _selectedPhoto = selectedPhoto;
@@ -181,9 +194,12 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                     ),
                     const SizedBox(height: 20),
                     _buildTextField(
-                      hintText: 'اسم الطفل',
+                      hintText: 'اسم الطفل باللغة العربية',
                       controller: _nameController,
                       validator: (value) => value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[\u0600-\u06FF\s]')),
+                      ],
                     ),
                     const SizedBox(height: 15),
                     _buildDropdownField(
@@ -202,6 +218,9 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                           ? 'يرجى إدخال عمر صحيح'
                           : null,
                       onChanged: (value) => _age = int.tryParse(value),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                     ),
                     const SizedBox(height: 30),
                     _buildButton(
