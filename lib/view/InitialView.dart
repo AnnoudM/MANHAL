@@ -13,44 +13,58 @@ class InitialPage extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Image.asset(
-                  model.logoPath,
-                  height: MediaQuery.of(context).size.height * 0.25,
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  fit: BoxFit.contain,
+        body: Stack(
+          children: [
+            // إضافة الخلفية هنا
+            Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/BackGroundManhal.jpg'),
+                  fit: BoxFit.cover,
                 ),
               ),
-              const SizedBox(height: 20),
-              Text(
-                model.welcomeText,
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  fontFamily: 'alfont',
-                ),
+            ),
+            // المحتوى
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Image.asset(
+                      model.logoPath,
+                      height: MediaQuery.of(context).size.height * 0.25,
+                      width: MediaQuery.of(context).size.width * 0.5,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    model.welcomeText,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontFamily: 'alfont',
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  _buildButton(
+                    context: context,
+                    text: model.signUpButtonText,
+                    onPressed: () => controller.navigateToSignUp(context),
+                  ),
+                  const SizedBox(height: 15),
+                  _buildButton(
+                    context: context,
+                    text: model.loginButtonText,
+                    onPressed: () => controller.navigateToLogIn(context),
+                  ),
+                ],
               ),
-              const SizedBox(height: 30),
-              _buildButton(
-                context: context,
-                text: model.signUpButtonText,
-                onPressed: () => controller.navigateToSignUp(context),
-              ),
-              const SizedBox(height: 15),
-              _buildButton(
-                context: context,
-                text: model.loginButtonText,
-                onPressed: () => controller.navigateToLogIn(context),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

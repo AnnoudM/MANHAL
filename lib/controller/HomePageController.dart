@@ -5,6 +5,7 @@ import '../view/HomePageView.dart';
 import '../view/ChildProfileView.dart';
 import '../view/letter_view.dart';
 import '../view/ArabicLettersView.dart';
+import '../view/SettingsView.dart';
 //import '../view/NumbersView.dart';
 //import '../view/WordsView.dart';
 //import '../view/EthicalView.dart';
@@ -100,7 +101,7 @@ class _HomePageControllerState extends State<HomePageController> {
           },
           onSettingsClick: (){Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ArabicLetterPage(letter: 'أ')), // add settings navigate 
+              MaterialPageRoute(builder: (context) => const SettingsView()), // add settings navigate 
             );},
 
               onStickersClick: (){

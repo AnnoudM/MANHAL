@@ -46,56 +46,68 @@ class _ChildListViewState extends State<ChildListView> {
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text(
-                  'من يستخدم منهل الآن؟',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+        body: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/BackGroundManhal.jpg'),
+                  fit: BoxFit.cover,
                 ),
-                const SizedBox(height: 30),
-                Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: fetchChildrenStream(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      } else if (snapshot.hasError) {
-                        return const Text('حدث خطأ أثناء تحميل البيانات');
-                      } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return const Text('لا يوجد أطفال مسجلين');
-                      } else {
-                        var children = snapshot.data!.docs;
-                        return GridView.builder(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 20,
-                            mainAxisSpacing: 20,
-                          ),
-                          itemCount: children.length + 1,
-                          itemBuilder: (context, index) {
-                            if (index == children.length) {
-                              return _buildAddChildButton();
-                            } else {
-                              var childData = children[index].data() as Map<String, dynamic>;
-                              return _buildChildAvatar(children[index].id, childData);
-                            }
-                          },
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'من يستخدم منهل الآن؟',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Expanded(
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: fetchChildrenStream(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return const Text('حدث خطأ أثناء تحميل البيانات');
+                          } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                            return const Text('لا يوجد أطفال مسجلين');
+                          } else {
+                            var children = snapshot.data!.docs;
+                            return GridView.builder(
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 20,
+                                mainAxisSpacing: 20,
+                              ),
+                              itemCount: children.length + 1,
+                              itemBuilder: (context, index) {
+                                if (index == children.length) {
+                                  return _buildAddChildButton();
+                                } else {
+                                  var childData = children[index].data() as Map<String, dynamic>;
+                                  return _buildChildAvatar(children[index].id, childData);
+                                }
+                              },
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -171,4 +183,4 @@ class _ChildListViewState extends State<ChildListView> {
       ),
     );
   }
-}
+} 

@@ -25,107 +25,145 @@ class _LoginViewState extends State<LoginView> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: Center(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'تسجيل الدخول',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontFamily: 'alfont',
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    _buildTextField(
-                      hintText: 'البريد الالكتروني',
-                      controller: _controller.emailController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'يرجى إدخال البريد الإلكتروني';
-                        } else if (!value.contains('@')) {
-                          return 'يرجى إدخال بريد إلكتروني صحيح';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 15),
-                    _buildTextField(
-                      hintText: 'كلمة المرور',
-                      controller: _controller.passwordController,
-                      obscureText: _obscurePassword,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                          color: Colors.grey,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'يرجى إدخال كلمة المرور';
-                        }
-                        return null;
-                      },
-                    ),
-                    if (_errorMessage != null) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        _errorMessage!,
-                        style: TextStyle(color: Colors.red, fontFamily: 'alfont'),
-                      ),
-                    ],
-                    const SizedBox(height: 20),
-                    _buildButton(
-                      text: 'تسجيل',
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          final result = await _controller.loginUser(
-                            email: _controller.emailController.text,
-                            password: _controller.passwordController.text,
-                          );
-                          if (result != null) {
-                            setState(() {
-                              _errorMessage = result;
-                            });
-                          } else {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChildListView(),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
+        body: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/BackGroundManhal.jpg'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text('ليس لديك حساب؟ ', style: TextStyle(fontFamily: 'alfont')),
-                        GestureDetector(
-                          onTap: () => _controller.navigateToSignUp(context),
+                        const Text(
+                          'تسجيل الدخول',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            fontFamily: 'alfont',
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                        _buildTextField(
+                          hintText: 'البريد الالكتروني',
+                          controller: _controller.emailController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'يرجى إدخال البريد الإلكتروني';
+                            } else if (!value.contains('@')) {
+                              return 'يرجى إدخال بريد إلكتروني صحيح';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        _buildTextField(
+                          hintText: 'كلمة المرور',
+                          controller: _controller.passwordController,
+                          obscureText: _obscurePassword,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              color: Colors.grey,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'يرجى إدخال كلمة المرور';
+                            }
+                            return null;
+                          },
+                        ),
+                        if (_errorMessage != null) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            _errorMessage!,
+                            style: const TextStyle(color: Colors.red, fontFamily: 'alfont'),
+                          ),
+                        ],
+                        const SizedBox(height: 20),
+                        _buildButton(
+                          text: 'تسجيل',
+                          onPressed: () async {
+                            if (_formKey.currentState!.validate()) {
+                              final result = await _controller.loginUser(
+                                email: _controller.emailController.text,
+                                password: _controller.passwordController.text,
+                              );
+                              if (result != null) {
+                                setState(() {
+                                  _errorMessage = result;
+                                });
+                              } else {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ChildListView(),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('ليس لديك حساب؟ ', style: TextStyle(fontFamily: 'alfont')),
+                            GestureDetector(
+                              onTap: () => _controller.navigateToSignUp(context),
+                              child: const Text(
+                                'سجل الآن',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  decoration: TextDecoration.underline,
+                                  fontFamily: 'alfont',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        TextButton(
+                          onPressed: () async {
+                            if (_controller.emailController.text.isEmpty) {
+                              setState(() {
+                                _errorMessage = 'يرجى إدخال البريد الإلكتروني لإعادة تعيين كلمة المرور';
+                              });
+                            } else {
+                              setState(() {
+                                _errorMessage = null;
+                              });
+                              await _controller.resetPassword(
+                                _controller.emailController.text,
+                                context,
+                              );
+                            }
+                          },
                           child: const Text(
-                            'سجل الآن',
+                            'نسيت كلمة المرور؟',
                             style: TextStyle(
-                              color: Colors.blue,
+                              color: Colors.grey,
                               decoration: TextDecoration.underline,
                               fontFamily: 'alfont',
                             ),
@@ -133,37 +171,11 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    TextButton(
-                      onPressed: () async {
-                        if (_controller.emailController.text.isEmpty) {
-                          setState(() {
-                            _errorMessage = 'يرجى إدخال البريد الإلكتروني لإعادة تعيين كلمة المرور';
-                          });
-                        } else {
-                          setState(() {
-                            _errorMessage = null;
-                          });
-                          await _controller.resetPassword(
-                            _controller.emailController.text,
-                            context,
-                          );
-                        }
-                      },
-                      child: const Text(
-                        'نسيت كلمة المرور؟',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          decoration: TextDecoration.underline,
-                          fontFamily: 'alfont',
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -220,4 +232,4 @@ class _LoginViewState extends State<LoginView> {
       ),
     );
   }
-}
+} 
