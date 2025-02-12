@@ -86,7 +86,10 @@ class SettingsView extends StatelessWidget {
           ),
         ),
         trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),  // تعديل اتجاه السهم
-        onTap: () => controller.onSettingSelected(context, title),
+        onTap: () {
+  print('تم الضغط على: $title'); // ✅ إضافة طباعة للتحقق من التنفيذ
+  controller.onSettingSelected(context, title);
+},
       ),
     ),
   );

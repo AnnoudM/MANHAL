@@ -1,26 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../view/InitialView.dart';
 import '../view/ChildListView.dart';
+import '../view/PersonalInfoView.dart';  // ✅ استيراد صفحة معلوماتي الشخصية
+import '../model/PersonalInfoModel.dart';
 
-class SettingsController {  // ✅ تأكد أن كل الدوال داخل الكلاس
+class SettingsController {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void onSettingSelected(BuildContext context, String settingName) {
-    if (settingName == 'أطفالي') {
-      _navigateToChildList(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '$settingName تم النقر عليه!',
-            style: const TextStyle(fontFamily: 'alfont'),
-          ),
-          backgroundColor: Colors.blueAccent,
-          duration: const Duration(seconds: 1),
+ void onSettingSelected(BuildContext context, String settingName) async {
+  print('تم الضغط على: $settingName'); // ✅ للتحقق من أن الدالة تُستدعى
+
+  if (settingName == 'أطفالي') {
+    _navigateToChildList(context);
+  } else if (settingName == 'معلوماتي الشخصية') {
+    print('يتم تنفيذ _navigateToPersonalInfo'); // ✅ تأكيد أن هذا الجزء يعمل
+    await _navigateToPersonalInfo(context);
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '$settingName تم النقر عليه!',
+          style: const TextStyle(fontFamily: 'alfont'),
         ),
-      );
-    }
+        backgroundColor: Colors.blueAccent,
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
+}
+
 
   void _navigateToChildList(BuildContext context) {
     Navigator.push(
@@ -29,7 +40,39 @@ class SettingsController {  // ✅ تأكد أن كل الدوال داخل ال
     );
   }
 
-  // ✅ تأكد أن هذه الدالة داخل الكلاس
+  // ✅ دالة جديدة لجلب بيانات البارنت والانتقال إلى صفحة معلوماتي الشخصية
+  Future<void> _navigateToPersonalInfo(BuildContext context) async {
+  try {
+    print('جلب بيانات المستخدم من Firebase...'); // ✅ طباعة للتأكد أن الدالة تُنفذ
+
+    User? user = _auth.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('Parent').doc(user.uid).get();
+      if (userDoc.exists) {
+        print('تم العثور على بيانات المستخدم ✅'); // ✅ تأكيد استرجاع البيانات
+        PersonalInfoModel parentInfo =
+            PersonalInfoModel.fromJson(userDoc.data() as Map<String, dynamic>);
+
+        print('الانتقال إلى PersonalInfoView...'); // ✅ طباعة قبل التنقل
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PersonalInfoView(parentInfo: parentInfo),
+          ),
+        );
+      } else {
+        print('لم يتم العثور على بيانات المستخدم ❌');
+      }
+    } else {
+      print('لا يوجد مستخدم مسجل دخول ❌');
+    }
+  } catch (e) {
+    print('حدث خطأ أثناء جلب البيانات: $e ❌');
+  }
+}
+
+  // ✅ كود تسجيل الخروج لم يتم حذفه
   void logout(BuildContext context) {
     showDialog(
       context: context,
