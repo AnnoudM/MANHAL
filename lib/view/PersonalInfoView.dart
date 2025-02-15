@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../controller/PersonalInfoCont.dart';
 import '../model/PersonalInfoModel.dart';
-import 'package:flutter/services.dart';
-
 
 class PersonalInfoView extends StatefulWidget {
   final PersonalInfoModel parentInfo;
@@ -69,6 +68,7 @@ class _PersonalInfoViewState extends State<PersonalInfoView> {
                           });
                         });
                       },
+                      isEmail: false, // لا نستخدم التحقق للبريد هنا
                     ),
                   ),
                   _buildEditableField(
@@ -76,9 +76,10 @@ class _PersonalInfoViewState extends State<PersonalInfoView> {
                     'البريد الإلكتروني',
                     widget.parentInfo.email,
                     () => _showEditDialog(
-                      'تعديل البريد الإلكتروني',
+                      'تغيير البريد الإلكتروني',
                       widget.parentInfo.email,
                       (newEmail) => _controller.updateUserEmail(context, newEmail),
+                      isEmail: true, // تمكين التحقق للبريد الإلكتروني
                     ),
                   ),
                   const Spacer(),
@@ -153,65 +154,69 @@ class _PersonalInfoViewState extends State<PersonalInfoView> {
     );
   }
 
-  void _showEditDialog(String title, String initialValue, Function(String) onSave) {
-  TextEditingController textController = TextEditingController(text: initialValue);
-  final _formKey = GlobalKey<FormState>(); // مفتاح النموذج للتحقق من الإدخال
+  void _showEditDialog(String title, String initialValue, Function(String) onSave, {required bool isEmail}) {
+    TextEditingController textController = TextEditingController(text: initialValue);
+    final _formKey = GlobalKey<FormState>();
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        backgroundColor: Color(0xFFF8F8F8), 
-        title: Text(title, style: TextStyle(fontFamily: 'alfont')),
-        content: Form(
-          key: _formKey, // إضافة النموذج للتحقق من صحة البيانات
-          child: TextFormField(
-            controller: textController,
-            textDirection: TextDirection.rtl,
-            keyboardType: TextInputType.text,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[\u0600-\u06FF\s]')), // السماح فقط بالأحرف العربية
-            ],
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'الرجاء إدخال الاسم'; // رسالة خطأ إذا كان فارغًا
-              }
-              return null; // لا توجد أخطاء
-            },
-            decoration: InputDecoration(
-              hintText: 'أدخل الاسم الجديد',
-              hintStyle: const TextStyle(fontFamily: 'alfont'),
-              filled: true,
-              fillColor: const Color(0xFFFFF5CC),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFFF8F8F8),
+          title: Text(title, style: TextStyle(fontFamily: 'alfont')),
+          content: Form(
+            key: _formKey,
+            child: TextFormField(
+              controller: textController,
+              textDirection: isEmail ? TextDirection.ltr : TextDirection.rtl,
+              keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(
+                  isEmail ? RegExp(r'[a-zA-Z0-9@._-]') : RegExp(r'[\u0600-\u06FF\s]'),
+                ),
+              ],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return isEmail ? 'الرجاء إدخال البريد الإلكتروني' : 'الرجاء إدخال الاسم';
+                } else if (isEmail &&
+                    !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$")
+                        .hasMatch(value)) {
+                  return 'الرجاء إدخال بريد إلكتروني صالح';
+                }
+                return null;
+              },
+              decoration: InputDecoration(
+                hintText: isEmail ? 'أدخل البريد الإلكتروني الجديد' : 'أدخل الاسم الجديد',
+                hintStyle: const TextStyle(fontFamily: 'alfont'),
+                filled: true,
+                fillColor: const Color(0xFFFFF5CC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
+              style: const TextStyle(fontFamily: 'alfont'),
             ),
-            style: const TextStyle(fontFamily: 'alfont'),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
-          ),
-          TextButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) { // التحقق من صحة الإدخال
-                onSave(textController.text.trim());
-                Navigator.pop(context);
-              }
-            },
-            child: Text('حفظ', style: TextStyle(fontFamily: 'alfont')),
-          ),
-        ],
-      );
-    },
-  );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
+            ),
+            TextButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  onSave(textController.text.trim());
+                  Navigator.pop(context);
+                }
+              },
+              child: Text('حفظ', style: TextStyle(fontFamily: 'alfont')),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
-
-}
-

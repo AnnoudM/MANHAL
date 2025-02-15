@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/PersonalInfoModel.dart';
+import '../view/InitialView.dart';
 
 class PersonalInfoController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -47,18 +48,67 @@ class PersonalInfoController {
 
 
   Future<void> updateUserEmail(BuildContext context, String newEmail) async {
-    try {
-      User? user = _auth.currentUser;
-      if (user != null) {
-        await user.verifyBeforeUpdateEmail(newEmail);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تم إرسال رابط التأكيد إلى البريد الجديد', style: TextStyle(fontFamily: 'alfont'))),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error updating email: $e');
+  try {
+    User? user = _auth.currentUser;
+    if (user == null) return;
+
+    // التحقق مما إذا كان البريد الإلكتروني الجديد مستخدمًا بالفعل
+    var emailCheck = await _firestore
+        .collection('Parent')
+        .where('email', isEqualTo: newEmail)
+        .get();
+
+    if (emailCheck.docs.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('البريد الإلكتروني مستخدم بالفعل', style: TextStyle(fontFamily: 'alfont')),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
     }
+
+    // إرسال رابط التحقق للبريد الجديد
+    await user.verifyBeforeUpdateEmail(newEmail);
+
+    // تحديث البريد في قاعدة بيانات Firestore بعد التحقق منه
+    await _firestore.collection('Parent').doc(user.uid).update({'email': newEmail});
+
+    // إظهار ديالوج التأكيد
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFFF8F8F8),
+          title: Text('تم إرسال رابط التحقق', style: TextStyle(fontFamily: 'alfont')),
+          content: Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.', style: TextStyle(fontFamily: 'alfont')),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => InitialPage(),
+                  ),
+                );
+              },
+              child: Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
+            ),
+          ],
+        );
+      },
+    );
+  } catch (e) {
+    debugPrint('Error updating email: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('حدث خطأ أثناء تحديث البريد', style: TextStyle(fontFamily: 'alfont')),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
 
   Future<void> deleteUserAccount(BuildContext context) async {
     try {
