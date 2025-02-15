@@ -85,23 +85,30 @@ class _LearnNumberPageState extends State<LearnNumberPage> {
                               ),
                             ),
                             SizedBox(height: 30),
-                            // Display images dynamically based on the number
-                            if (numberData?['images'] != null)
-                              Wrap(
-                                alignment: WrapAlignment.center,
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: List.generate(
-                                  (numberData!['images'] as List).length,
-                                  (index) => Image.network(
-                                    numberData!['images'][index],
-                                    width: 200,
-                                    height: 200,
-                                  ),
+                            Expanded(
+                              flex: 3,
+                              child: SingleChildScrollView(
+                                child: Wrap(
+                                  alignment: WrapAlignment.center,
+                                  spacing: 10,
+                                  runSpacing: 10,
+                                  children: numberData?['images'] != null
+                                      ? (numberData!['images'] as List).map((imageUrl) {
+                                          return Container(
+                                            width: 80, // تقليل الحجم تلقائيًا
+                                            height: 80,
+                                            child: Image.network(
+                                              imageUrl,
+                                              fit: BoxFit.contain,
+                                            ),
+                                          );
+                                        }).toList()
+                                      : [
+                                          Icon(Icons.image_not_supported, size: 100),
+                                        ],
                                 ),
-                              )
-                            else
-                              Icon(Icons.image_not_supported, size: 100),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -140,4 +147,4 @@ class _LearnNumberPageState extends State<LearnNumberPage> {
                 ),
     );
   }
-} 
+}

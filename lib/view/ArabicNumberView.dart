@@ -73,7 +73,7 @@ class ArabicNumberView extends StatelessWidget {
                 child: GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4, // 4 items per row
+                    crossAxisCount: 3, // 4 items per row
                     crossAxisSpacing: 15,
                     mainAxisSpacing: 15,
                     childAspectRatio: 1.2,
