@@ -9,7 +9,7 @@ import '../view/SettingsView.dart';
 import '../view/ArabicNumberView.dart';
 //import '../view/NumbersView.dart';
 //import '../view/WordsView.dart';
-//import '../view/EthicalView.dart';
+import '../view/EthicalValueView.dart';
 //import '../view/ScanView.dart';
 
 class HomePageController extends StatefulWidget {
@@ -141,7 +141,7 @@ class _HomePageControllerState extends State<HomePageController> {
                 targetPage = const ArabicLetterPage(letter:'أ'); // استبدلوها بصفحة الكلمات
                 break;
               case 'القيم الأخلاقية':
-                targetPage = const ArabicLetterPage(letter:'أ'); // استبدلوها بصفحة القيم
+                targetPage = EthicalValueView(childId: widget.childID, parentId: parentId ??''); // استبدلوها بصفحة القيم
                 break;
               default:
                 return;
