@@ -5,12 +5,16 @@ import '../model/child_model.dart';
 import '../model/signup_model.dart';
 import '../view/InitialView.dart';
 import '../view/SelectImageView.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class ChildInfoView extends StatefulWidget {
   final SignUpModel? parentData;
   final String parentId;
+    final String childId;
 
-  const ChildInfoView({super.key, this.parentData, required this.parentId});
+  const ChildInfoView({super.key, this.parentData, required this.parentId, required this.childId});
 
   @override
   _ChildInfoViewState createState() => _ChildInfoViewState();
@@ -25,26 +29,61 @@ class _ChildInfoViewState extends State<ChildInfoView> {
 
   final SignUpController _controller = SignUpController();
 
-  void _submit() async {
-    if (_formKey.currentState!.validate()) {
-      if (widget.parentData == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('بيانات الوالد غير متوفرة', style: TextStyle(fontFamily: 'alfont'))),
-        );
-        return;
-      }
-
-      Child child = Child(
-        name: _nameController.text.trim(),
-        gender: _selectedGender!,
-        age: _age!,
-        photoUrl: _selectedPhoto,
-        parentId: widget.parentId,
+void _submit() async {
+  if (_formKey.currentState!.validate()) {
+    if (widget.parentData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('بيانات الوالد غير متوفرة', style: TextStyle(fontFamily: 'alfont'))),
       );
+      return;
+    }
 
-      await _controller.registerParentAndChild(context, child, widget.parentData!);
+    // ✅ إنشاء معرف للطفل
+    String childId = FirebaseFirestore.instance.collection('Children').doc().id;
+
+    // ✅ إنشاء كائن الطفل
+    Child child = Child(
+      id: widget.childId,  
+      name: _nameController.text.trim(),
+      gender: _selectedGender!,
+      age: _age!,
+      photoUrl: _selectedPhoto,
+      parentId: widget.parentId,
+    );
+
+    // ✅ تسجيل الطفل وحفظ بيانات الوالد
+    await _controller.registerParentAndChild(context, child, widget.parentData!);
+
+    // ✅ بعد نجاح التسجيل، عرض نافذة التنبيه
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: Color(0xFFF8F8F8),
+            title: Text('تم إرسال رابط التحقق', style: TextStyle(fontFamily: 'alfont')),
+            content: Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.', style: TextStyle(fontFamily: 'alfont')),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InitialPage(),
+                    ),
+                  );
+                },
+                child: Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
+}
+
 
   Widget _buildTextField({
     required String hintText,

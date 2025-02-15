@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../controller/signup_controller.dart';
 import '../model/signup_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../view/child_info_view.dart';
 
 class SignUpView extends StatefulWidget {
   const SignUpView({super.key});
@@ -178,29 +179,29 @@ class _SignUpViewState extends State<SignUpView> {
           return; // ❌ لا تكمل التنفيذ إذا كان البريد الإلكتروني مسجلاً بالفعل
         }
 
-        // ✅ حفظ بيانات المستخدم مؤقتًا
-        await controller.saveParentDataTemp(SignUpModel(
+        // ✅ عدم حفظ البيانات الآن، فقط تخزينها مؤقتًا للانتقال لصفحة الطفل
+        SignUpModel parentData = SignUpModel(
           name: controller.nameController.text,
-          email: controller.emailController.text,
-          password: controller.passwordController.text,
-        ));
-
-        // ✅ تسجيل المستخدم في Firebase
-        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: controller.emailController.text,
           password: controller.passwordController.text,
         );
 
-        String? parentId = userCredential.user?.uid;
-
-        if (mounted && parentId != null) { // ✅ التأكد من أن الصفحة لا تزال نشطة
-          controller.proceedToChildInfo(context, parentId);
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChildInfoView(
+                parentData: parentData, // ✅ تمرير بيانات الوالد بدون حفظها بعد
+                parentId: '',
+                childId: '',
+              ),
+            ),
+          );
         }
       } catch (e) {
-        // ✅ عرض خطأ للمستخدم إذا حدثت مشكلة
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('حدث خطأ أثناء إنشاء الحساب: $e', style: TextStyle(fontFamily: 'alfont')),
+            content: Text('حدث خطأ أثناء التحقق من البريد: $e', style: TextStyle(fontFamily: 'alfont')),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -208,6 +209,7 @@ class _SignUpViewState extends State<SignUpView> {
     }
   },
 ),
+
 
 
                         const SizedBox(height: 15),

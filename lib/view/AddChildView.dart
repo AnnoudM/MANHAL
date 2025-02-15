@@ -4,6 +4,7 @@ import '../controller/signup_controller.dart';
 import '../model/child_model.dart';
 import '../view/SelectImageView.dart';
 import '../controller/ChildController.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddChildView extends StatefulWidget {
   final String parentId;
@@ -24,13 +25,16 @@ class _AddChildViewState extends State<AddChildView> {
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      Child child = Child(
-        name: _nameController.text.trim(),
-        gender: _selectedGender!,
-        age: _age!,
-        photoUrl: _selectedPhoto,
-        parentId: widget.parentId, 
-      );
+      String childId = FirebaseFirestore.instance.collection('Children').doc().id; // إنشاء id جديد
+Child child = Child(
+  id: childId,  // تمرير id للطفل
+  name: _nameController.text.trim(),
+  gender: _selectedGender!,
+  age: _age!,
+  photoUrl: _selectedPhoto,
+  parentId: widget.parentId,
+);
+
 
       await _controller.addChildToParent(context, widget.parentId, child);
     }

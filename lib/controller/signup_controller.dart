@@ -112,12 +112,14 @@ class SignUpController {
 
   // Proceed to Child Info page
   void proceedToChildInfo(BuildContext context, String parentId) {
+    String childId = FirebaseFirestore.instance.collection('Children').doc().id;
   Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) => ChildInfoView(
         parentData: _tempParentData,
         parentId: parentId, // تمرير معرف الوالد
+        childId: childId, 
       ),
     ),
   );

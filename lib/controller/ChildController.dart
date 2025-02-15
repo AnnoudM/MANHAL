@@ -5,6 +5,24 @@ import '../model/child_model.dart';
 class ChildController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<void> updateChildInfo(Child child) async {
+    await _firestore
+        .collection('Parent')
+        .doc(child.parentId)
+        .collection('Children')
+        .doc(child.id)
+        .update(child.toMap());
+  }
+
+  Future<void> deleteChild(String parentId, String childId) async {
+    await _firestore
+        .collection('Parent')
+        .doc(parentId)
+        .collection('Children')
+        .doc(childId)
+        .delete();
+  }
+
   Future<void> addChildToParent(BuildContext context, String parentId, Child child) async {
     try {
       // الوصول إلى مجموعة الوالد ثم إضافة الطفل في مجموعة فرعية

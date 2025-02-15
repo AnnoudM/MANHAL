@@ -100,10 +100,25 @@ class _HomePageControllerState extends State<HomePageController> {
               MaterialPageRoute(builder: (context) => const ArabicLetterPage(letter: 'أ')),
             );
           },
-          onSettingsClick: (){Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => SettingsView()), // add settings navigate 
-            );},
+          onSettingsClick: () {
+  print('🔍 فتح SettingsView لمعرف الطفل: ${widget.childID}, معرف الوالد: $parentId');
+  
+  if (widget.childID.isNotEmpty && parentId != null && parentId!.isNotEmpty) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsView(
+          selectedChildId: widget.childID,  // ✅ تمرير معرف الطفل
+          currentParentId: parentId!, // ✅ تمرير معرف الوالد
+        ),
+      ),
+    );
+  } else {
+    print('❌ خطأ: معرف الطفل أو معرف الوالد غير صالح');
+  }
+},
+
+
 
               onStickersClick: (){
                 Navigator.push(

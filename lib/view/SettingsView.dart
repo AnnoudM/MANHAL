@@ -4,19 +4,26 @@ import '../model/SettingsModel.dart';
 
 class SettingsView extends StatelessWidget {
   final SettingsController controller = SettingsController();
+  final String selectedChildId; // ✅ معرف الطفل المختار
+  final String currentParentId; // ✅ معرف الوالد
 
-  SettingsView({super.key});
+  SettingsView({
+    super.key,
+    required this.selectedChildId,
+    required this.currentParentId,
+  });
 
   @override
   Widget build(BuildContext context) {
+    print('🔍 فتح SettingsView لمعرف الطفل: $selectedChildId، معرف الوالد: $currentParentId');
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: Colors.transparent, // نفس لون الخلفية
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true, // وضع العنوان في المنتصف
+          centerTitle: true,
           title: const Text(
             'الإعدادات',
             style: TextStyle(
@@ -60,41 +67,44 @@ class SettingsView extends StatelessWidget {
   }
 
   Widget _buildSettingsOption(BuildContext context, String title) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
-    child: Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: ListTile(
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-            fontFamily: 'alfont',
-          ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),  // تعديل اتجاه السهم
-        onTap: () {
-  print('تم الضغط على: $title'); // ✅ إضافة طباعة للتحقق من التنفيذ
-  controller.onSettingSelected(context, title);
-},
+        child: ListTile(
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+              fontFamily: 'alfont',
+            ),
+          ),
+          trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
+          onTap: () {
+            controller.onSettingSelected(
+              context,
+              title, // ✅ يتم تمرير اسم الإعداد
+              childId: selectedChildId, // ✅ تمرير معرف الطفل
+              parentId: currentParentId, // ✅ تمرير معرف الوالد
+            );
+          },
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Widget _buildLogoutButton(BuildContext context) {
     return ElevatedButton(
