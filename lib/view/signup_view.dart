@@ -110,14 +110,25 @@ class _SignUpViewState extends State<SignUpView> {
                             });
                           },
                           validator: (value) {
-                            final passwordRegex = RegExp(r'^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,}\$');
-                            if (value == null || value.isEmpty) {
-                              return 'يرجى إدخال كلمة المرور';
-                            } else if (!passwordRegex.hasMatch(value)) {
-                              return 'كلمة المرور لا تطابق الشروط المطلوبة!';
-                            }
-                            return null;
-                          },
+  if (value == null || value.isEmpty) {
+    return 'يرجى إدخال كلمة المرور';
+  }
+  if (value.length < 6) {
+    return 'يجب أن تتكون كلمة المرور من 6 خانات على الأقل';
+  }
+
+  bool hasLetter = value.contains(RegExp(r'[a-zA-Z]')); // التحقق من وجود حروف
+  bool hasNumber = value.contains(RegExp(r'[0-9]')); // التحقق من وجود أرقام
+  bool hasSymbol = value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]')); // التحقق من وجود رموز
+
+  // يجب أن تحتوي كلمة المرور على (حروف + أرقام) أو (حروف + رموز) أو (أرقام + رموز)
+  if (!(hasLetter && hasNumber) && !(hasLetter && hasSymbol) && !(hasNumber && hasSymbol)) {
+    return 'كلمة المرور لا تطابق الشروط المطلوبة!';
+  }
+
+  return null;
+},
+
                         ),
                         const SizedBox(height: 5),
                         const Align(
@@ -149,37 +160,56 @@ class _SignUpViewState extends State<SignUpView> {
                         ),
                         const SizedBox(height: 30),
                         _buildButton(
-                          text: 'متابعة',
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              bool emailExists = await controller.isEmailRegistered(controller.emailController.text);
+  text: 'متابعة',
+  onPressed: () async {
+    if (_formKey.currentState!.validate()) { // ✅ التحقق من صحة جميع المدخلات
+      setState(() {
+        _emailError = null; // ✅ إعادة تعيين خطأ البريد الإلكتروني إن وجد
+      });
 
-                              if (emailExists) {
-                                setState(() {
-                                  _emailError = 'هذا البريد الإلكتروني مسجل مسبقاً!';
-                                });
-                                _formKey.currentState!.validate();
-                              } else {
-                                setState(() {
-                                  _emailError = null;
-                                });
-                                if (_formKey.currentState!.validate()) {
-                                  await controller.saveParentDataTemp(SignUpModel(
-                                    name: controller.nameController.text,
-                                    email: controller.emailController.text,
-                                    password: controller.passwordController.text,
-                                  ));
+      try {
+        bool emailExists = await controller.isEmailRegistered(controller.emailController.text);
 
-                                  String? parentId = FirebaseAuth.instance.currentUser?.uid;
+        if (emailExists) {
+          setState(() {
+            _emailError = 'هذا البريد الإلكتروني مسجل مسبقاً!';
+          });
+          _formKey.currentState!.validate(); // ✅ تحديث الشاشة لإظهار الخطأ
+          return; // ❌ لا تكمل التنفيذ إذا كان البريد الإلكتروني مسجلاً بالفعل
+        }
 
-                                  if (mounted && parentId != null) {
-                                    controller.proceedToChildInfo(context, parentId);
-                                  }
-                                }
-                              }
-                            }
-                          },
-                        ),
+        // ✅ حفظ بيانات المستخدم مؤقتًا
+        await controller.saveParentDataTemp(SignUpModel(
+          name: controller.nameController.text,
+          email: controller.emailController.text,
+          password: controller.passwordController.text,
+        ));
+
+        // ✅ تسجيل المستخدم في Firebase
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: controller.emailController.text,
+          password: controller.passwordController.text,
+        );
+
+        String? parentId = userCredential.user?.uid;
+
+        if (mounted && parentId != null) { // ✅ التأكد من أن الصفحة لا تزال نشطة
+          controller.proceedToChildInfo(context, parentId);
+        }
+      } catch (e) {
+        // ✅ عرض خطأ للمستخدم إذا حدثت مشكلة
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('حدث خطأ أثناء إنشاء الحساب: $e', style: TextStyle(fontFamily: 'alfont')),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  },
+),
+
+
                         const SizedBox(height: 15),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
