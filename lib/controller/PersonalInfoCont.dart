@@ -23,19 +23,28 @@ class PersonalInfoController {
     return null;
   }
 
-  Future<void> updateUserName(BuildContext context, String newName) async {
-    try {
-      User? user = _auth.currentUser;
-      if (user != null) {
-        await _firestore.collection('Parent').doc(user.uid).update({'name': newName});
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تم تحديث الاسم بنجاح', style: TextStyle(fontFamily: 'alfont'))),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error updating name: $e');
+  Future<void> updateUserName(BuildContext context, String newName, Function(String) onUpdate) async {
+  try {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      await _firestore.collection('Parent').doc(user.uid).update({'name': newName});
+
+      // تحديث الاسم في الواجهة مباشرة
+      onUpdate(newName);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم تحديث الاسم بنجاح', style: TextStyle(fontFamily: 'alfont')),
+          backgroundColor: Colors.green[300], // تعديل لون السناك بار
+        ),
+      );
     }
+  } catch (e) {
+    debugPrint('Error updating name: $e');
   }
+}
+
+
 
   Future<void> updateUserEmail(BuildContext context, String newEmail) async {
     try {

@@ -70,6 +70,7 @@ class SignUpController {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
+             backgroundColor: Color(0xFFF8F8F8), 
             title: Text('تم تأكيد البريد الإلكتروني', style: TextStyle(fontFamily: 'alfont')),
             content: Text('تم تأكيد بريدك الإلكتروني بنجاح.', style: TextStyle(fontFamily: 'alfont')),
             actions: [
@@ -94,6 +95,7 @@ class SignUpController {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
+             backgroundColor: Color(0xFFF8F8F8), 
             title: Text('تأكيد البريد الإلكتروني', style: TextStyle(fontFamily: 'alfont')),
             content: Text('الرجاء تأكيد بريدك الإلكتروني عبر الرابط المرسل.', style: TextStyle(fontFamily: 'alfont')),
             actions: [
@@ -143,6 +145,7 @@ proceedToChildInfo(context, parentId);
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
+             backgroundColor: Color(0xFFF8F8F8), 
             title: Text('تم إرسال رابط التحقق', style: TextStyle(fontFamily: 'alfont')),
             content: Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.', style: TextStyle(fontFamily: 'alfont')),
             actions: [

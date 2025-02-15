@@ -78,6 +78,7 @@ class SettingsController {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+           backgroundColor: Color(0xFFF8F8F8), 
           title: const Text(
             'تأكيد تسجيل الخروج',
             style: TextStyle(fontFamily: 'alfont'),

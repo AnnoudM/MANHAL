@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../controller/PersonalInfoCont.dart';
 import '../model/PersonalInfoModel.dart';
+import 'package:flutter/services.dart';
+
 
 class PersonalInfoView extends StatefulWidget {
   final PersonalInfoModel parentInfo;
@@ -19,6 +21,7 @@ class _PersonalInfoViewState extends State<PersonalInfoView> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -37,77 +40,178 @@ class _PersonalInfoViewState extends State<PersonalInfoView> {
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildEditableField(
-                'الاسم',
-                widget.parentInfo.name,
-                Icons.edit,
-                () => _showEditDialog('تعديل الاسم', widget.parentInfo.name, (newName) {
-                  _controller.updateUserName(context, newName);
-                }),
+        body: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/BackGroundManhal.jpg'),
+                  fit: BoxFit.cover,
+                ),
               ),
-              _buildEditableField(
-                'البريد الإلكتروني',
-                widget.parentInfo.email,
-                Icons.edit,
-                () => _showEditDialog('تعديل البريد الإلكتروني', widget.parentInfo.email, (newEmail) {
-                  _controller.updateUserEmail(context, newEmail);
-                }),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildEditableField(
+                    context,
+                    'الاسم',
+                    widget.parentInfo.name,
+                    () => _showEditDialog(
+                      'تعديل الاسم',
+                      widget.parentInfo.name,
+                      (newName) {
+                        _controller.updateUserName(context, newName, (updatedName) {
+                          setState(() {
+                            widget.parentInfo.name = updatedName;
+                          });
+                        });
+                      },
+                    ),
+                  ),
+                  _buildEditableField(
+                    context,
+                    'البريد الإلكتروني',
+                    widget.parentInfo.email,
+                    () => _showEditDialog(
+                      'تعديل البريد الإلكتروني',
+                      widget.parentInfo.email,
+                      (newEmail) => _controller.updateUserEmail(context, newEmail),
+                    ),
+                  ),
+                  const Spacer(),
+                  _buildActionButton(context, 'تغيير كلمة مرور الاعدادات', Colors.grey[300]!, () {}),
+                  const SizedBox(height: 15),
+                  _buildActionButton(context, 'حذف الحساب', Colors.redAccent, () {
+                    _controller.deleteUserAccount(context);
+                  }),
+                ],
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[300]),
-                child: Text('تغيير كلمة المرور للإعدادات', style: TextStyle(fontFamily: 'alfont')),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => _controller.deleteUserAccount(context),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                child: Text('حذف الحساب', style: TextStyle(fontFamily: 'alfont')),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildEditableField(String label, String value, IconData icon, VoidCallback onTap) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.grey),
-      title: Text(value, style: TextStyle(fontSize: 18, fontFamily: 'alfont')),
-      onTap: onTap,
+  Widget _buildEditableField(BuildContext context, String label, String value, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: ListTile(
+          title: Text(
+            '$label: $value',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+              fontFamily: 'alfont',
+            ),
+          ),
+          trailing: const Icon(Icons.edit, color: Colors.grey),
+          onTap: onTap,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(BuildContext context, String text, Color color, VoidCallback onPressed) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        shadowColor: Colors.grey.withOpacity(0.5),
+        elevation: 5,
+        padding: const EdgeInsets.symmetric(vertical: 15),
+      ),
+      onPressed: onPressed,
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          fontFamily: 'alfont',
+        ),
+      ),
     );
   }
 
   void _showEditDialog(String title, String initialValue, Function(String) onSave) {
-    TextEditingController textController = TextEditingController(text: initialValue);
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(title, style: TextStyle(fontFamily: 'alfont')),
-          content: TextField(controller: textController),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
+  TextEditingController textController = TextEditingController(text: initialValue);
+  final _formKey = GlobalKey<FormState>(); // مفتاح النموذج للتحقق من الإدخال
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: Color(0xFFF8F8F8), 
+        title: Text(title, style: TextStyle(fontFamily: 'alfont')),
+        content: Form(
+          key: _formKey, // إضافة النموذج للتحقق من صحة البيانات
+          child: TextFormField(
+            controller: textController,
+            textDirection: TextDirection.rtl,
+            keyboardType: TextInputType.text,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[\u0600-\u06FF\s]')), // السماح فقط بالأحرف العربية
+            ],
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'الرجاء إدخال الاسم'; // رسالة خطأ إذا كان فارغًا
+              }
+              return null; // لا توجد أخطاء
+            },
+            decoration: InputDecoration(
+              hintText: 'أدخل الاسم الجديد',
+              hintStyle: const TextStyle(fontFamily: 'alfont'),
+              filled: true,
+              fillColor: const Color(0xFFFFF5CC),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
             ),
-            TextButton(
-              onPressed: () {
-                onSave(textController.text);
+            style: const TextStyle(fontFamily: 'alfont'),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
+          ),
+          TextButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) { // التحقق من صحة الإدخال
+                onSave(textController.text.trim());
                 Navigator.pop(context);
-              },
-              child: Text('حفظ', style: TextStyle(fontFamily: 'alfont')),
-            ),
-          ],
-        );
-      },
-    );
-  }
+              }
+            },
+            child: Text('حفظ', style: TextStyle(fontFamily: 'alfont')),
+          ),
+        ],
+      );
+    },
+  );
 }
+
+}
+
