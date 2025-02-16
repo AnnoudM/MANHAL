@@ -46,6 +46,10 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
             setState(() {
               videoCompleted = true;
             });
+
+            // ✅ تحديث مستوى الطفل تلقائيًا عند انتهاء الفيديو
+            int nextLevel = widget.ethicalValue.level + 1;
+            _ethicalController.updateChildLevel(widget.parentId, widget.childId, nextLevel);
           }
         });
 
@@ -67,17 +71,24 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.ethicalValue.name)),
+      appBar: AppBar(
+        title: Text(widget.ethicalValue.name),
+        centerTitle: true,
+      ),
       body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // 🔹 الفيديو في منتصف الشاشة
             _videoController != null && _videoController!.value.isInitialized
                 ? AspectRatio(
                     aspectRatio: _videoController!.value.aspectRatio,
                     child: Chewie(controller: _chewieController!),
                   )
                 : const CircularProgressIndicator(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
+
+            // 🔹 زر "انتهيت ✅" باللون الأخضر الفاتح
             ElevatedButton(
               onPressed: videoCompleted
                   ? () {
@@ -86,7 +97,12 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
                       Navigator.pop(context);
                     }
                   : null,
-              child: const Text("انتهيت 🎉"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 171, 238, 174), // ✅ لون أخضر فاتح
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              child: const Text("انتهيت ✅"),
             ),
           ],
         ),

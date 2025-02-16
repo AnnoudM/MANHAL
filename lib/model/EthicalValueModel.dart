@@ -1,26 +1,23 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class EthicalValueModel {
-  final String ethicalId;
   final String name;
-  final String description;
-  final String videoUrl;
   final int level;
+  final String videoUrl;
 
   EthicalValueModel({
-    required this.ethicalId,
     required this.name,
-    required this.description,
-    required this.videoUrl,
     required this.level,
+    required this.videoUrl,
   });
 
-  // ✅ استرجاع البيانات من Firestore بشكل صحيح
-  factory EthicalValueModel.fromFirestore(Map<String, dynamic> data, String docId) {
+  // 🔹 إنشاء كائن من Firestore
+  factory EthicalValueModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
     return EthicalValueModel(
-      ethicalId: docId, // 🔹 نستخدم ID المستند كـ ethicalId
       name: data['name'] ?? '',
-      description: data['description'] ?? '',
-      videoUrl: data['video'] ?? '',
       level: data['level'] ?? 1,
+      videoUrl: data['video'] ?? '',
     );
   }
 }
