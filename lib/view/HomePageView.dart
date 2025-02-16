@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../view/ArabicWordsView.dart';
 
 class HomePageView extends StatelessWidget {
   final String userName;
@@ -13,7 +14,7 @@ class HomePageView extends StatelessWidget {
   final Function(String) onItemClick; // التنقل إلى الصفحات
 
   const HomePageView({
-    Key? key,
+    super.key,
     required this.userName,
     required this.age,
     required this.childID,
@@ -24,7 +25,7 @@ class HomePageView extends StatelessWidget {
     required this.onSettingsClick,
     required this.onStickersClick,
     required this.onItemClick,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +61,8 @@ class HomePageView extends StatelessWidget {
                     // 🔹 أيقونة الإعدادات
                     GestureDetector(
                       onTap: onSettingsClick,
-                      child: const Icon(Icons.settings, color: Colors.black, size: 35),
+                      child: const Icon(Icons.settings,
+                          color: Colors.black, size: 35),
                     ),
                   ],
                 ),
@@ -109,13 +111,14 @@ class HomePageView extends StatelessWidget {
 
               Expanded(
                 child: Padding(
-                 padding: const EdgeInsets.only(left: 20.0, right: 20),
+                  padding: const EdgeInsets.only(left: 20.0, right: 20),
                   child: GridView.count(
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                     children: [
-                      _buildMenuItem(title: 'رحلة الأحرف',
+                      _buildMenuItem(
+                        title: 'رحلة الأحرف',
                         color: Colors.lightBlue[100]!,
                         textColor: const Color(0xFF638297),
                         iconPath: 'assets/images/letterIcon.png',
@@ -137,7 +140,10 @@ class HomePageView extends StatelessWidget {
                         iconText: 'ن ت ع ل م',
                         iconSize: 70,
                         fontSize: 35,
-                        onTap: () => onItemClick('رحلة الكلمات'),
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const ArabicWordsPage())),
                       ),
                       _buildMenuItem(
                         title: 'القيم الأخلاقية',
@@ -155,7 +161,8 @@ class HomePageView extends StatelessWidget {
 
               // زر "مسح الصورة"
               Padding(
-                padding: const EdgeInsets.only(left: 20.0, right: 20, bottom: 30),
+                padding:
+                    const EdgeInsets.only(left: 20.0, right: 20, bottom: 30),
                 child: ElevatedButton(
                   onPressed: onScanImageClick,
                   style: ElevatedButton.styleFrom(
@@ -227,7 +234,8 @@ class HomePageView extends StatelessWidget {
                     fontSize: fontSize,
                     fontFamily: 'Blabeloo',
                     fontWeight: FontWeight.bold,
-                    color: textColor,),
+                    color: textColor,
+                  ),
                 ),
               const SizedBox(height: 5),
               Text(
