@@ -22,7 +22,7 @@ class _EthicalValueViewState extends State<EthicalValueView> {
       body: Stack(
         alignment: Alignment.center,
         children: [
-          // 🔹 الخلفية (تغطي الشاشة بالكامل)
+          // 🔹 الخلفية
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -46,100 +46,99 @@ class _EthicalValueViewState extends State<EthicalValueView> {
 
           // 🔹 المسار (نزوله للأسفل وتقليل ميلانه)
           Positioned(
-            top: 160, // نزوله شوي تحت
-            left: MediaQuery.of(context).size.width * 0.08, // تقليل الميلان لليسار
-            width: MediaQuery.of(context).size.width * 0.5, // تصغير الحجم قليلاً
+            top: 160, 
+            left: MediaQuery.of(context).size.width * 0.08, 
+            width: MediaQuery.of(context).size.width * 0.5, 
             child: Image.asset("assets/images/Pathway.png", fit: BoxFit.contain),
           ),
 
-          // 🔹 القيم الأخلاقية مرتبة على المسار
+          // 🔹 القيم الأخلاقية من Firestore
           StreamBuilder<int?>(
             stream: _ethicalController.fetchChildLevel(widget.parentId, widget.childId),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-              int childLevel = snapshot.data ?? 1;
+            builder: (context, childSnapshot) {
+              if (!childSnapshot.hasData) return const Center(child: CircularProgressIndicator());
+              int childLevel = childSnapshot.data ?? 1;
 
-              List<String> ethicalValues = [
-                "الصدق",
-                "الأمانة",
-                "التعاون",
-                "الإحسان",
-                "الشجاعة",
-                "التواضع"
-              ];
+              return StreamBuilder<List<EthicalValueModel>>(
+                stream: _ethicalController.fetchEthicalValues(childLevel), // 🔹 جلب القيم الأخلاقية من Firestore
+                builder: (context, valueSnapshot) {
+                  if (!valueSnapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-              return Stack(
-                children: ethicalValues.asMap().entries.map((entry) {
-                  int level = entry.key + 1;
-                  String name = entry.value;
-                  bool isUnlocked = level <= childLevel;
-                  double positionTop = _getPositionForLevel(level) + 85; // نزول القيم تحت الPathway
-                  double positionLeft = _getLeftPositionForLevel(level) - 20;
+                  List<EthicalValueModel> ethicalValues = valueSnapshot.data!;
 
-                  return Positioned(
-                    top: positionTop,
-                    left: positionLeft,
-                    child: GestureDetector(
-                      onTap: isUnlocked
-                          ? () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => EthicalVideoView(
-                                    parentId: widget.parentId,
-                                    childId: widget.childId,
-                                    ethicalValue: EthicalValueModel.fromName(name, level),
+                  return Stack(
+                    children: ethicalValues.map((ethicalValue) {
+                      int level = ethicalValue.level;
+                      bool isUnlocked = level <= childLevel;
+                      double positionTop = _getPositionForLevel(level);
+                      double positionLeft = _getLeftPositionForLevel(level);
+
+                      return Positioned(
+                        top: positionTop,
+                        left: positionLeft,
+                        child: GestureDetector(
+                          onTap: isUnlocked
+                              ? () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EthicalVideoView(
+                                        parentId: widget.parentId,
+                                        childId: widget.childId,
+                                        ethicalValue: ethicalValue, // 🔹 تمرير بيانات القيمة المختارة
+                                      ),
+                                    ),
+                                  );
+                                }
+                              : null,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // 🔹 الدائرة الخاصة بالقيمة
+                              Container(
+                                width: 80,height: 80,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isUnlocked ? Colors.white : Colors.grey.shade300,
+                                  border: Border.all(
+                                    color: isUnlocked ? Colors.orange : Colors.grey,
+                                    width: 3,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                      offset: Offset(3, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    ethicalValue.name, // 🔹 الاسم من Firestore
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: isUnlocked ? Colors.black : Colors.grey.shade600,
+                                    ),
                                   ),
                                 ),
-                              );
-                            }
-                          : null,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // 🔹 الدائرة الخاصة بالقيمة
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,color: isUnlocked ? Colors.white : Colors.grey.shade300,
-                              border: Border.all(
-                                color: isUnlocked ? Colors.orange : Colors.grey,
-                                width: 3,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 6,
-                                  spreadRadius: 1,
-                                  offset: Offset(3, 3),
+                              // 🔹 أيقونة القفل
+                              if (!isUnlocked)
+                                const Positioned(
+                                  bottom: 8,
+                                  right: 8,
+                                  child: Icon(Icons.lock, color: Colors.red, size: 22),
                                 ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Text(
-                                name,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: isUnlocked ? Colors.black : Colors.grey.shade600,
-                                ),
-                              ),
-                            ),
+                            ],
                           ),
-                          // 🔹 أيقونة القفل تبقى كما هي
-                          if (!isUnlocked)
-                            const Positioned(
-                              bottom: 8,
-                              right: 8,
-                              child: Icon(Icons.lock, color: Colors.red, size: 22),
-                            ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
+                },
               );
             },
           ),
@@ -163,7 +162,7 @@ class _EthicalValueViewState extends State<EthicalValueView> {
             child: Image.asset("assets/images/chick.png", width: 70),
           ),
 
-          // 🔹 "البداية" تحت المسار مع ترك مساحة كافية
+          // 🔹 "البداية" تحت المسار
           Positioned(
             bottom: 70,
             right: MediaQuery.of(context).size.width * 0.6,
@@ -181,15 +180,15 @@ class _EthicalValueViewState extends State<EthicalValueView> {
     );
   }
 
-  // 🔹 تحديد مواضع القيم الأخلاقية على المسار بدقة (بعد Pathway شوي)
+  // 🔹 تحديد مواضع القيم الأخلاقية على المسار
   double _getPositionForLevel(int level) {
     switch (level) {
-      case 1: return 580; // الصدق
-      case 2: return 475; // الأمانة (زيادة المسافة)
-      case 3: return 375; // التعاون
-      case 4: return 265; // الإحسان (زيادة المسافة)
-      case 5: return 165; // الشجاعة
-      case 6: return 80; // التواضع (زيادة المسافة)
+      case 1: return 580;
+      case 2: return 475;
+      case 3: return 375;
+      case 4: return 265;
+      case 5: return 165;
+      case 6: return 80;
       default: return 580;
     }
   }
@@ -197,12 +196,12 @@ class _EthicalValueViewState extends State<EthicalValueView> {
   // 🔹 تحديد الإزاحة الأفقية لكل قيمة لضبط المحاذاة مع المسار
   double _getLeftPositionForLevel(int level) {
     switch (level) {
-      case 1: return 110; // الصدق - يسار أكثر
-      case 2: return 190; // الأمانة - يمين أكثر
-      case 3: return 100; // التعاون - يسار أكثر
-      case 4: return 200; // الإحسان - يمين أكثر
-      case 5: return 120; // الشجاعة - يسار أكثر
-      case 6: return 210; // التواضع - يمين أكثر
+      case 1: return 110;
+      case 2: return 190;
+      case 3: return 100;
+      case 4: return 200;
+      case 5: return 120;
+      case 6: return 210;
       default: return 140;
     }
   }

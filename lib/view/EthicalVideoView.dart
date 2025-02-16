@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
 import '../controller/EthicalValueController.dart';
 import '../model/EthicalValueModel.dart';
 
@@ -20,45 +21,75 @@ class EthicalVideoView extends StatefulWidget {
 }
 
 class _EthicalVideoViewState extends State<EthicalVideoView> {
-  late YoutubePlayerController _controller;
   final EthicalValueController _ethicalController = EthicalValueController();
+  VideoPlayerController? _videoController;
+  ChewieController? _chewieController;
   bool videoCompleted = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = YoutubePlayerController(
-      initialVideoId: widget.ethicalValue.videoId,
-      flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
-    )..addListener(() {
-        if (_controller.value.position >= _controller.metadata.duration - const Duration(seconds: 2)) {
-          setState(() {
-            videoCompleted = true;
-          });
-        }
-      });
+    _loadVideo();
+  }
+
+  // 🔹 تحميل الفيديو من Firebase Storage
+  void _loadVideo() async {
+    String videoUrl = widget.ethicalValue.videoUrl;
+    setState(() {
+      _videoController = VideoPlayerController.network(videoUrl)
+        ..initialize().then((_) {
+          setState(() {});
+          _videoController!.play();
+        })
+        ..addListener(() {
+          if (_videoController!.value.position >= _videoController!.value.duration) {
+            setState(() {
+              videoCompleted = true;
+            });
+          }
+        });
+
+      _chewieController = ChewieController(
+        videoPlayerController: _videoController!,
+        autoPlay: true,
+        looping: false,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    _chewieController?.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.ethicalValue.name)),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          YoutubePlayer(controller: _controller),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: videoCompleted
-                ? () {
-                    int newLevel = widget.ethicalValue.level + 1;
-                    _ethicalController.updateChildLevel(widget.parentId, widget.childId, newLevel);
-                    Navigator.pop(context);
-                  }
-                : null, // الزر يظل معطلاً حتى ينتهي الفيديو
-            child: const Text("انتهيت 🎉"),
-          ),
-        ],
+      body: Center(
+        child: Column(
+          children: [
+            _videoController != null && _videoController!.value.isInitialized
+                ? AspectRatio(
+                    aspectRatio: _videoController!.value.aspectRatio,
+                    child: Chewie(controller: _chewieController!),
+                  )
+                : const CircularProgressIndicator(),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: videoCompleted
+                  ? () {
+                      int nextLevel = widget.ethicalValue.level + 1;
+                      _ethicalController.updateChildLevel(widget.parentId, widget.childId, nextLevel);
+                      Navigator.pop(context);
+                    }
+                  : null,
+              child: const Text("انتهيت 🎉"),
+            ),
+          ],
+        ),
       ),
     );
   }

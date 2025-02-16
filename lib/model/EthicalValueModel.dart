@@ -1,28 +1,26 @@
 class EthicalValueModel {
+  final String ethicalId;
   final String name;
+  final String description;
+  final String videoUrl;
   final int level;
-  final String videoId;
 
   EthicalValueModel({
+    required this.ethicalId,
     required this.name,
+    required this.description,
+    required this.videoUrl,
     required this.level,
-    required this.videoId,
   });
 
-  static final Map<String, String> videoLinks = {
-    "الصدق": "LYAlD6QSKM0",
-    "الأمانة": "ttJD_mJ2B18",
-    "التعاون": "ttJD_mJ2B18",
-    "الإحسان": "t9Noxyf56Nw",
-    "الشجاعة": "KIxhA-XMd9s",
-    "التواضع": "9iiLOfmnkjI"
-  };
-
-  factory EthicalValueModel.fromName(String name, int level) {
+  // ✅ استرجاع البيانات من Firestore بشكل صحيح
+  factory EthicalValueModel.fromFirestore(Map<String, dynamic> data, String docId) {
     return EthicalValueModel(
-      name: name,
-      level: level,
-      videoId: videoLinks[name] ?? "",
+      ethicalId: docId, // 🔹 نستخدم ID المستند كـ ethicalId
+      name: data['name'] ?? '',
+      description: data['description'] ?? '',
+      videoUrl: data['video'] ?? '',
+      level: data['level'] ?? 1,
     );
   }
 }
