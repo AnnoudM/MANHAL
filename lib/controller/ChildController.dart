@@ -5,14 +5,46 @@ import '../model/child_model.dart';
 class ChildController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> updateChildInfo(Child child) async {
+ Future<void> updateChildInfo(Child child, Function(Child) onUpdate) async {
+  try {
     await _firestore
         .collection('Parent')
         .doc(child.parentId)
         .collection('Children')
         .doc(child.id)
         .update(child.toMap());
+
+    debugPrint("✅ تم تحديث البيانات في Firebase: ${child.name}, ${child.age}");
+
+    // ✅ تحديث البيانات مباشرة في الواجهة
+    onUpdate(child);
+    
+  } catch (e) {
+    debugPrint('❌ خطأ أثناء تحديث بيانات الطفل: $e');
   }
+}
+
+
+
+
+
+Future<Child?> getChildInfo(String parentId, String childId) async {
+  try {
+    DocumentSnapshot childDoc = await _firestore
+        .collection('Parent')
+        .doc(parentId)
+        .collection('Children')
+        .doc(childId)
+        .get();
+
+    if (childDoc.exists) {
+      return Child.fromMap(childDoc.id, childDoc.data() as Map<String, dynamic>);
+    }
+  } catch (e) {
+    debugPrint('Error fetching child info: $e');
+  }
+  return null;
+}
 
   Future<void> deleteChild(String parentId, String childId) async {
     await _firestore
@@ -22,6 +54,11 @@ class ChildController {
         .doc(childId)
         .delete();
   }
+
+Future<void> deleteChildAndNavigate(BuildContext context, String parentId, String childId) async {
+  await deleteChild(parentId, childId);
+  Navigator.pushReplacementNamed(context, '/childListView');
+}
 
   Future<void> addChildToParent(BuildContext context, String parentId, Child child) async {
     try {
