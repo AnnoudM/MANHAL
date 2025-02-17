@@ -126,7 +126,8 @@ void _submit() async {
       value: value,
       items: items.map((item) => DropdownMenuItem(
         value: item,
-        child: Text(item, style: const TextStyle(fontFamily: 'alfont')),
+        child: Text(item,
+    style: const TextStyle(fontFamily: 'alfont', color: Colors.black),),
       )).toList(),
       onChanged: onChanged,
       decoration: InputDecoration(

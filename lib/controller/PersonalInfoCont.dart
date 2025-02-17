@@ -111,18 +111,73 @@ class PersonalInfoController {
 }
 
   Future<void> deleteUserAccount(BuildContext context) async {
-    try {
-      User? user = _auth.currentUser;
-      if (user != null) {
-        await _firestore.collection('Parent').doc(user.uid).delete();
-        await user.delete();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تم حذف الحساب بنجاح', style: TextStyle(fontFamily: 'alfont'))),
+  try {
+    User? user = _auth.currentUser;
+    if (user == null) return;
+
+    // عرض ديالوج التأكيد
+    bool confirmDelete = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFFF8F8F8),
+          title: Text('تأكيد حذف الحساب', style: TextStyle(fontFamily: 'alfont')),
+          content: Text('هل أنت متأكد أنك تريد حذف حسابك؟ سيتم حذف جميع الأطفال المرتبطين به أيضًا.', style: TextStyle(fontFamily: 'alfont')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('حذف', style: TextStyle(color: Colors.red, fontFamily: 'alfont')),
+            ),
+          ],
         );
-        Navigator.pop(context); // الرجوع للخلف بعد الحذف
-      }
-    } catch (e) {
-      debugPrint('Error deleting account: $e');
+      },
+    );
+
+    if (!confirmDelete) return; // المستخدم ألغى العملية
+
+    // حذف جميع الأطفال المرتبطين بحساب الوالد
+    QuerySnapshot childrenSnapshot = await _firestore
+        .collection('Children')
+        .where('parentId', isEqualTo: user.uid)
+        .get();
+
+    for (var childDoc in childrenSnapshot.docs) {
+      await _firestore.collection('Children').doc(childDoc.id).delete();
     }
+
+    // حذف حساب الوالد من Firestore
+    await _firestore.collection('Parent').doc(user.uid).delete();
+
+    // حذف حساب Firebase Authentication
+    await user.delete();
+
+    // إظهار رسالة النجاح
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('تم حذف الحساب بنجاح', style: TextStyle(fontFamily: 'alfont')),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    // الانتقال إلى صفحة البداية
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => InitialPage()),
+      (route) => false,
+    );
+  } catch (e) {
+    debugPrint('Error deleting account: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('حدث خطأ أثناء حذف الحساب', style: TextStyle(fontFamily: 'alfont')),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
+
 }

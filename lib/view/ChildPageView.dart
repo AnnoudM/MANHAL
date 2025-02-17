@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../controller/ChildController.dart';
 import '../model/child_model.dart';
 import '../view/SelectImageView.dart';
+import '../view/ChildListView.dart';
 
 class ChildPageView extends StatefulWidget {
   final Child child;
@@ -56,9 +57,44 @@ void _showEditDialog(String title, String initialValue, Function(String) onSave)
             child: const Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
-                onSave(textController.text.trim());
+                String newValue = textController.text.trim();
+                
+                // تحديث القيم المحلية
+                if (title.contains('الاسم')) {
+                  setState(() {
+                    _child = _child.copyWith(name: newValue);
+                  });
+                } else if (title.contains('العمر')) {
+                  setState(() {
+                    _child = _child.copyWith(age: int.tryParse(newValue) ?? _child.age);
+                  });
+                }
+                
+                // تحديث Firebase
+                try {
+                  await _controller.updateChildInfo(_child, (updatedChild) {
+                    setState(() {
+                      _child = updatedChild;
+                    });
+                  });
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('تم التعديل بنجاح', style: TextStyle(fontFamily: 'alfont')),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('حدث خطأ في التحديث: $e', style: const TextStyle(fontFamily: 'alfont')),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+                
                 Navigator.pop(context);
               }
             },
@@ -69,7 +105,6 @@ void _showEditDialog(String title, String initialValue, Function(String) onSave)
     },
   );
 }
-
 
 @override
 void initState() {
@@ -107,14 +142,26 @@ Future<void> _fetchLatestChildData() async {
     String newName = _nameController.text.trim();
     int newAge = int.tryParse(_ageController.text.trim()) ?? _child.age;
 
+    // Create updated child object with all fields
+    Child updatedChild = _child.copyWith(
+      name: newName,
+      age: newAge,
+      photoUrl: _selectedPhoto,
+    );
+
+    // Update local state
     setState(() {
-      _child = _child.copyWith(name: newName, age: newAge, photoUrl: _selectedPhoto);
+      _child = updatedChild;
     });
 
-    await _controller.updateChildInfo(_child, (updatedChildFromDB) {
+    // Call controller to update Firebase
+    await _controller.updateChildInfo(updatedChild, (updatedChildFromDB) {
       debugPrint("✅ البيانات تم تحديثها بنجاح!");
+      
+      setState(() {
+        _child = updatedChildFromDB;
+      });
 
-      // ✅ إضافة SnackBar بعد تحديث البيانات
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('تم تعديل المعلومات بنجاح', style: TextStyle(fontFamily: 'alfont')),
@@ -130,35 +177,48 @@ Future<void> _fetchLatestChildData() async {
 
 
   void _deleteChild() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFFF8F8F8),
-          title: const Text('تأكيد الحذف', style: TextStyle(fontFamily: 'alfont')),
-          content: const Text('هل أنت متأكد من حذف هذا الطفل؟', style: TextStyle(fontFamily: 'alfont')),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
-            ),
-            TextButton(
-              onPressed: () async {
-                await _controller.deleteChildAndNavigate(context, widget.child.parentId, widget.child.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('تم حذف الطفل بنجاح', style: TextStyle(fontFamily: 'alfont')),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-              child: const Text('حذف', style: TextStyle(fontFamily: 'alfont', color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        backgroundColor: const Color(0xFFF8F8F8),
+        title: const Text('تأكيد الحذف', style: TextStyle(fontFamily: 'alfont')),
+        content: const Text('هل أنت متأكد من حذف هذا الطفل؟', style: TextStyle(fontFamily: 'alfont')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
+          ),
+          TextButton(
+            onPressed: () async {
+              // أولاً، أغلق dialog الحذف
+              Navigator.pop(dialogContext);
+              
+              // ثم قم بحذف الطفل
+              await _controller.deleteChild(widget.child.parentId, widget.child.id);
+              
+              // انتقل إلى صفحة ChildListView مع إزالة كل الصفحات السابقة
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const ChildListView()),
+                (route) => false, // هذا سيزيل كل الصفحات السابقة
+              );
+              
+              // إظهار رسالة النجاح
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('تم حذف الطفل بنجاح', style: TextStyle(fontFamily: 'alfont')),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            child: const Text('حذف', style: TextStyle(fontFamily: 'alfont', color: Colors.red)),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -202,35 +262,50 @@ Future<void> _fetchLatestChildData() async {
                 children: [
                   Center(
   child: GestureDetector(
-    onTap: () async {
-      final selectedPhoto = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const SelectImageView()),
-      );
-      if (selectedPhoto != null) {
-        setState(() {
-          _selectedPhoto = selectedPhoto;
+  onTap: () async {
+    final selectedPhoto = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SelectImageView()),
+    );
+    if (selectedPhoto != null) {
+      setState(() {
+        _selectedPhoto = selectedPhoto;
+        _child = _child.copyWith(photoUrl: selectedPhoto);
+      });
+      
+      // تحديث Firebase
+      try {
+        await _controller.updateChildInfo(_child, (updatedChild) {
+          setState(() {
+            _child = updatedChild;
+          });
         });
-        _updateChildInfo();
-
-        // ✅ سناك بار بعد تحديث الصورة
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('تم تحديث الصورة بنجاح', style: TextStyle(fontFamily: 'alfont')),
             backgroundColor: Colors.green,
           ),
         );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('حدث خطأ في تحديث الصورة: $e', style: const TextStyle(fontFamily: 'alfont')),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
-    },
-    child: CircleAvatar(
-      radius: 50,
-      backgroundImage: AssetImage(_selectedPhoto ?? 'assets/images/default_avatar.jpg'),
-      child: const Align(
-        alignment: Alignment.bottomRight,
-        child: Icon(Icons.edit, color: Colors.black),
-      ),
+    }
+  },
+  child: CircleAvatar(
+    radius: 50,
+    backgroundImage: AssetImage(_selectedPhoto ?? 'assets/images/default_avatar.jpg'),
+    child: const Align(
+      alignment: Alignment.bottomRight,
+      child: Icon(Icons.edit, color: Colors.black),
     ),
   ),
+),
 ),
 
                   const SizedBox(height: 20),
@@ -294,29 +369,29 @@ Future<void> _fetchLatestChildData() async {
   }
 
   Widget _buildEditableField(String label, String value, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: ListTile(
-          title: Text('$label: $value', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'alfont')),
-          trailing: const Icon(Icons.edit, color: Colors.grey),
-          onTap: onTap,
-        ),
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-    );
-  }
+      child: ListTile(
+        title: Text('$label: $value', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'alfont')),
+        trailing: const Icon(Icons.edit, color: Colors.grey),
+        onTap: onTap,
+      ),
+    ),
+  );
+}
 
   Widget _buildStaticField(String label, String value) {
     return Padding(

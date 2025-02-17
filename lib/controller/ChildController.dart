@@ -7,24 +7,45 @@ class ChildController {
 
  Future<void> updateChildInfo(Child child, Function(Child) onUpdate) async {
   try {
+    // إنشاء Map للتحديث
+    Map<String, dynamic> updateData = {
+      'name': child.name,
+      'age': child.age,
+      'photoUrl': child.photoUrl,
+      'gender': child.gender,
+      'parentId': child.parentId,
+    };
+
+    // التحديث في Firestore
     await _firestore
         .collection('Parent')
         .doc(child.parentId)
         .collection('Children')
         .doc(child.id)
-        .update(child.toMap());
+        .set(updateData, SetOptions(merge: true));
 
     debugPrint("✅ تم تحديث البيانات في Firebase: ${child.name}, ${child.age}");
 
-    // ✅ تحديث البيانات مباشرة في الواجهة
-    onUpdate(child);
-    
+    // جلب البيانات المحدثة للتأكد من التحديث
+    DocumentSnapshot updatedDoc = await _firestore
+        .collection('Parent')
+        .doc(child.parentId)
+        .collection('Children')
+        .doc(child.id)
+        .get();
+
+    if (updatedDoc.exists) {
+      Child updatedChild = Child.fromMap(
+        updatedDoc.id,
+        updatedDoc.data() as Map<String, dynamic>,
+      );
+      onUpdate(updatedChild);
+    }
   } catch (e) {
     debugPrint('❌ خطأ أثناء تحديث بيانات الطفل: $e');
+    throw e;
   }
 }
-
-
 
 
 

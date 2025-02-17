@@ -75,32 +75,51 @@ class _ChildListViewState extends State<ChildListView> {
                       child: StreamBuilder<QuerySnapshot>(
                         stream: fetchChildrenStream(),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else if (snapshot.hasError) {
-                            return const Text('حدث خطأ أثناء تحميل البيانات');
-                          } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                            return const Text('لا يوجد أطفال مسجلين');
-                          } else {
-                            var children = snapshot.data!.docs;
-                            return GridView.builder(
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 20,
-                                mainAxisSpacing: 20,
-                              ),
-                              itemCount: children.length + 1,
-                              itemBuilder: (context, index) {
-                                if (index == children.length) {
-                                  return _buildAddChildButton();
-                                } else {
-                                  var childData = children[index].data() as Map<String, dynamic>;
-                                  return _buildChildAvatar(children[index].id, childData);
-                                }
-                              },
-                            );
-                          }
-                        },
+  if (snapshot.connectionState == ConnectionState.waiting) {
+    return const CircularProgressIndicator();
+  } else if (snapshot.hasError) {
+    return const Text('حدث خطأ أثناء تحميل البيانات');
+  } else {
+    var children = snapshot.data?.docs ?? [];
+
+    if (children.isEmpty) {
+      // ✅ عرض رسالة وزر إضافة طفل جديد عند عدم وجود أطفال
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'لا يوجد أطفال مسجلين',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildAddChildButton(), // ✅ إظهار زر إضافة طفل جديد
+        ],
+      );
+    }
+
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 20,
+        mainAxisSpacing: 20,
+      ),
+      itemCount: children.length + 1, // ✅ زيادة العدد لزر الإضافة
+      itemBuilder: (context, index) {
+        if (index == children.length) {
+          return _buildAddChildButton(); // ✅ زر الإضافة في نهاية القائمة
+        } else {
+          var childData = children[index].data() as Map<String, dynamic>;
+          return _buildChildAvatar(children[index].id, childData);
+        }
+      },
+    );
+  }
+},
+
                       ),
                     ),
                   ],
