@@ -61,6 +61,8 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
                 image: const DecorationImage(
                   image: AssetImage("assets/images/Letters.png"),
                   fit: BoxFit.cover,
+                   colorFilter:
+              ColorFilter.mode(Color.fromARGB(102, 0, 0, 0), BlendMode.dstATop),
                 ),
                 boxShadow: [
                   BoxShadow(

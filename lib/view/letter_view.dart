@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controller/letter_controller.dart';
 import '../model/letter_model.dart';
+import 'ActivityView.dart'; // ✅ استيراد الصفحة
 
 class ArabicLetterPage extends StatefulWidget {
   final String letter;
@@ -24,7 +25,7 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
 
   @override
   void dispose() {
-    // إيقاف الصوت عند الانتقال بين الصفحات
+    // ✅ إيقاف الصوت عند الانتقال بين الصفحات
     _controller.stopAudio();
     super.dispose();
   }
@@ -55,7 +56,7 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
                   const SizedBox(height: 20),
                   if (letterData?.songUrl != null) _buildSongSection(),
                   const SizedBox(height: 20),
-                  _buildNextButton(),
+                  _buildNextButton(), // ✅ زر "التالي" موجود بالفعل
                   const SizedBox(height: 20),
                 ],
               ),
@@ -242,12 +243,17 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: ElevatedButton(
         onPressed: () {
-          // تنفيذ الإجراء المناسب
+          // ✅ عند الضغط، ينتقل إلى صفحة `ActivityView` ويمرر الحرف الحالي
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ActivityView(letter: widget.letter),
+            ),
+          );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xffD1E3F1),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: Row(
           children: const [
