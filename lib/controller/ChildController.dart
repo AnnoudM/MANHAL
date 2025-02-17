@@ -67,7 +67,11 @@ Future<void> deleteChildAndNavigate(BuildContext context, String parentId, Strin
           .collection('Parent')
           .doc(parentId)
           .collection('Children')
-          .add(child.toMap());
+           .add({
+            ...child.toMap(), // ✅ إضافة بيانات الطفل
+            'level': 1, // ✅ تحديد المستوى الافتراضي للطفل الجديد
+          });
+
 
       ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

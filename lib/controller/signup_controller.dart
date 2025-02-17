@@ -45,7 +45,10 @@ class SignUpController {
           .collection('Parent')
           .doc(parentId)
           .collection('Children')
-          .add(child.toMap());
+            .add({
+      ...child.toMap(), // ✅ نأخذ جميع البيانات من child
+      'level': 1, // ✅ نضيف level = 1 هنا حتى لو لم يكن في child.toMap()
+    }); 
     } catch (e) {
       print('Error adding child: $e');
     }
