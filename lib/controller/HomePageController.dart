@@ -11,6 +11,7 @@ import '../view/ArabicNumberView.dart';
 //import '../view/WordsView.dart';
 import '../view/EthicalValueView.dart';
 //import '../view/ScanView.dart';
+import '../view/sticker_page.dart'; // Import the Sticker Page
 
 class HomePageController extends StatefulWidget {
   final String childID; // معرف الطفل
@@ -123,7 +124,7 @@ class _HomePageControllerState extends State<HomePageController> {
               onStickersClick: (){
                 Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ArabicLetterPage(letter: 'أ')), // add stickers navigate
+             MaterialPageRoute(builder: (context) => StickerPage()), // Navigate to Sticker Page
             );},
 
 
