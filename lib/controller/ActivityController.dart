@@ -6,10 +6,10 @@ class ActivityController {
 
   // جلب البيانات من Firestore بناءً على الحرف
   Future<ActivityModel?> fetchActivity(String letter) async {
-  print("🔍 البحث عن النشاط في Firestore للحرف: $letter");
+  
   try {
     DocumentSnapshot doc = await _firestore
-        .collection('activity')
+        .collection('Activity')
         .doc('letters')
         .collection('content')
         .doc(letter)
