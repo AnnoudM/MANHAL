@@ -8,10 +8,8 @@ class LetterController {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-  // التهيئة
   LetterController();
 
-  // جلب البيانات من Firestore
   Future<LetterModel> fetchData(String letter) async {
     try {
       DocumentSnapshot doc = await _firestore
@@ -22,30 +20,34 @@ class LetterController {
           .get();
 
       if (!doc.exists) {
-        throw Exception("لم يتم العثور على الحرف");
+        throw Exception("Letter not found.");
       }
 
       var content = doc.data() as Map<String, dynamic>;
-      return LetterModel.fromMap(content);
+      LetterModel letterData = LetterModel.fromMap(content);
+
+      if (letterData.songUrl.isNotEmpty) {
+        await _audioPlayer.setSourceUrl(letterData.songUrl);
+      }
+
+      return letterData;
     } catch (e) {
-      throw Exception("حدث خطأ أثناء تحميل البيانات: $e");
+      throw Exception("Error loading data: $e");
     }
   }
 
-  // تشغيل الصوت باستخدام audioplayers
   Future<void> playAudio(String url) async {
     try {
-      await _audioPlayer.setSourceUrl(url); // تعيين مصدر الصوت
-      await _audioPlayer.resume(); // تشغيل الصوت
-      print("📢 تشغيل الصوت بنجاح: $url");
+      await _audioPlayer.setSourceUrl(url);
+      await _audioPlayer.resume();
+      print("Audio played successfully: $url");
     } catch (e) {
-      print("❌ خطأ أثناء تشغيل الصوت: $e");
+      print("Error playing audio: $e");
     }
   }
 
-  // إيقاف تشغيل الصوت
   void stopAudio() {
     _audioPlayer.stop();
-    print("🛑 تم إيقاف الصوت");
+    print("Audio stopped.");
   }
 }

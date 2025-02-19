@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../controller/letter_controller.dart';
 import '../model/letter_model.dart';
-import 'ActivityView.dart'; // ✅ استيراد الصفحة
+import 'ActivityView.dart';
 
 class ArabicLetterPage extends StatefulWidget {
   final String letter;
@@ -14,6 +16,8 @@ class ArabicLetterPage extends StatefulWidget {
 
 class _ArabicLetterPageState extends State<ArabicLetterPage> {
   final LetterController _controller = LetterController();
+  final FlutterTts flutterTts = FlutterTts();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   LetterModel? letterData;
   bool isLoading = true;
 
@@ -25,8 +29,8 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
 
   @override
   void dispose() {
-    // ✅ إيقاف الصوت عند الانتقال بين الصفحات
     _controller.stopAudio();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -39,7 +43,26 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
       });
     } catch (e) {
       setState(() => isLoading = false);
-      print("حدث خطأ أثناء تحميل البيانات: $e");
+      print("Error loading data: $e");
+    }
+  }
+
+  void _speakLetter() async {
+    await flutterTts.setLanguage("ar-SA");
+    await flutterTts.speak(widget.letter);
+  }
+
+  void _speakExample(String example) async {
+    await flutterTts.setLanguage("ar-SA");
+    await flutterTts.speak(example);
+  }
+
+  void _playSong(String songUrl) async {
+    try {
+      await _audioPlayer.setSourceUrl(songUrl);
+      await _audioPlayer.resume();
+    } catch (e) {
+      print("Error playing the song: $e");
     }
   }
 
@@ -56,7 +79,7 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
                   const SizedBox(height: 20),
                   if (letterData?.songUrl != null) _buildSongSection(),
                   const SizedBox(height: 20),
-                  _buildNextButton(), // ✅ زر "التالي" موجود بالفعل
+                  _buildNextButton(),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -85,7 +108,7 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0xFF3F414E).withOpacity(0.1),
+                    color: const Color(0xFF3F414E).withOpacity(0.1),
                     blurRadius: 6,
                     offset: const Offset(0, 3),
                   ),
@@ -114,17 +137,11 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
                 ),
                 const SizedBox(height: 10),
                 IconButton(
-                  icon: Image.asset(
-                    "assets/images/high-volume.png",
-                  ),
+                  icon: Image.asset("assets/images/high-volume.png"),
                   iconSize: 72,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  onPressed: () {
-                    if (letterData?.letterSound != null) {
-                      _controller.playAudio(letterData!.letterSound);
-                    }
-                  },
+                  onPressed: _speakLetter,
                 ),
               ],
             ),
@@ -158,14 +175,9 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: Image.asset(
-              "assets/images/high-volume.png",
-              width: 40,
-              height: 40,
-            ),
-            onPressed: () {
-              _controller.playAudio(letterData!.examples[index]);
-            },
+            icon: Image.asset("assets/images/high-volume.png",
+                width: 40, height: 40),
+            onPressed: () => _speakExample(letterData!.examples[index]),
           ),
           Expanded(
             child: Center(
@@ -208,22 +220,19 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
       child: Row(
         children: [
           IconButton(
-            icon: Image.asset(
-              "assets/images/high-volume.png",
-              width: 40,
-              height: 40,
-            ),
+            icon: Image.asset("assets/images/high-volume.png",
+                width: 40, height: 40),
             onPressed: () {
               if (letterData?.songUrl != null) {
-                _controller.playAudio(letterData!.songUrl);
+                _playSong(letterData!.songUrl);
               }
             },
           ),
           Expanded(
             child: Center(
-              child: Text(
+              child: const Text(
                 "الأنشودة",
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 32,
                     fontFamily: "Blabeloo",
                     fontWeight: FontWeight.bold,
@@ -243,7 +252,6 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: ElevatedButton(
         onPressed: () {
-          // ✅ عند الضغط، ينتقل إلى صفحة `ActivityView` ويمرر الحرف الحالي
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -253,20 +261,19 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xffD1E3F1),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: Row(
           children: const [
             Icon(Icons.arrow_back, size: 34, color: Color(0xFF3F414E)),
             Expanded(
               child: Center(
-                child: Text(
-                  "التالي",
-                  style: TextStyle(
-                      fontSize: 40,
-                      color: Color(0xFF3F414E),
-                      fontFamily: "Blabeloo"),
-                ),
+                child: Text("التالي",
+                    style: TextStyle(
+                        fontSize: 40,
+                        color: Color(0xFF3F414E),
+                        fontFamily: "Blabeloo")),
               ),
             ),
           ],
