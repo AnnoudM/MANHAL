@@ -56,7 +56,7 @@ class _WordsListPageState extends State<WordsListPage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : words.isEmpty
-              ? const Center(child: Text("❌ لا توجد بيانات متاحة"))
+              ? const Center(child: Text("No data available"))
               : ListView.builder(
                   padding:
                       const EdgeInsets.symmetric(vertical: 20, horizontal: 15),

@@ -4,7 +4,6 @@ import '../model/wordDetailsModel.dart';
 class WordController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // جلب قائمة الكلمات لفئة معينة
   Future<List<WordModel>> fetchWords(String category) async {
     try {
       DocumentSnapshot doc = await _firestore

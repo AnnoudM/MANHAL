@@ -46,9 +46,7 @@ class ArabicWordsPage extends StatelessWidget {
             Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
             return {
               "name": doc.id,
-              "image": data.containsKey("image")
-                  ? data["image"] as String
-                  : "", // التحقق قبل جلب الصورة
+              "image": data.containsKey("image") ? data["image"] as String : "",
             };
           }).toList();
 
@@ -79,10 +77,10 @@ class ArabicWordsPage extends StatelessWidget {
                               const Color.fromRGBO(255, 255, 255, 0.3),
                               BlendMode.lighten,
                             ))
-                        : null, // إذا لم يكن هناك صورة، لا تضف خلفية
+                        : null,
                     color: categories[index]["image"]!.isEmpty
                         ? Colors.grey.shade300
-                        : null, // إذا لم توجد صورة، اجعل لون الخلفية رمادي فاتح
+                        : null,
                   ),
                   child: Center(
                     child: Text(

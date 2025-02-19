@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class WordDetailsPage extends StatefulWidget {
   final String word;
-  final String category; 
+  final String category;
 
   const WordDetailsPage({
     super.key,
@@ -48,7 +48,7 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
         }
       }
     } catch (e) {
-      print("❌ خطأ أثناء تحميل البيانات: $e");
+      print("❌ Error loading data: $e");
       setState(() => isLoading = false);
     }
   }
@@ -66,7 +66,7 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
         children: [
           Container(
             decoration: const BoxDecoration(
-              color: Color(0xFFFFF3C7), 
+              color: Color(0xFFFFF3C7),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(24),
                 bottomRight: Radius.circular(24),
@@ -108,7 +108,7 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
                         style: const TextStyle(
                           fontSize: 80,
                           fontWeight: FontWeight.bold,
-                      color: Color(0xFF3F414E),
+                          color: Color(0xFF3F414E),
                           fontFamily: 'Blabeloo',
                         ),
                       ),
@@ -140,7 +140,6 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
               ],
             ),
           ),
-
           Expanded(
             child: Align(
               alignment: Alignment.bottomCenter,
@@ -149,9 +148,7 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
                 height: 55,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
-                  onPressed: () {
-                    // تنفيذ الإجراء المناسب
-                  },
+                  onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFF3C7),
                     shape: RoundedRectangleBorder(
