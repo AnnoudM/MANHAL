@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../controller/ActivityController.dart';
 import 'package:manhal/model/ActivityModel.dart';
 
@@ -22,8 +21,7 @@ class _ActivityViewState extends State<ActivityView> {
   @override
   void initState() {
     super.initState();
-    print("✅ ActivityView تم فتحه للحرف: ${widget.letter}");
-    loadActivity(); // ✅ استدعاء تحميل البيانات عند فتح الصفحة
+    loadActivity(); // تحميل النشاط عند فتح الصفحة
   }
 
   @override
@@ -33,37 +31,54 @@ class _ActivityViewState extends State<ActivityView> {
   }
 
   Future<void> loadActivity() async {
-    print("📡 جاري تحميل بيانات Firebase للحرف: ${widget.letter}");
-    
     var activity = await _controller.fetchActivity(widget.letter);
-    
     if (mounted) {
       setState(() {
         activityData = activity;
         isLoading = false;
       });
     }
-    
-    print("✅ تم تحميل البيانات: ${activityData?.question ?? '❌ لا يوجد بيانات'}");
+  }
+
+  Future<void> _playAudio() async {
+    if (activityData?.audioUrl != null && activityData!.audioUrl.isNotEmpty) {
+      await _audioPlayer.setUrl(activityData!.audioUrl);
+      await _audioPlayer.play();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('⚠️ لا يوجد ملف صوتي متاح')),
+      );
+    }
+  }
+
+  void _checkAnswer(String selectedAnswer) {
+    if (selectedAnswer == activityData?.correctAnswer) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ إجابة صحيحة!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('❌ إجابة خاطئة، حاول مرة أخرى!')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffE5F2FF),
+      backgroundColor: const Color(0xffD1E3F1), // لون الخلفية الأزرق الفاتح
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : activityData == null
-              ? const Center(
-                  child: Text(
-                    "❌ لا يوجد نشاط لهذا الحرف",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                )
+              ? const Center(child: Text("❌ لا يوجد نشاط متاح لهذا الحرف"))
               : Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    _buildQuestion(),
+                    const SizedBox(height: 40),
+                    _buildProgressBar(),
                     const SizedBox(height: 20),
+                    _buildQuestion(),
+                    const SizedBox(height: 10),
                     _buildAudioButton(),
                     const SizedBox(height: 20),
                     _buildOptions(),
@@ -72,12 +87,31 @@ class _ActivityViewState extends State<ActivityView> {
     );
   }
 
+  Widget _buildProgressBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: LinearProgressIndicator(
+          value: 0.7, // نسبة التقدم (تغييرها بناءً على التقدم الحقيقي)
+          backgroundColor: Colors.white,
+          color: Colors.green,
+          minHeight: 10,
+        ),
+      ),
+    );
+  }
+
   Widget _buildQuestion() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Text(
         activityData?.question ?? "❌ لا يوجد سؤال متاح",
-        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF3F414E),
+        ),
         textAlign: TextAlign.center,
       ),
     );
@@ -85,15 +119,12 @@ class _ActivityViewState extends State<ActivityView> {
 
   Widget _buildAudioButton() {
     return IconButton(
-      icon: const Icon(Icons.volume_up, size: 40, color: Colors.deepOrange),
-      onPressed: () async {
-        if (activityData?.audioUrl != null && activityData!.audioUrl.isNotEmpty) {
-          await _audioPlayer.setUrl(activityData!.audioUrl);
-          await _audioPlayer.play();
-        } else {
-          print("⚠️ لا يوجد ملف صوتي متاح لهذا الحرف");
-        }
-      },
+      icon: Image.asset(
+        "assets/images/high-volume.png", // استبدالها بأيقونة الصوت
+        width: 50,
+        height: 50,
+      ),
+      onPressed: _playAudio,
     );
   }
 
@@ -102,25 +133,30 @@ class _ActivityViewState extends State<ActivityView> {
       child: GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
+          crossAxisCount: 2, // 2 خيارات في كل صف
           crossAxisSpacing: 20,
           mainAxisSpacing: 20,
+          childAspectRatio: 2.5, // التحكم في ارتفاع الأزرار
         ),
         itemCount: activityData?.options.length ?? 0,
         itemBuilder: (context, index) {
           return ElevatedButton(
-            onPressed: () {
-              if (activityData?.options[index] == activityData?.correctAnswer) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('✅ إجابة صحيحة!')),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('❌ إجابة خاطئة، حاول مرة أخرى!')),
-                );
-              }
-            },
-            child: Text(activityData?.options[index] ?? ""),
+            onPressed: () => _checkAnswer(activityData!.options[index]),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white, // لون الأزرار أبيض
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(16),
+            ),
+            child: Text(
+              activityData!.options[index],
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF3F414E),
+              ),
+            ),
           );
         },
       ),
