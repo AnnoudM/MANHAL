@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
-import '../controller/EthicalValueController.dart';
+import 'package:video_player/video_player.dart';
+import '../controller/EthicalVideoController.dart';
 import '../model/EthicalValueModel.dart';
 
 class EthicalVideoView extends StatefulWidget {
@@ -21,71 +21,21 @@ class EthicalVideoView extends StatefulWidget {
 }
 
 class _EthicalVideoViewState extends State<EthicalVideoView> {
-  final EthicalValueController _ethicalController = EthicalValueController();
-  VideoPlayerController? _videoController;
-  ChewieController? _chewieController;
-  bool videoCompleted = false;
-  int? childCurrentLevel;
+  EthicalVideoController? _controller;
 
   @override
   void initState() {
     super.initState();
-    _loadVideo();
-    _fetchChildLevel();
+    _controller = EthicalVideoController(
+      parentId: widget.parentId,
+      childId: widget.childId,
+      ethicalValue: widget.ethicalValue,
+      onLevelComplete: _showCompletionDialog, // ✅ تمرير الدالة عند انتهاء المستوى
+    );
+    _controller!.initializeVideo(() => setState(() {}));
   }
 
-  // 🔹 تحميل الفيديو من Firebase Storage
-  void _loadVideo() async {
-    String videoUrl = widget.ethicalValue.videoUrl;
-    setState(() {
-      _videoController = VideoPlayerController.network(videoUrl)
-        ..initialize().then((_) {
-          setState(() {});
-          _videoController!.play();
-        })
-        ..addListener(() {
-          if (_videoController!.value.position >= _videoController!.value.duration) {
-            setState(() {
-              videoCompleted = true;
-            });
-
-            // ✅ تحديث مستوى الطفل فقط إذا كان المستوى الجديد أعلى
-            int nextLevel = widget.ethicalValue.level + 1;
-            if (childCurrentLevel != null && nextLevel > childCurrentLevel!) {
-              _ethicalController.updateChildLevel(widget.parentId, widget.childId, nextLevel);
-
-              // ✅ عرض رسالة النجاح بناءً على المستوى
-              Future.delayed(const Duration(milliseconds: 500), () {
-                if (nextLevel == 7) {
-                  _showCompletionDialogFinal();
-                } else {
-                  _showCompletionDialog();
-                }
-              });
-            }
-          }
-        });
-
-      _chewieController = ChewieController(
-        videoPlayerController: _videoController!,
-        autoPlay: true,
-        looping: false,
-      );
-    });
-  }
-
-  // 🔹 جلب مستوى الطفل الحالي من Firestore
-  void _fetchChildLevel() async {
-    _ethicalController.fetchChildLevel(widget.parentId, widget.childId).listen((level) {
-      if (mounted) {
-        setState(() {
-          childCurrentLevel = level ?? 1;
-        });
-      }
-    });
-  }
-
-  // ✅ عرض رسالة نجاح عند إنهاء مرحلة والانتقال للمستوى التالي
+  /// ✅ عرض رسالة نجاح عند إنهاء مرحلة والانتقال للمستوى التالي
   void _showCompletionDialog() {
     showDialog(
       context: context,
@@ -133,62 +83,13 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
     );
   }
 
-  // ✅ عرض رسالة خاصة إذا أتم الطفل جميع القيم ووصل للمستوى 7
-  void _showCompletionDialogFinal() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset("assets/images/trophy.png", width: 100),
-              const SizedBox(height: 10),
-              const Text(
-                "🏆 مبروك! لقد أتممت جميع المراحل بنجاح!",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'BLabeloo',
-                ),
-              ),
-              const SizedBox(height: 15),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orangeAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text(
-                  "رائع! 🎉",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'BLabeloo'),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         alignment: Alignment.center,
         children: [
-          // 🔹 الخلفية تغطي الشاشة بالكامل
+          // 🔹 الخلفية
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -198,7 +99,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
             ),
           ),
 
-          // 🔹 AppBar داخل الخلفية (شفاف)
+          // 🔹 زر الرجوع + عنوان القيمة الأخلاقية
           Positioned(
             top: 40,
             left: 10,
@@ -206,45 +107,56 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // زر الرجوع
                 IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    // ✅ عند الرجوع، يتم إيقاف الفيديو
+                    _controller?.videoController?.pause();
+                    Navigator.pop(context);
+                  },
                 ),
-                Text(
-                  widget.ethicalValue.name,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'BLabeloo',
-                    color: Colors.black,
+                // عنوان القيمة الأخلاقية في الأعلى
+                Expanded(
+                  child: Text(
+                    widget.ethicalValue.name,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'BLabeloo',
+                      color: Colors.black,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 40),
+                const SizedBox(width: 40), // للحفاظ على التوازن بين العناصر
               ],
             ),
           ),
 
+          // 🔹 الفيديو
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _videoController != null && _videoController!.value.isInitialized
+                _controller != null && _controller!.videoController!.value.isInitialized
                     ? AspectRatio(
-                        aspectRatio: _videoController!.value.aspectRatio,
-                        child: Chewie(controller: _chewieController!),
+                        aspectRatio: _controller!.videoController!.value.aspectRatio,
+                        child: Chewie(controller: _controller!.chewieController!),
                       )
                     : const CircularProgressIndicator(),
                 const SizedBox(height: 20),
 
-                // 🔹 زر "انتهى" مع التعديلات المطلوبة
+                // 🔹 زر "انتهى"
                 GestureDetector(
                   onTap: () {
-                    if (childCurrentLevel != null &&
-                        childCurrentLevel! > widget.ethicalValue.level) {
+                    if (_controller!.videoCompleted ||
+                        (_controller!.childCurrentLevel != null &&
+                            _controller!.childCurrentLevel! > widget.ethicalValue.level)) {
                       Navigator.pop(context);
-                    } else if (!videoCompleted) {ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text("يجب إكمال المقطع التعليمي أولًا!"),
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("يجب إكمال المقطع التعليمي أولًا!"),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -254,10 +166,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
                     width: 80,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: videoCompleted || (childCurrentLevel != null &&
-                              childCurrentLevel! > widget.ethicalValue.level)
-                          ? Colors.green.shade400
-                          : Colors.grey.shade400,
+                      color: _controller!.getDoneButtonColor(),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Center(
@@ -279,5 +188,11 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
   }
 }
