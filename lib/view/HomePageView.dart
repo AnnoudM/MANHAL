@@ -121,7 +121,8 @@ class HomePageView extends StatelessWidget {
                         title: 'رحلة الأحرف',
                         color: Colors.lightBlue[100]!,
                         textColor: const Color(0xFF638297),
-                        iconPath: 'assets/images/letterIcon.png',
+                        iconText: 'أ ب ج',
+                        fontSize: 35,
                         iconSize: 60,
                         onTap: () => onItemClick('رحلة الأحرف'),
                       ),
@@ -137,7 +138,7 @@ class HomePageView extends StatelessWidget {
                         title: 'رحلة الكلمات',
                         color: Colors.yellow[100]!,
                         textColor: const Color(0xFFB1A782),
-                        iconText: 'ن ت ع ل م',
+                        iconText: 'نتعلم',
                         iconSize: 70,
                         fontSize: 35,
                         onTap: () => Navigator.push(

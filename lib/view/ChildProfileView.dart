@@ -102,7 +102,11 @@ class _ChildProfileViewState extends State<ChildProfileView> {
                               ),
                             );
                           },
-                          icon: const Icon(Icons.edit, color: Colors.black),
+                          icon: Image.asset(
+    'assets/images/editAvatar.png',
+    width: 50, // Set the width and height as needed
+    height: 50,
+  ),
                           iconSize: 30,
                         ),
                       ),

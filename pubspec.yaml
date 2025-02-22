@@ -90,6 +90,7 @@ flutter:
   - assets/images/happyChick.png
   - assets/images/chick.png
   - assets/images/trophy.png
+  - assets/images/editAvatar.png
 
   fonts:
     - family: Blabeloo
