@@ -206,7 +206,7 @@ class _EthicalValueViewState extends State<EthicalValueView> with TickerProvider
   double _getPositionForLevel(int level) {
     switch (level) {
       case 1:
-        return 600;
+        return 580;
       case 2:
         return 495;
       case 3:

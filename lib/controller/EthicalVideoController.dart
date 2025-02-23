@@ -4,6 +4,7 @@ import 'package:chewie/chewie.dart';
 import '../model/EthicalValueModel.dart';
 import 'EthicalValueController.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EthicalVideoController {
   final String parentId;
@@ -27,7 +28,11 @@ class EthicalVideoController {
   /// ✅ تحميل الفيديو والتحكم به
   void initializeVideo(VoidCallback updateUI) async {
     videoController = VideoPlayerController.network(ethicalValue.videoUrl)
-      ..initialize().then((_) {
+      ..initialize().then((_) async {
+        int? lastPosition = await loadLastPosition(); // ⬅️ استرجاع الموضع الخاص بكل طفل
+        if (lastPosition != null) {
+          videoController!.seekTo(Duration(milliseconds: lastPosition)); // ⬅️ استئناف الفيديو
+        }
         updateUI();
         videoController!.play();
       })
@@ -45,6 +50,23 @@ class EthicalVideoController {
     );
 
     _fetchChildLevel(updateUI);
+  }
+
+  /// ✅ حفظ آخر موضع توقف عند الخروج لكل طفل بشكل منفصل
+  Future<void> saveLastPosition() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (videoController != null) {
+      await prefs.setInt(
+        'lastPosition_${childId}_${ethicalValue.videoUrl}', // ⬅️ مفتاح فريد لكل طفل وفيديو
+        videoController!.value.position.inMilliseconds,
+      );
+    }
+  }
+
+  /// ✅ تحميل آخر موضع تم التوقف عنده لكل طفل بشكل منفصل
+  Future<int?> loadLastPosition() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('lastPosition_${childId}_${ethicalValue.videoUrl}');
   }
 
   /// ✅ جلب مستوى الطفل الحالي
@@ -78,6 +100,7 @@ class EthicalVideoController {
 
   /// ✅ تنظيف الكائنات عند الانتهاء
   void dispose() {
+    saveLastPosition(); // ⬅️ حفظ الموضع عند الإغلاق
     videoController?.dispose();
     chewieController?.dispose();
   }
