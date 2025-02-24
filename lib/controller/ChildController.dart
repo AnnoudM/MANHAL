@@ -43,7 +43,7 @@ class ChildController {
     }
   } catch (e) {
     debugPrint('❌ خطأ أثناء تحديث بيانات الطفل: $e');
-    throw e;
+    rethrow;
   }
 }
 
@@ -91,6 +91,7 @@ Future<void> deleteChildAndNavigate(BuildContext context, String parentId, Strin
            .add({
             ...child.toMap(), // ✅ إضافة بيانات الطفل
             'level': 1, // ✅ تحديد المستوى الافتراضي للطفل الجديد
+            'stickers': [],
           });
 
 
