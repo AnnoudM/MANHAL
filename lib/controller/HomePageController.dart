@@ -116,9 +116,6 @@ class _HomePageControllerState extends State<HomePageController> {
     print('❌ خطأ: معرف الطفل أو معرف الوالد غير صالح');
   }
 },
-
-
-
               onStickersClick: (){
                 Navigator.push(
               context,
