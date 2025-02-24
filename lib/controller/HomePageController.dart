@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:manhal/view/PasscodeView.dart';
 import '../view/HomePageView.dart';
 import '../view/ChildProfileView.dart';
 import '../view/letter_view.dart';
@@ -108,10 +109,7 @@ class _HomePageControllerState extends State<HomePageController> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SettingsView(
-          selectedChildId: widget.childID,  // ✅ تمرير معرف الطفل
-          currentParentId: parentId!, // ✅ تمرير معرف الوالد
-        ),
+        builder: (context) => PasscodeView(parentId: parentId!, selectedChildId: '', currentParentId: '',),
       ),
     );
   } else {
