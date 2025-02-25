@@ -150,7 +150,7 @@ class _ChildListViewState extends State<ChildListView> {
             radius: 40,
             backgroundImage: childData['photoUrl']?.isNotEmpty == true
                 ? AssetImage(childData['photoUrl'])
-                : const AssetImage('assets/images/default_avatar.png') as ImageProvider,
+                : const AssetImage('assets/images/default_avatar.jpg') as ImageProvider,
             backgroundColor: Colors.yellow[100],
           ),
           const SizedBox(height: 10),
