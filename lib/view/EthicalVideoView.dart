@@ -30,7 +30,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
       parentId: widget.parentId,
       childId: widget.childId,
       ethicalValue: widget.ethicalValue,
-      onLevelComplete: _showCompletionDialog, // ✅ تمرير الدالة عند انتهاء المستوى
+      onLevelComplete: _showCompletionDialog,
     );
     _controller!.initializeVideo(() => setState(() {}));
   }
@@ -89,7 +89,6 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
       body: Stack(
         alignment: Alignment.center,
         children: [
-          // 🔹 الخلفية
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -99,7 +98,6 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
             ),
           ),
 
-          // 🔹 زر الرجوع + عنوان القيمة الأخلاقية
           Positioned(
             top: 40,
             left: 10,
@@ -107,16 +105,14 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // زر الرجوع
                 IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
-                  onPressed: () {
-                    // ✅ عند الرجوع، يتم إيقاف الفيديو
+                  onPressed: () async {
+                    await _controller?.saveLastPosition(); // ✅ حفظ الموضع عند الرجوع
                     _controller?.videoController?.pause();
                     Navigator.pop(context);
                   },
                 ),
-                // عنوان القيمة الأخلاقية في الأعلى
                 Expanded(
                   child: Text(
                     widget.ethicalValue.name,
@@ -125,15 +121,13 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
                       fontWeight: FontWeight.bold,
                       fontFamily: 'BLabeloo',
                       color: Colors.black,
-                    ),
-                  ),
+                    ),),
                 ),
-                const SizedBox(width: 40), // للحفاظ على التوازن بين العناصر
+                const SizedBox(width: 40),
               ],
             ),
           ),
 
-          // 🔹 الفيديو
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -146,7 +140,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
                     : const CircularProgressIndicator(),
                 const SizedBox(height: 20),
 
-                // 🔹 زر "انتهى"
+                // ✅ زر "انتهى"
                 GestureDetector(
                   onTap: () {
                     if (_controller!.videoCompleted ||
@@ -191,7 +185,8 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
   }
 
   @override
-  void dispose() {
+  void dispose() async {
+    await _controller?.saveLastPosition(); // ✅ حفظ الموضع عند الإغلاق
     _controller?.dispose();
     super.dispose();
   }

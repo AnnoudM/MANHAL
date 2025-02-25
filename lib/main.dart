@@ -6,6 +6,7 @@ import 'package:manhal/splash_screen.dart';
 import 'firebase_options.dart'; // تأكد من استيراد ملف الإعدادات
 import 'package:manhal/view/signup_view.dart';
 import 'package:manhal/view/login_view.dart'; // استيراد صفحة تسجيل الدخول
+import 'package:manhal/view/SettingsView.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
 FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -49,9 +50,17 @@ class MyApp extends StatelessWidget {
       ),
       //initialRoute: '/signup', // تعيين المسار الافتراضي
       routes: {
-        '/signup': (context) => const SignUpView(),
-        '/login': (context) => LoginView(), // تعريف مسار تسجيل الدخول
-      },
+  '/signup': (context) => SignUpView(),
+  '/login': (context) => LoginView(),
+  '/settings': (context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    return SettingsView(
+      selectedChildId: args['selectedChildId'],
+      currentParentId: args['currentParentId'],
+    );
+  },
+},
+
       home: SplashScreen(),
     );
   }
