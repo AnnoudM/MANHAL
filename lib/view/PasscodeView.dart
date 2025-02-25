@@ -7,7 +7,6 @@ class PasscodeView extends StatelessWidget {
   final String currentParentId;
   final String parentId;
 
-
   const PasscodeView({Key? key, required this.parentId, required this.selectedChildId, required this.currentParentId}) : super(key: key);
 
   @override
@@ -21,7 +20,6 @@ class PasscodeView extends StatelessWidget {
             backgroundColor: Colors.transparent,
             body: Stack(
               children: [
-                // ✅ إضافة الخلفية
                 Container(
                   decoration: const BoxDecoration(
                     image: DecorationImage(
@@ -30,8 +28,6 @@ class PasscodeView extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                // ✅ زر الرجوع في الزاوية اليمنى
                 Positioned(
                   top: 40,
                   right: 20,
@@ -40,11 +36,9 @@ class PasscodeView extends StatelessWidget {
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
-
-                // ✅ تحميل البيانات قبل عرض الشاشة
                 Center(
                   child: controller.isLoading
-                      ? const CircularProgressIndicator(color: Colors.black) // ✅ إظهار مؤشر تحميل أثناء جلب البيانات
+                      ? const CircularProgressIndicator(color: Colors.black)
                       : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -66,11 +60,9 @@ class PasscodeView extends StatelessWidget {
                             const SizedBox(height: 20),
                             _buildNumberPad(controller, context),
                             const SizedBox(height: 40),
-
-                            // ✅ "نسيت الرقم السري؟" كـ لينك مع خط تحته وإرسال بريد عند الضغط عليه
                             GestureDetector(
                               onTap: () async {
-                                
+                                print("تم النقر على نسيت الرقم السري");
                               },
                               child: const Text(
                                 "نسيت الرقم السري؟",
@@ -107,7 +99,7 @@ class PasscodeView extends StatelessWidget {
         String number = numbers[index];
 
         if (number.isEmpty) {
-          return const SizedBox(); // ✅ ترك أماكن فارغة للترتيب الصحيح
+          return const SizedBox();
         }
 
         return GestureDetector(
@@ -119,9 +111,10 @@ class PasscodeView extends StatelessWidget {
                 bool success = await controller.submitPasscode(parentId);
                 if (success) {
                   Navigator.pushReplacementNamed(context, "/settings", arguments: {
-                    'selectedChildId': selectedChildId,
-                    'currentParentId': parentId,
-                  });
+  'selectedChildId': selectedChildId.isNotEmpty ? selectedChildId : null,
+  'currentParentId': parentId,
+});
+
                 }
               }
             }
@@ -146,5 +139,4 @@ class PasscodeView extends StatelessWidget {
       },
     );
   }
-
 }

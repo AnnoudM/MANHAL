@@ -54,9 +54,16 @@ class MyApp extends StatelessWidget {
   '/login': (context) => LoginView(),
   '/settings': (context) {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final String? selectedChildId = args['selectedChildId'];
+    final String currentParentId = args['currentParentId'] ?? "";
+
+    if (selectedChildId == null) {
+      print("⚠️ تحذير: لم يتم تمرير childId بشكل صحيح!");
+    }
+
     return SettingsView(
-      selectedChildId: args['selectedChildId'],
-      currentParentId: args['currentParentId'],
+      selectedChildId: selectedChildId ?? "",  // ✅ تمرير معرف الطفل بشكل صحيح
+      currentParentId: currentParentId,
     );
   },
 },

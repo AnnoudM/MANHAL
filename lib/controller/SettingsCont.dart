@@ -13,7 +13,7 @@ class SettingsController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   void onSettingSelected(BuildContext context, String settingName, {String? childId, String? parentId}) async {
-    print('تم الضغط على: $settingName'); // ✅ التحقق من أن الدالة تُستدعى
+    print('تم الضغط على: $settingName'); // ✅ التأكد من أن الدالة تُستدعى
     print('🔹 القيم الممررة: childId=$childId, parentId=$parentId');
 
     if (settingName == 'أطفالي') {
@@ -23,12 +23,20 @@ class SettingsController {
       await _navigateToPersonalInfo(context);
     } else if (settingName == 'معلومات الطفل') {
       print('Child ID: $childId, Parent ID: $parentId'); // ✅ طباعة القيم للتحقق
-      if (childId != null && parentId != null) {
-        print('يتم تنفيذ _navigateToChildPage'); // ✅ تأكيد أن المتغيرات متوفرة
-        await _navigateToChildPage(context, childId, parentId);
-      } else {
+
+      if (childId == null || childId.isEmpty || parentId == null || parentId.isEmpty) {
         print('❌ خطأ: childId أو parentId غير متوفرين');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("⚠️ لا يمكن عرض معلومات الطفل، المعرف غير صحيح!", style: TextStyle(fontFamily: 'alfont')),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
       }
+
+      print('يتم تنفيذ _navigateToChildPage'); // ✅ تأكيد أن المتغيرات متوفرة
+      await _navigateToChildPage(context, childId, parentId);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -68,19 +76,30 @@ class SettingsController {
             ),
           );
         } else {
-          print('لم يتم العثور على بيانات المستخدم ❌');
+          print('❌ لم يتم العثور على بيانات المستخدم');
         }
       } else {
-        print('لا يوجد مستخدم مسجل دخول ❌');
+        print('❌ لا يوجد مستخدم مسجل دخول');
       }
     } catch (e) {
-      print('حدث خطأ أثناء جلب البيانات: $e ❌');
+      print('❌ حدث خطأ أثناء جلب البيانات: $e');
     }
   }
 
-  Future<void> _navigateToChildPage(BuildContext context, String childId, String parentId) async {
+  Future<void> _navigateToChildPage(BuildContext context, String? childId, String parentId) async {
   try {
-    print('جلب بيانات الطفل من Firebase...');
+    print('🔍 جلب بيانات الطفل من Firebase...');
+
+    if (childId == null || childId.isEmpty) {
+      print('❌ خطأ: childId غير متوفر!');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("⚠️ لا يمكن عرض معلومات الطفل، المعرف غير صحيح!", style: TextStyle(fontFamily: 'alfont')),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     DocumentSnapshot<Map<String, dynamic>> childDoc = await _firestore
         .collection('Parent')
@@ -90,13 +109,12 @@ class SettingsController {
         .get();
 
     if (childDoc.exists && childDoc.data() != null) {
-      print('تم العثور على بيانات الطفل ✅');
+      print('✅ تم العثور على بيانات الطفل');
 
-      // تأكد من تمرير `id` إلى `Child.fromMap`
       Map<String, dynamic> childDataMap = childDoc.data()!;
       Child childData = Child.fromMap(childId, childDataMap);
 
-      print('الانتقال إلى ChildInfoView...');
+      print('🚀 الانتقال إلى ChildInfoView...');
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -104,10 +122,25 @@ class SettingsController {
         ),
       );
     } else {
-      print('لم يتم العثور على بيانات الطفل ❌');
+      print('❌ لم يتم العثور على بيانات الطفل');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("⚠️ لم يتم العثور على معلومات الطفل!", style: TextStyle(fontFamily: 'alfont')),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   } catch (e) {
     print('❌ حدث خطأ أثناء جلب بيانات الطفل: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '⚠️ حدث خطأ أثناء جلب بيانات الطفل: $e',
+          style: const TextStyle(fontFamily: 'alfont'),
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 }
 
@@ -130,20 +163,14 @@ class SettingsController {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(fontFamily: 'alfont'),
-              ),
+              child: const Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
                 await _signOutUser(context);
               },
-              child: const Text(
-                'تسجيل الخروج',
-                style: TextStyle(fontFamily: 'alfont'),
-              ),
+              child: const Text('تسجيل الخروج', style: TextStyle(fontFamily: 'alfont')),
             ),
           ],
         );
@@ -154,15 +181,11 @@ class SettingsController {
   Future<void> _signOutUser(BuildContext context) async {
     try {
       await _auth.signOut();
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'تم تسجيل الخروج بنجاح',
-            style: TextStyle(fontFamily: 'alfont'),
-          ),
-          backgroundColor: Colors.green[300],
-          duration: const Duration(seconds: 2),
+        const SnackBar(
+          content: Text('تم تسجيل الخروج بنجاح', style: TextStyle(fontFamily: 'alfont')),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
         ),
       );
 
@@ -174,11 +197,8 @@ class SettingsController {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'حدث خطأ أثناء تسجيل الخروج: $e',
-            style: const TextStyle(fontFamily: 'alfont'),
-          ),
-          backgroundColor: Colors.red[300],
+          content: Text('⚠️ حدث خطأ أثناء تسجيل الخروج: $e', style: const TextStyle(fontFamily: 'alfont')),
+          backgroundColor: Colors.red,
         ),
       );
     }

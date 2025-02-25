@@ -97,7 +97,7 @@ class SettingsView extends StatelessWidget {
             controller.onSettingSelected(
               context,
               title, // ✅ يتم تمرير اسم الإعداد
-              childId: selectedChildId, // ✅ تمرير معرف الطفل
+               childId: selectedChildId.isNotEmpty ? selectedChildId : null,// ✅ تمرير معرف الطفل
               parentId: currentParentId, // ✅ تمرير معرف الوالد
             );
           },
