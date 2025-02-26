@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:manhal/controller/HomePageController.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LockScreenView extends StatefulWidget {
   final String childId;
@@ -149,7 +150,9 @@ class _LockScreenViewState extends State<LockScreenView> {
             ),
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                await prefs.setBool("isParentArea", true); // ✅ تفعيل Parent Area
                 Navigator.push(
                   context,
                   MaterialPageRoute(
