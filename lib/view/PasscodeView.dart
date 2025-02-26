@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/PasscodeCont.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PasscodeView extends StatelessWidget {
   final String selectedChildId;
@@ -33,7 +34,13 @@ class PasscodeView extends StatelessWidget {
                   right: 20,
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setBool("isParentArea", false); // ✅ إعادة isParentArea إلى false
+  print("🔄 تم تعيين Parent Area إلى false عند الرجوع من الإعدادات");
+  
+  Navigator.pop(context); // ✅ العودة إلى الصفحة السابقة
+},
                   ),
                 ),
                 Center(

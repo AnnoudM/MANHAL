@@ -2,25 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:manhal/splash_screen.dart';
-import 'firebase_options.dart'; // تأكد من استيراد ملف الإعدادات
+import 'firebase_options.dart';
 import 'package:manhal/view/signup_view.dart';
-import 'package:manhal/view/login_view.dart'; // استيراد صفحة تسجيل الدخول
+import 'package:manhal/view/login_view.dart';
 import 'package:manhal/view/SettingsView.dart';
+import 'package:manhal/view/LockScreen.dart';
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
 FirebaseFirestore firestore = FirebaseFirestore.instance;
+Timer? usageTimer; // مؤقت لمراقبة الحد الزمني
 
-Future<void> signIn() async {
-  await auth.signInWithEmailAndPassword(
-      email: "alanoud.ibrahim5@gmail.com", password: "password123");
+// ✅ إضافة navigatorKey
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  void resetParentArea() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setBool("isParentArea", false);
+  print("🔄 تم إعادة ضبط Parent Area عند تشغيل التطبيق");
 }
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
+        resetParentArea(); // ✅ إعادة ضبط الوضع عند بدء التطبيق
     runApp(const MyApp());
   } catch (e) {
     print("Error initializing Firebase: $e");
@@ -28,116 +36,145 @@ void main() async {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    startUsageMonitoring(); // ✅ بدء مراقبة الحد اليومي عند تشغيل التطبيق
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey, // ✅ ربط navigatorKey هنا
       debugShowCheckedModeBanner: false,
       title: 'Flutter Firestore Test',
-      locale: const Locale('ar'), // تعيين اللغة العربية
+      locale: const Locale('ar'),
       builder: (context, child) {
         return Directionality(
-          textDirection: TextDirection.rtl, // جعل كل شيء يبدأ من اليمين
+          textDirection: TextDirection.rtl,
           child: child!,
         );
       },
       theme: ThemeData(
-        fontFamily: 'Blabeloo', 
+        fontFamily: 'Blabeloo',
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      //initialRoute: '/signup', // تعيين المسار الافتراضي
       routes: {
-  '/signup': (context) => SignUpView(),
-  '/login': (context) => LoginView(),
-  '/settings': (context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    final String? selectedChildId = args['selectedChildId'];
-    final String currentParentId = args['currentParentId'] ?? "";
+        '/signup': (context) => SignUpView(),
+        '/login': (context) => LoginView(),
+        '/settings': (context) {
+          final args =
+              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          final String? selectedChildId = args['selectedChildId'];
+          final String currentParentId = args['currentParentId'] ?? "";
 
-    if (selectedChildId == null) {
-      print("⚠️ تحذير: لم يتم تمرير childId بشكل صحيح!");
-    }
+          if (selectedChildId == null) {
+            print("⚠️ تحذير: لم يتم تمرير childId بشكل صحيح!");
+          }
 
-    return SettingsView(
-      selectedChildId: selectedChildId ?? "",  // ✅ تمرير معرف الطفل بشكل صحيح
-      currentParentId: currentParentId,
-    );
-  },
-},
-
+          return SettingsView(
+            selectedChildId: selectedChildId ?? "",
+            currentParentId: currentParentId,
+          );
+        },
+      },
       home: SplashScreen(),
     );
   }
-} 
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
 
-  final String title;
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+void startUsageMonitoring() async {
+  usageTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
-class _MyHomePageState extends State<MyHomePage> {
-  final TextEditingController _nameController = TextEditingController();
-
-  Future<void> _saveName() async {
-    String name = _nameController.text.trim();
-    if (name.isNotEmpty) {
-      try {
-        await firestore.collection('Parent').add({'name': name});
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("تم حفظ الاسم بنجاح!")),
-        );
-        _nameController.clear();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("حدث خطأ: $e")),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("يرجى إدخال اسم قبل الحفظ!")),
-      );
+    // ✅ التحقق من isParentArea
+    bool isParentArea = prefs.getBool("isParentArea") ?? false;
+    if (isParentArea) {
+      print("⚠️ الوالد داخل Parent Area، لن يتم التحقق من الحد الزمني.");
+      return;
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'أدخل اسمك ليتم تخزينه في قاعدة البيانات:',
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                textDirection: TextDirection.rtl, // إدخال النص من اليمين
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'الاسم',
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: _saveName,
-              child: const Text('حفظ الاسم في Firestore'),
-            ),
-          ],
-        ),
-      ),
+    // ✅ جلب بيانات الحد الزمني من Firestore
+    User? user = auth.currentUser;
+    if (user == null) return;
+
+    String? selectedChildId = prefs.getString('selectedChildId');
+    if (selectedChildId == null || selectedChildId.isEmpty) {
+      print("⚠️ لا يوجد selectedChildId محفوظ في SharedPreferences");
+      return;
+    }
+
+    String parentId = user.uid;
+    DocumentSnapshot<Map<String, dynamic>> childSnapshot = await firestore
+        .collection('Parent')
+        .doc(parentId)
+        .collection('Children')
+        .doc(selectedChildId)
+        .get();
+
+    if (!childSnapshot.exists || childSnapshot.data()?['usageLimit'] == null) {
+      print("✅ لا يوجد حد زمني محدد، يمكن للطفل الاستمرار.");
+      return;
+    }
+
+    Map<String, dynamic> usageLimit = childSnapshot.data()?['usageLimit'];
+    String? startTime = usageLimit['startTime'];
+    String? endTime = usageLimit['endTime'];
+
+    if (startTime == null || endTime == null) {
+      print("✅ لا يوجد وقت محدد، يمكن للطفل الاستمرار.");
+      return;
+    }
+
+    DateTime now = DateTime.now();
+    intl.DateFormat format = intl.DateFormat("HH:mm");
+
+    List<String> startParts = startTime.split(":");
+    List<String> endParts = endTime.split(":");
+
+    DateTime start = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(startParts[0]),
+      int.parse(startParts[1]),
     );
+
+    DateTime end = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(endParts[0]),
+      int.parse(endParts[1]),
+    );
+
+    print("⏰ الوقت الحالي: ${format.format(now)} | مسموح من: ${format.format(start)} إلى: ${format.format(end)}");
+
+    if (now.isBefore(start) || now.isAfter(end)) {
+      print("⛔️ الطفل تجاوز الحد المسموح، سيتم طرده!");
+
+      navigatorKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LockScreenView(childId: selectedChildId, parentId: parentId)),
+        (route) => false,
+      );
+    } else {
+      print("✅ الطفل داخل الوقت المسموح.");
+    }
+  });
+}
+  @override
+  void dispose() {
+    usageTimer?.cancel(); // ✅ إيقاف المراقبة عند إغلاق التطبيق
+    super.dispose();
   }
-} 
+}

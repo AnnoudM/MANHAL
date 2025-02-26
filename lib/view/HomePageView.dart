@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../view/ArabicWordsView.dart';
+import 'dart:async'; // ✅ لاستعمال Timer
 
 class HomePageView extends StatelessWidget {
   final String userName;

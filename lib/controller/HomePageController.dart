@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:manhal/view/PasscodeView.dart';
 import 'package:manhal/view/camera_view.dart';
 import '../view/HomePageView.dart';
@@ -28,21 +29,46 @@ class _HomePageControllerState extends State<HomePageController> {
   void initState() {
     super.initState();
     _fetchParentID();
+    _resetParentAreaOnHome(); // ✅ إعادة ضبط isParentArea
   }
 
   // 🔹 جلب معرف الوالد
-  void _fetchParentID() {
+  void _fetchParentID() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       setState(() {
         parentId = user.uid;
-        selectedChildId = widget.childID; // ✅ حفظ معرف الطفل
+        selectedChildId = widget.childID;
       });
+
       print("✅ معرف الوالد: $parentId");
       print("✅ معرف الطفل: $selectedChildId");
+
+      // ✅ حفظ معرف الطفل في SharedPreferences
+      await _saveSelectedChildId(widget.childID);
     } else {
       print("⚠️ لم يتم تسجيل الدخول.");
     }
+  }
+  
+// ✅ إعادة ضبط isParentArea عند دخول الطفل للصفحة الرئيسية
+void _resetParentAreaOnHome() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setBool("isParentArea", false);
+  print("🏠 تم ضبط Parent Area = false عند الدخول إلى الصفحة الرئيسية");
+}
+
+  /// ✅ حفظ selectedChildId في SharedPreferences
+  Future<void> _saveSelectedChildId(String childId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedChildId', childId);
+    print("✅ تم حفظ معرف الطفل في SharedPreferences: $childId");
+  }
+
+  /// ✅ استرجاع selectedChildId عند بدء التطبيق
+  Future<String?> _getSelectedChildId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('selectedChildId');
   }
 
   @override
@@ -101,24 +127,26 @@ class _HomePageControllerState extends State<HomePageController> {
               context,
               MaterialPageRoute(builder: (context) => CameraView()),
             );
-          },
-
-          // 🔹 التنقل إلى صفحة الإعدادات
-          onSettingsClick: () {
+          }, // 🔹 التنقل إلى صفحة الإعدادات
+          onSettingsClick: () async {
             print('🔍 فتح SettingsView لمعرف الطفل: $selectedChildId، معرف الوالد: $parentId');
-
             if (selectedChildId != null && selectedChildId!.isNotEmpty && parentId != null && parentId!.isNotEmpty) {
               print("🔹 التنقل إلى PasscodeView - selectedChildId: $selectedChildId");
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PasscodeView(
-                    parentId: parentId!,
-                    selectedChildId: selectedChildId!, // ✅ تمرير معرف الطفل الصحيح
-                    currentParentId: parentId!, // ✅ تمرير معرف الوالد
-                  ),
-                ),
-              );
+           Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => PasscodeView(
+      parentId: parentId!,
+      selectedChildId: selectedChildId!, // ✅ تمرير معرف الطفل الصحيح
+      currentParentId: parentId!, // ✅ تمرير معرف الوالد
+    ),
+  ),
+);
+
+// ✅ قبل الدخول إلى PasscodeView، تعطيل المراقبة
+SharedPreferences prefs = await SharedPreferences.getInstance();
+await prefs.setBool('isParentArea', true);
+print("🛑 دخول إلى PasscodeView - تعطيل المراقبة");
             } else {
               print('❌ خطأ: معرف الطفل أو معرف الوالد غير صالح');
             }

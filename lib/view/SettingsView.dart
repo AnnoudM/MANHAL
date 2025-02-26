@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controller/SettingsCont.dart';
 import '../model/SettingsModel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsView extends StatelessWidget {
   final SettingsController controller = SettingsController();
@@ -35,7 +36,13 @@ class SettingsView extends StatelessWidget {
           ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setBool("isParentArea", false); // ✅ إعادة isParentArea إلى false
+  print("🔄 تم تعيين Parent Area إلى false عند الرجوع من الإعدادات");
+  
+  Navigator.pop(context); // ✅ العودة إلى الصفحة السابقة
+},
           ),
         ),
         body: Stack(
