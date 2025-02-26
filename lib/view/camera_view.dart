@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../controller/camera_controller.dart'; // ✅ استدعاء الكاميرا كنترولر
+import '../controller/camera_controller.dart'; // ✅ استدعاء الكنترولر
 import '../view/result_view.dart';
 import 'package:camera/camera.dart';
 
@@ -12,7 +12,7 @@ class CameraView extends StatefulWidget {
 }
 
 class _CameraViewState extends State<CameraView> {
-  final CameraService _cameraService = CameraService(); // ✅ استخدام كنترولر الكاميرا
+  final CameraService _cameraService = CameraService(); // ✅ استخدام الكنترولر
   bool isProcessing = false;
 
   @override
@@ -34,18 +34,12 @@ class _CameraViewState extends State<CameraView> {
 
     try {
       String? imagePath = await _cameraService.captureImage();
-      if (imagePath == null) {
-        print("❌ No image captured!");
-        return;
-      }
-
-      print("📸 Captured image path: $imagePath");
+      if (imagePath == null) return;
 
       // إرسال الصورة إلى السيرفر
       String? recognizedText = await _sendImageToServer(imagePath);
 
       if (recognizedText != null && recognizedText.isNotEmpty) {
-        print("✅ Recognized text: $recognizedText");
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -57,13 +51,12 @@ class _CameraViewState extends State<CameraView> {
           ),
         );
       } else {
-        print("⚠️ No text found!");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("لم يتم العثور على نص، حاول مرة أخرى!")),
         );
       }
     } catch (e) {
-      print("❌ Error capturing image: $e");
+      print("Error capturing image: $e");
     } finally {
       setState(() {
         isProcessing = false;
@@ -73,27 +66,22 @@ class _CameraViewState extends State<CameraView> {
 
   Future<String?> _sendImageToServer(String imagePath) async {
     try {
-      print("📡 Sending image to server...");
-
       var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('http://192.168.11.248:5000/recognize'),
-      );
+          'POST', Uri.parse('http://192.168.11.248:5000/recognize'));
       request.files.add(await http.MultipartFile.fromPath('image', imagePath));
 
       var response = await request.send();
       var responseBody = await response.stream.bytesToString();
-      
-      print("🔹 Server response: $responseBody");
+      print("Response from server: $responseBody");
 
       if (response.statusCode == 200) {
         var jsonResponse = json.decode(responseBody);
         return jsonResponse['text'];
       } else {
-        print("❌ Error: ${response.statusCode} - $responseBody");
+        print("Error: ${response.statusCode}");
       }
     } catch (e) {
-      print("❌ Exception while sending image: $e");
+      print("Exception while sending image: $e");
     }
     return null;
   }
@@ -105,37 +93,64 @@ class _CameraViewState extends State<CameraView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (_cameraService.getController() == null ||
-        !_cameraService.getController()!.value.isInitialized) {
-      return Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
+Widget build(BuildContext context) {
+  if (_cameraService.getController() == null ||
+      !_cameraService.getController()!.value.isInitialized) {
     return Scaffold(
-      body: Stack(
-        alignment: Alignment.center,
-        children: [
-          CameraPreview(_cameraService.getController()!), // ✅ استخدام الكاميرا من الكنترولر
-          Positioned(
-            bottom: 50,
-            child: Column(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.camera, color: Colors.red, size: 50),
-                  onPressed: _captureAndSendImage,
-                ),
-                SizedBox(height: 10),
-                IconButton(
-                  icon: Icon(Icons.home, color: Colors.blue, size: 40),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      body: Center(child: CircularProgressIndicator()),
     );
   }
+
+  return Scaffold(
+    body: Column(
+      children: [
+        // ✅ عرض الكاميرا في الأعلى
+        Expanded(
+          flex: 4, // يجعل الكاميرا تأخذ أغلب الشاشة
+          child: CameraPreview(_cameraService.getController()!),
+        ),
+
+        // ✅ وضع زر الالتقاط وزر الرجوع جنبًا إلى جنب فوق النص
+        Container(
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center, // يجعل الأزرار في المنتصف
+            children: [
+              // زر الالتقاط 📸
+              IconButton(
+                icon: Icon(Icons.camera, color: Colors.blue, size: 60),
+                onPressed: _captureAndSendImage,
+              ),
+              SizedBox(width: 40), // مسافة بين الزرين
+
+              // زر الرجوع إلى الصفحة الرئيسية 🏠
+              IconButton(
+                icon: Icon(Icons.home, color: Colors.blue, size: 60),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        ),
+
+        // ✅ المساحة البيضاء تحتوي فقط على النص "التقط لنتعلم!"
+        Expanded(
+          flex: 1,
+          child: Container(
+            alignment: Alignment.center,
+            child: Text(
+              "التقط لنتعلم!",
+              style: TextStyle(
+                fontFamily: "Blabeloo", // ✅ استخدام الخط المفضل لديك
+                fontSize: 24,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 }

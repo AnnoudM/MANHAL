@@ -7,7 +7,7 @@ class CameraService {
   /// 🔹 تهيئة الكاميرا عند تشغيل التطبيق
   Future<void> initializeCamera() async {
     _cameras = await availableCameras();
-    _controller = CameraController(_cameras![0], ResolutionPreset.medium);
+    _controller = CameraController(_cameras![0], ResolutionPreset.medium, enableAudio: false,);
     await _controller!.initialize();
   }
 
