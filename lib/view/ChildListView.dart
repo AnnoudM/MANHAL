@@ -63,7 +63,7 @@ class _ChildListViewState extends State<ChildListView> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Text(
-                      'من يستخدم منهل الآن؟',
+                      'أطفالي',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,

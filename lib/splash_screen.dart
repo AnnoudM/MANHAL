@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../view/initialView.dart';
+import '../view/childlistview.dart'; // تأكد من استيراد الصفحة الصحيحة
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,28 +21,39 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // إعداد الأنيميشن
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 2), // مدة تأثير الفيد
+      duration: Duration(seconds: 1), // مدة تأثير الفيد
     );
 
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(_animationController);
-
     _animationController.forward();  // بدء تأثير الفيد
 
-    // الانتقال بعد انتهاء السبلاتش
-    _navigateToNext();
+    // التحقق من تسجيل الدخول
+    _checkLoginStatus();
   }
 
-  _navigateToNext() async {
-    await Future.delayed(Duration(seconds: 3));
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => InitialPage()),
-    );
+  void _checkLoginStatus() async {
+    await Future.delayed(Duration(seconds: 3)); // انتظار عرض الشاشة لمدة 3 ثوانٍ
+
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      // 🔹 المستخدم مسجل دخول → توجيهه إلى ChildListView
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ChildListView()), // عدل هذا وفقًا لصفحتك الفعلية
+      );
+    } else {
+      // 🔹 المستخدم غير مسجل → توجيهه إلى InitialPage
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => InitialPage()),
+      );
+    }
   }
 
   @override
   void dispose() {
-    _animationController.dispose(); // تنظيف الأنيميشن عند إغلاق الصفحة
+    _animationController.dispose();
     super.dispose();
   }
 
