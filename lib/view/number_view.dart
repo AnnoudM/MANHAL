@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart'; 
 import 'package:flutter_tts/flutter_tts.dart'; // For Text-to-Speech functionality
 import '../controller/NumbersController.dart';
+import 'package:manhal/view/ActivityView.dart'; // تأكد من صحة الاستيراد
 
 class LearnNumberPage extends StatefulWidget {
   final int number; // Receive the selected number
@@ -118,7 +119,17 @@ class _LearnNumberPageState extends State<LearnNumberPage> {
                       padding: EdgeInsets.symmetric(vertical: 20),
                       child: InkWell(
                         onTap: () {
-                          Navigator.pop(context); // Go back to the previous page
+                     
+                          // عند الضغط، ينتقل إلى صفحة ActivityView مع تمرير رقم الصفحة الحالي ونوع "number"
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ActivityView(
+                                value: widget.number.toString(),
+                                type: "number",
+                              ),
+                            ),
+                          );
                         },
                         child: Container(
                           width: double.infinity,

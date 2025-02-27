@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:manhal/view/ActivityView.dart'; 
 
 class WordDetailsPage extends StatefulWidget {
   final String word;
@@ -148,7 +149,18 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
                 height: 55,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // ✅ التنقل إلى صفحة ActivityView وتمرير الكلمة كقيمة والنوع "word"
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ActivityView(
+                          value: widget.word,
+                          type: "word",
+                        ),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFF3C7),
                     shape: RoundedRectangleBorder(

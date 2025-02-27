@@ -255,7 +255,9 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ActivityView(letter: widget.letter),
+              builder: (context) => ActivityView( 
+                value: widget.letter,
+                      type: "letter",),
             ),
           );
         },
