@@ -100,6 +100,8 @@ flutter:
   - assets/images/chick.png
   - assets/images/trophy.png
   - assets/images/editAvatar.png
+  - assets/images/stopwatch.png
+  - assets/images/sleeping.png
 
   fonts:
     - family: Blabeloo

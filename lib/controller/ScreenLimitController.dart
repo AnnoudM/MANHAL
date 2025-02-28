@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
+
 class ScreenLimitController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -58,6 +59,21 @@ class ScreenLimitController {
     } catch (e) {
       print("❌ خطأ في التحقق من الحد اليومي: $e");
       return true;
+    }
+  }
+
+  /// ✅ حذف الحد الزمني بالكامل من Firebase
+  Future<void> deleteUsageLimit(String parentId, String childId) async {
+    try {
+      await _firestore.collection('Parent')
+          .doc(parentId)
+          .collection('Children')
+          .doc(childId)
+          .update({'usageLimit': FieldValue.delete()});
+
+      print("✅ تم حذف الحد الزمني بنجاح");
+    } catch (e) {
+      print("❌ خطأ في حذف الحد الزمني: $e");
     }
   }
 }

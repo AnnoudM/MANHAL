@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../controller/ScreenLimitController.dart';
+import '../model/ScreenLimitModel.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+
 
 class ScreenLimitView extends StatefulWidget {
   final String parentId;
@@ -13,70 +17,205 @@ class ScreenLimitView extends StatefulWidget {
 
 class _ScreenLimitViewState extends State<ScreenLimitView> {
   final ScreenLimitController _controller = ScreenLimitController();
+  bool isLimitEnabled = false;
   String? selectedStartTime;
   String? selectedEndTime;
 
-  List<String> timeOptions = [
-    "08:00",
-    "09:00",
-    "10:00",
-    "11:00",
-    "12:00",
-    "13:00",
-    "14:00",
-    "15:00",
-    "16:00",
-    "17:00",
-    "18:00",
-    "19:00",
-    "20:00",
-  ];
+  /// ✅ قائمة الأوقات بصيغة 12 ساعة ولكن يتم تخزينها بصيغة 24 ساعة
+  final List<String> timeOptions = List.generate(
+      48,
+      (index) {
+        int hour = index ~/ 2;
+        int minute = (index % 2) * 30;
+        String formatted12Hour = ScreenLimitModel.formatTimeToDisplay("$hour:${minute.toString().padLeft(2, '0')}");
+        return formatted12Hour;
+      });
 
+  /// ✅ جلب الحد الزمني من Firebase عند فتح الصفحة
+  @override
+  void initState() {
+    super.initState();
+    _loadUsageLimit();
+  }
+
+  void _loadUsageLimit() async {
+    var usageLimit = await _controller.getUsageLimit(widget.parentId, widget.childId);
+    if (usageLimit != null) {
+      setState(() {
+        isLimitEnabled = true;
+        selectedStartTime = ScreenLimitModel.formatTimeToDisplay(usageLimit['startTime']);
+        selectedEndTime = ScreenLimitModel.formatTimeToDisplay(usageLimit['endTime']);
+      });
+    }
+  }
+
+  /// ✅ حفظ الحد الزمني مع تأكيد
   void _saveLimit() {
     if (selectedStartTime != null && selectedEndTime != null) {
-      _controller.saveUsageLimit(
-        parentId: widget.parentId,
-        childId: widget.childId,
-        startTime: selectedStartTime!,
-        endTime: selectedEndTime!,
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("تم حفظ الحد الزمني بنجاح!")),
+      String startTime24 = ScreenLimitModel.formatTimeToStorage(selectedStartTime!);
+      String endTime24 = ScreenLimitModel.formatTimeToStorage(selectedEndTime!);
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("تأكيد حفظ الوقت", style: TextStyle(fontFamily: "alfont")),
+          content: Text(
+            "هل أنت متأكد أنك تريد تحديد وقت لطفلك من $selectedStartTime إلى $selectedEndTime؟",
+            style: TextStyle(fontFamily: "alfont"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("إلغاء", style: TextStyle(fontFamily: "alfont")),
+            ),
+            TextButton(
+              onPressed: () {
+                _controller.saveUsageLimit(
+                  parentId: widget.parentId,
+                  childId: widget.childId,
+                  startTime: startTime24,
+                  endTime: endTime24,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("تم حفظ الحد الزمني بنجاح!", style: TextStyle(fontFamily: "alfont"))),
+                );
+                Navigator.pop(context);
+              },
+              child: Text("تأكيد", style: TextStyle(fontFamily: "alfont")),
+            ),
+          ],
+        ),
       );
     }
   }
 
+  /// ✅ حذف الحد الزمني مع تأكيد
+  void _deleteLimit() {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text("تأكيد حذف الوقت", style: TextStyle(fontFamily: "alfont")),
+      content: Text("هل أنت متأكد أنك تريد حذف تحديد ساعات الطفل؟", style: TextStyle(fontFamily: "alfont")),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text("إلغاء", style: TextStyle(fontFamily: "alfont")),
+        ),
+        TextButton(
+          onPressed: () {
+            _controller.deleteUsageLimit(widget.parentId, widget.childId); // ✅ استدعاء الدالة الجديدة
+            
+            setState(() {
+              isLimitEnabled = false;
+              selectedStartTime = null;
+              selectedEndTime = null;
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("تم حذف الحد الزمني بنجاح!", style: TextStyle(fontFamily: "alfont"))),
+            );
+
+            Navigator.pop(context);
+          },
+          child: Text("تأكيد", style: TextStyle(fontFamily: "alfont")),
+        ),
+      ],
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("تحديد وقت الاستخدام")),
-      body: Column(
-        children: [
-          DropdownButton<String>(
-            value: selectedStartTime,
-            hint: Text("اختر وقت البداية"),
-            items: timeOptions.map((time) => DropdownMenuItem(value: time, child: Text(time))).toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedStartTime = value;
-              });
-            },
-          ),
-          DropdownButton<String>(
-            value: selectedEndTime,
-            hint: Text("اختر وقت النهاية"),
-            items: timeOptions.map((time) => DropdownMenuItem(value: time, child: Text(time))).toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedEndTime = value;
-              });
-            },
-          ),
-          ElevatedButton(
-            onPressed: _saveLimit,
-            child: Text("حفظ"),
-          ),
-        ],
+      appBar: AppBar(title: Text("تحديد وقت الاستخدام", style: TextStyle(fontFamily: "alfont"))),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "تحديد ساعات الطفل",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "alfont"),
+                ),
+                Switch(
+                  value: isLimitEnabled,
+                  onChanged: (value) {
+                    if (!value) {
+                      _deleteLimit();
+                    } else {
+                      setState(() {
+                        isLimitEnabled = value;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 5),
+            Text(
+              "عند تفعيل هذا الزر، ستتمكن من تحديد الأوقات المتاحة لطفلك لاستخدام التطبيق. ",
+              style: TextStyle(fontSize: 14, color: Colors.grey, fontFamily: "alfont"),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 20),
+            if (isLimitEnabled)
+              Column(
+                children: [
+                  DropdownButton<String>(
+                    value: selectedStartTime,
+                    hint: Text("اختر وقت البداية", style: TextStyle(fontFamily: "alfont")),
+                    isExpanded: true,
+                    items: timeOptions
+                        .map((time) => DropdownMenuItem(
+                              value: time,
+                              child: Center(child: Text(time, style: TextStyle(fontFamily: "alfont"))),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedStartTime = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  DropdownButton<String>(
+                    value: selectedEndTime,
+                    hint: Text("اختر وقت النهاية", style: TextStyle(fontFamily: "alfont")),
+                    isExpanded: true,
+                    items: timeOptions
+                        .map((time) => DropdownMenuItem(
+                              value: time,
+                              child: Center(child: Text(time, style: TextStyle(fontFamily: "alfont"))),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedEndTime = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 40),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _saveLimit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text("حفظ", style: TextStyle(fontSize: 18, fontFamily: "alfont")),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -3,7 +3,7 @@ import 'package:manhal/view/PasscodeView.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:manhal/controller/HomePageController.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LockScreenView extends StatefulWidget {
@@ -24,7 +24,7 @@ class _LockScreenViewState extends State<LockScreenView> {
   }
 
   /// ✅ التحقق بشكل دوري إذا كان الوقت المسموح قد بدأ
-  void checkIfUnlocked() async {
+ void checkIfUnlocked() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     FirebaseAuth auth = FirebaseAuth.instance;
 
@@ -32,10 +32,7 @@ class _LockScreenViewState extends State<LockScreenView> {
       await Future.delayed(const Duration(seconds: 5)); // ✅ تحقق كل 5 ثوانٍ
 
       User? user = auth.currentUser;
-      if (user == null) {
-        print("⚠️ لا يوجد مستخدم مسجل الدخول.");
-        return;
-      }
+      if (user == null) return;
 
       String parentId = widget.parentId;
       String childId = widget.childId;
@@ -47,60 +44,45 @@ class _LockScreenViewState extends State<LockScreenView> {
           .doc(childId)
           .get();
 
-      if (!childSnapshot.exists) {
-        print("⚠️ بيانات الطفل غير موجودة في Firestore!");
-        return;
-      }
+      if (!childSnapshot.exists) return;
 
       var data = childSnapshot.data();
-      print("📥 البيانات المسترجعة من Firestore: $data"); // ✅ طباعة البيانات المسترجعة
-
-      if (data == null || !data.containsKey('usageLimit')) {
-        print("⚠️ لا يوجد حقل usageLimit في البيانات!");
-        return;
-      }
+      if (data == null || !data.containsKey('usageLimit')) return;
 
       Map<String, dynamic> usageLimit = data['usageLimit'];
-
-      if (!usageLimit.containsKey('startTime') || !usageLimit.containsKey('endTime')) {
-        print("⚠️ لا يوجد startTime أو endTime في usageLimit!");
-        return;
-      }
+      if (!usageLimit.containsKey('startTime') || !usageLimit.containsKey('endTime')) return;
 
       String? startTimeString = usageLimit['startTime'];
       String? endTimeString = usageLimit['endTime'];
-
-      if (startTimeString == null || endTimeString == null) {
-        print("⚠️ لا يوجد startTime أو endTime!");
-        continue;
-      }
+      if (startTimeString == null || endTimeString == null) continue;
 
       DateTime now = DateTime.now();
-      DateFormat format = DateFormat("HH:mm");
+      intl.DateFormat format = intl.DateFormat("HH:mm");
 
       List<String> startParts = startTimeString.split(":");
       List<String> endParts = endTimeString.split(":");
 
       DateTime startTime = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        int.parse(startParts[0]),
-        int.parse(startParts[1]),
+        now.year, now.month, now.day, int.parse(startParts[0]), int.parse(startParts[1]),
       );
 
       DateTime endTime = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        int.parse(endParts[0]),
-        int.parse(endParts[1]),
+        now.year, now.month, now.day, int.parse(endParts[0]), int.parse(endParts[1]),
       );
 
-      print("⏳ التحقق من الوقت: الآن = ${format.format(now)}, البداية = ${format.format(startTime)}, النهاية = ${format.format(endTime)}");
+      // ✅ معالجة حالة عبور منتصف الليل
+      bool isWithinAllowedTime;
+      if (endTime.isBefore(startTime)) {
+        // 🟢 إذا كان `endTime` قبل `startTime` فهذا يعني أن الفترة تمتد عبر منتصف الليل
+        isWithinAllowedTime = now.isAfter(startTime) || now.isBefore(endTime);
+      } else {
+        // 🟢 إذا كانت الفترة طبيعية داخل نفس اليوم
+        isWithinAllowedTime = now.isAfter(startTime) && now.isBefore(endTime);
+      }
 
-      if (now.isAfter(startTime) && now.isBefore(endTime)) {
-        print("✅ الوقت المسموح بدأ، إعادة الطفل إلى الصفحة الرئيسية!");
+      print("⏰ الوقت الحالي: ${format.format(now)} | مسموح من: ${format.format(startTime)} إلى: ${format.format(endTime)}");
+
+      if (isWithinAllowedTime) {
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
@@ -112,63 +94,111 @@ class _LockScreenViewState extends State<LockScreenView> {
             (route) => false,
           );
         }
-      } else {
-        print("❌ لا يزال الطفل خارج الوقت المسموح.");
       }
     }
-  }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blueAccent.shade100,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "⏳ انتهى وقت اللعب!",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+      backgroundColor: Color(0xFFB3E5FC), // ✅ لون سماوي
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // ✅ صورة الكتكوت النائم
+                      Image.asset(
+                        "assets/images/sleeping.png",
+                        width: 180,
+                        height: 180,
+                      ),
+
+                      // ✅ صورة الساعة في يمين الكتكوت
+                      Positioned(
+                        bottom: 10,
+                        right: 20,
+                        child: Image.asset(
+                          "assets/images/stopwatch.png",
+                          width: 50,
+                          height: 50,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ✅ نص "انتهى وقت اللعب!" تحت الكتكوت
+                  Text(
+                    "انتهى وقت اللعب!",
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade900,
+                      fontFamily: "Blabeloo",
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-            const Icon(Icons.timer_off, size: 100, color: Colors.white),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                "سيكون بإمكانك اللعب مجددًا عند وصول الوقت المسموح 🎉",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
+          ),
+
+          // ✅ زر دخول الوالد (في أسفل الصفحة ولونه أحمر)
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: SizedBox(
+              width: double.infinity, // ✅ بعرض الشاشة
+              child: ElevatedButton(
+                onPressed: () async {
+                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool("isParentArea", true);
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PasscodeView(
+                        parentId: widget.parentId,
+                        currentParentId: widget.parentId,
+                        selectedChildId: widget.childId,
+                      ),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red, // ✅ لون أحمر لتحذير الطفل
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30), // ✅ زر دائري
+                  ),
+                  elevation: 5, // ✅ ظل خفيف
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.lock_open, color: Colors.white, size: 24),
+                    SizedBox(width: 10),
+                    Text(
+                      "دخول الوالد",
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontFamily: "alfont",
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.setBool("isParentArea", true); // ✅ تفعيل Parent Area
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PasscodeView(
-                      parentId: widget.parentId,
-                      currentParentId: widget.parentId,
-                      selectedChildId: widget.childId,
-
-                    ),
-                  ),
-                );
-              },
-              child: const Text("🔓 أدخل رمز الوالد"),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

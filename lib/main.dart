@@ -92,7 +92,6 @@ class _MyAppState extends State<MyApp> {
   }
 
 
-
 void startUsageMonitoring() async {
   usageTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -128,10 +127,10 @@ void startUsageMonitoring() async {
     }
 
     Map<String, dynamic> usageLimit = childSnapshot.data()?['usageLimit'];
-    String? startTime = usageLimit['startTime'];
-    String? endTime = usageLimit['endTime'];
+    String? startTimeString = usageLimit['startTime'];
+    String? endTimeString = usageLimit['endTime'];
 
-    if (startTime == null || endTime == null) {
+    if (startTimeString == null || endTimeString == null) {
       print("✅ لا يوجد وقت محدد، يمكن للطفل الاستمرار.");
       return;
     }
@@ -139,28 +138,30 @@ void startUsageMonitoring() async {
     DateTime now = DateTime.now();
     intl.DateFormat format = intl.DateFormat("HH:mm");
 
-    List<String> startParts = startTime.split(":");
-    List<String> endParts = endTime.split(":");
+    List<String> startParts = startTimeString.split(":");
+    List<String> endParts = endTimeString.split(":");
 
-    DateTime start = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      int.parse(startParts[0]),
-      int.parse(startParts[1]),
+    DateTime startTime = DateTime(
+      now.year, now.month, now.day, int.parse(startParts[0]), int.parse(startParts[1]),
     );
 
-    DateTime end = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      int.parse(endParts[0]),
-      int.parse(endParts[1]),
+    DateTime endTime = DateTime(
+      now.year, now.month, now.day, int.parse(endParts[0]), int.parse(endParts[1]),
     );
 
-    print("⏰ الوقت الحالي: ${format.format(now)} | مسموح من: ${format.format(start)} إلى: ${format.format(end)}");
+    // ✅ معالجة حالة عبور منتصف الليل
+    bool isWithinAllowedTime;
+    if (endTime.isBefore(startTime)) {
+      // 🟢 إذا كان `endTime` قبل `startTime` فهذا يعني أن الفترة تمتد عبر منتصف الليل
+      isWithinAllowedTime = now.isAfter(startTime) || now.isBefore(endTime);
+    } else {
+      // 🟢 إذا كانت الفترة طبيعية داخل نفس اليوم
+      isWithinAllowedTime = now.isAfter(startTime) && now.isBefore(endTime);
+    }
 
-    if (now.isBefore(start) || now.isAfter(end)) {
+    print("⏰ الوقت الحالي: ${format.format(now)} | مسموح من: ${format.format(startTime)} إلى: ${format.format(endTime)}");
+
+    if (!isWithinAllowedTime) {
       print("⛔️ الطفل تجاوز الحد المسموح، سيتم طرده!");
 
       navigatorKey.currentState?.pushAndRemoveUntil(
