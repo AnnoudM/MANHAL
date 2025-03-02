@@ -21,14 +21,6 @@ class _LoginViewState extends State<LoginView> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
         body: Stack(
           children: [
             Container(
@@ -37,6 +29,14 @@ class _LoginViewState extends State<LoginView> {
                   image: AssetImage('assets/images/BackGroundManhal.jpg'),
                   fit: BoxFit.cover,
                 ),
+              ),
+            ),
+            Positioned(
+              top: 40, 
+              right: 20, 
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
             Center(
@@ -49,6 +49,7 @@ class _LoginViewState extends State<LoginView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        const SizedBox(height: 60),
                         const Text(
                           'تسجيل الدخول',
                           style: TextStyle(
@@ -96,9 +97,15 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         if (_errorMessage != null) ...[
                           const SizedBox(height: 10),
-                          Text(
-                            _errorMessage!,
-                            style: const TextStyle(color: Colors.red, fontFamily: 'alfont'),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontFamily: 'alfont',
+                              ),
+                            ),
                           ),
                         ],
                         const SizedBox(height: 20),
@@ -195,6 +202,10 @@ class _LoginViewState extends State<LoginView> {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(fontFamily: 'alfont'),
+        errorStyle: const TextStyle( // هنا تمت إضافة خط alfont لرسائل الخطأ
+          fontFamily: 'alfont',
+          color: Colors.red,
+        ),
         filled: true,
         fillColor: const Color(0xFFFFF5CC),
         border: OutlineInputBorder(
@@ -232,4 +243,4 @@ class _LoginViewState extends State<LoginView> {
       ),
     );
   }
-} 
+}

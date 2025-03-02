@@ -20,7 +20,7 @@ class LoginController {
       if (userCredential.user != null && userCredential.user!.emailVerified) {
         return null; // تسجيل دخول ناجح بدون أخطاء
       } else {
-        return 'يرجى التحقق من بريدك الإلكتروني قبل تسجيل الدخول.';
+        return 'يرجى التحقق من بريدك الإلكتروني قبل تسجيل الدخول';
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found' || e.code == 'wrong-password') {

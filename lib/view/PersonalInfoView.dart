@@ -186,7 +186,7 @@ class _PersonalInfoViewState extends State<PersonalInfoView> {
                 return null;
               },
               decoration: InputDecoration(
-                hintText: isEmail ? 'أدخل البريد الإلكتروني الجديد' : 'أدخل الاسم الجديد',
+                hintText: isEmail ? 'أدخل البريد الإلكتروني الجديد' : 'أدخل الاسم الجديد باللغة العربية',
                 hintStyle: const TextStyle(fontFamily: 'alfont'),
                 filled: true,
                 fillColor: const Color(0xFFFFF5CC),
