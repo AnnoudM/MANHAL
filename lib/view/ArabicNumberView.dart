@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
 import 'number_view.dart';
 import '../model/NumbersModel.dart';
+import 'package:intl/intl.dart'; // Import the intl package
+
+// Function to convert numbers to Arabic numerals
+String convertToArabicNumbers(int number) {
+  final arabicDigits = [
+    '٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'
+  ];
+  return number.toString().split('').map((digit) {
+    return arabicDigits[int.parse(digit)];
+  }).join('');
+}
+
 
 class ArabicNumberView extends StatelessWidget {
   const ArabicNumberView({super.key});
@@ -97,7 +109,7 @@ class ArabicNumberView extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            number.toString(),
+                             convertToArabicNumbers(number),
                             style: const TextStyle(
                               fontFamily: 'Blabeloo',
                               fontSize: 42,
