@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../controller/HomePageController.dart';
-import '../view/child_info_view.dart';
-import '../model/signup_model.dart';
 import '../view/AddChildView.dart';
 
 class ChildListView extends StatefulWidget {

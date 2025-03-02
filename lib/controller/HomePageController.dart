@@ -8,7 +8,6 @@ import '../view/HomePageView.dart';
 import '../view/ChildProfileView.dart';
 import '../view/letter_view.dart';
 import '../view/ArabicLettersView.dart';
-import '../view/SettingsView.dart';
 import '../view/ArabicNumberView.dart';
 import '../view/EthicalValueView.dart';
 import '../view/sticker_page.dart';
@@ -152,13 +151,20 @@ print("🛑 دخول إلى PasscodeView - تعطيل المراقبة");
             }
           },
 
-          // 🔹 التنقل إلى صفحة الملصقات
-          onStickersClick: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => StickerPage()),
-            );
-          },
+         // 🔹 التنقل إلى صفحة الملصقات مع تمرير parentId و childId
+onStickersClick: () {
+  if (parentId != null && selectedChildId != null) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StickerPage(childId: widget.childID, parentId: parentId ?? ''),
+      ),
+    );
+  } else {
+    print("❌ خطأ: لا يمكن فتح صفحة الملصقات، parentId أو childId غير متوفر.");
+  }
+},
+
 
           // 🔹 التنقل إلى الصفحات بناءً على العنصر الذي يتم الضغط عليه في GridView
           onItemClick: (String item) {

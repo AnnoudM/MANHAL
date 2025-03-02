@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../controller/signup_controller.dart';
 import '../model/child_model.dart';
 import '../view/SelectImageView.dart';
 import '../controller/ChildController.dart';

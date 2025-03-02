@@ -5,7 +5,6 @@ import '../model/child_model.dart';
 import '../model/signup_model.dart';
 import '../view/InitialView.dart';
 import '../view/SelectImageView.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 

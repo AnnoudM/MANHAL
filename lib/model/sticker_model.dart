@@ -1,22 +1,22 @@
 class Sticker {
   final String id;
-  final String imageUrl;
+  final String link; 
 
-  Sticker({required this.id, required this.imageUrl});
+  Sticker({required this.id, required this.link});
 
-  // Convert from Firestore document
+  // تحويل من Firestore
   factory Sticker.fromMap(Map<String, dynamic> data) {
     return Sticker(
       id: data['id'] ?? '',
-      imageUrl: data['image'] ?? '',
+      link: data['link'] ?? '', 
     );
   }
 
-  // Convert to Firestore document
+  // تحويل إلى Firestore
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'image': imageUrl,
+      'link': link, 
     };
   }
 }
