@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:flutter_tts/flutter_tts.dart'; // ✅ استيراد FlutterTts
+import 'package:flutter_tts/flutter_tts.dart';
 import '../controller/ActivityController.dart';
 import '../model/ActivityModel.dart';
 
@@ -18,7 +18,7 @@ class ActivityView extends StatefulWidget {
 class _ActivityViewState extends State<ActivityView> {
   final ActivityController _controller = ActivityController();
   final AudioPlayer _audioPlayer = AudioPlayer();
-  final FlutterTts flutterTts = FlutterTts(); // ✅ إنشاء كائن TTS
+  final FlutterTts flutterTts = FlutterTts();
   ActivityModel? activityData;
   bool isLoading = true;
 
@@ -44,21 +44,10 @@ class _ActivityViewState extends State<ActivityView> {
     }
   }
 
-  Future<void> _playAudio() async {
-    if (activityData?.audioUrl != null && activityData!.audioUrl!.isNotEmpty) {
-      await _audioPlayer.setUrl(activityData!.audioUrl!);
-      await _audioPlayer.play();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('⚠️ لا يوجد ملف صوتي متاح')),
-      );
-    }
-  }
-
   Future<void> _speakQuestion() async {
     if (activityData?.question != null && activityData!.question!.isNotEmpty) {
-      await flutterTts.setLanguage("ar-SA"); // ✅ تعيين اللغة للعربية
-      await flutterTts.speak(activityData!.question!); // ✅ نطق السؤال
+      await flutterTts.setLanguage("ar-SA");
+      await flutterTts.speak(activityData!.question!);
     }
   }
 
@@ -68,136 +57,128 @@ class _ActivityViewState extends State<ActivityView> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // ✅ الجزء العلوي مع السؤال وزر الصوت والصور
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: _getBackgroundColor(),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(24),
-                        bottomRight: Radius.circular(24),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
+      body: Stack(
+        children: [
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  children: [
+                    // ✅ الجزء العلوي يحتوي على السؤال، زر الصوت، والصور
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: _getBackgroundColor(),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(24),
+                            bottomRight: Radius.circular(24),
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // ✅ عرض السؤال
+                            Text(
+                              activityData?.question ?? "❌ لا يوجد سؤال",
+                              style: const TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF3F414E),
+                                fontFamily: 'Blabeloo',
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            child: IconButton(
-                              icon: const Icon(Icons.arrow_back,
-                                  size: 25, color: Color(0xFF3F414E)),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ),
-                        ),
+                            const SizedBox(height: 10),
 
-                        // ✅ تقريب السؤال من زر الصوت
-                        Text(
-                          activityData?.question ?? "❌ لا يوجد سؤال",
-                          style: const TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF3F414E),
-                            fontFamily: 'Blabeloo',
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 5), // 📌 تقليل المسافة بين السؤال وزر الصوت
-                        GestureDetector(
-                          onTap: _speakQuestion, // ✅ تشغيل قراءة السؤال عند الضغط
-                          child: Image.asset(
-                            'assets/images/high-volume.png',
-                            width: 70,
-                            height: 70,
-                          ),
-                        ),
-
-                        // ✅ تكرار الصورة بناءً على الرقم
-                        if (activityData?.imageUrl != null)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                            child: Wrap(
-                              alignment: WrapAlignment.center,
-                              spacing: 10,
-                              runSpacing: 10,
-                              children: List.generate(
-                                repeatCount,
-                                (index) => Image.network(
-                                  activityData!.imageUrl!,
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.contain,
-                                ),
+                            // ✅ زر تشغيل الصوت
+                            GestureDetector(
+                              onTap: _speakQuestion,
+                              child: Image.asset(
+                                'assets/images/high-volume.png',
+                                width: 70,
+                                height: 70,
                               ),
                             ),
-                          ),
-                      ],
+
+                            // ✅ عرض الصور بناءً على القيمة
+                            if (activityData?.imageUrl != null)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                child: Wrap(
+                                  alignment: WrapAlignment.center,
+                                  spacing: 10,
+                                  runSpacing: 10,
+                                  children: List.generate(
+                                    repeatCount,
+                                    (index) => Image.network(
+                                      activityData!.imageUrl!,
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+
+                    // ✅ أزرار الاختيار
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 15,
+                          mainAxisSpacing: 15,
+                          childAspectRatio: 2.8,
+                        ),
+                        itemCount: activityData?.options.length ?? 0,
+                        itemBuilder: (context, index) {
+                          return ElevatedButton(
+                            onPressed: () => _checkAnswer(activityData!.options[index]),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.all(12),
+                            ),
+                            child: Text(
+                              activityData!.options[index],
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF3F414E),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
 
-                // ✅ الأزرار تظهر بالكامل دون تمرير
-                Expanded(
-                  flex: 2,
-                  child: GridView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 15,
-                      mainAxisSpacing: 15,
-                      childAspectRatio: 2.8,
-                    ),
-                    itemCount: activityData?.options.length ?? 0,
-                    itemBuilder: (context, index) {
-                      return ElevatedButton(
-                        onPressed: () => _checkAnswer(activityData!.options[index]),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.all(12),
-                        ),
-                        child: Text(
-                          activityData!.options[index],
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF3F414E),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 5),
-              ],
+          // ✅ زر الرجوع الوحيد في أعلى الصفحة
+          Positioned(
+            top: 40,
+            right: 10,
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              mini: true,
+              backgroundColor: Colors.white.withOpacity(0.7),
+              child: const Icon(Icons.arrow_back, color: Colors.black),
             ),
+          ),
+        ],
+      ),
     );
   }
 
