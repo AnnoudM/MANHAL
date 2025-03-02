@@ -6,6 +6,7 @@ import '../view/ChildListView.dart';
 import '../view/PersonalInfoView.dart';
 import '../view/ChildPageView.dart';
 import '../view/ScreenLimitView.dart'; // ✅ استيراد صفحة الحد اليومي
+import '../view/manage_contnet_view.dart'; // ✅ استيراد إدارة المحتوى
 import '../model/PersonalInfoModel.dart';
 import '../model/child_model.dart';
 
@@ -13,7 +14,8 @@ class SettingsController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void onSettingSelected(BuildContext context, String settingName, {String? childId, String? parentId}) async {
+  void onSettingSelected(BuildContext context, String settingName,
+      {String? childId, String? parentId}) async {
     print('تم الضغط على: $settingName');
     print('🔹 القيم الممررة: childId=$childId, parentId=$parentId');
 
@@ -22,20 +24,30 @@ class SettingsController {
     } else if (settingName == 'معلوماتي الشخصية') {
       await _navigateToPersonalInfo(context);
     } else if (settingName == 'معلومات الطفل') {
-      if (childId == null || childId.isEmpty ||  parentId == null || parentId.isEmpty) {
+      if (childId == null ||
+          childId.isEmpty ||
+          parentId == null ||
+          parentId.isEmpty) {
         print('❌ خطأ: childId أو parentId غير متوفرين');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("⚠️ لا يمكن عرض معلومات الطفل، المعرف غير صحيح!", style: TextStyle(fontFamily: 'alfont')),
+            content: Text("⚠️ لا يمكن عرض معلومات الطفل، المعرف غير صحيح!",
+                style: TextStyle(fontFamily: 'alfont')),
             backgroundColor: Colors.red,
           ),
         );
         return;
       }
       await _navigateToChildPage(context, childId, parentId);
-    } else if (settingName == 'الحد اليومي للاستخدام') { 
+    } else if (settingName == 'الحد اليومي للاستخدام') {
       if (childId != null && parentId != null) {
-        _navigateToScreenLimit(context, parentId, childId); // ✅ إضافة التنقل للحد اليومي
+        _navigateToScreenLimit(
+            context, parentId, childId); // ✅ إضافة التنقل للحد اليومي
+      }
+    } else if (settingName == 'إدارة المحتوى') {
+      if (childId != null && parentId != null) {
+        _navigateToManageContent(
+            context, parentId, childId); // ✅ إضافة التنقل لإدارة المحتوى
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,9 +74,11 @@ class SettingsController {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
-        DocumentSnapshot userDoc = await _firestore.collection('Parent').doc(user.uid).get();
+        DocumentSnapshot userDoc =
+            await _firestore.collection('Parent').doc(user.uid).get();
         if (userDoc.exists) {
-          PersonalInfoModel parentInfo = PersonalInfoModel.fromJson(userDoc.data() as Map<String, dynamic>);
+          PersonalInfoModel parentInfo = PersonalInfoModel.fromJson(
+              userDoc.data() as Map<String, dynamic>);
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -78,7 +92,8 @@ class SettingsController {
     }
   }
 
-  Future<void> _navigateToChildPage(BuildContext context, String childId, String parentId) async {
+  Future<void> _navigateToChildPage(
+      BuildContext context, String childId, String parentId) async {
     try {
       DocumentSnapshot<Map<String, dynamic>> childDoc = await _firestore
           .collection('Parent')
@@ -99,7 +114,8 @@ class SettingsController {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("⚠️ لم يتم العثور على معلومات الطفل!", style: TextStyle(fontFamily: 'alfont')),
+            content: Text("⚠️ لم يتم العثور على معلومات الطفل!",
+                style: TextStyle(fontFamily: 'alfont')),
             backgroundColor: Colors.red,
           ),
         );
@@ -110,10 +126,25 @@ class SettingsController {
   }
 
   /// ✅ التنقل إلى شاشة الحد اليومي وتمرير `parentId` و `childId` فقط
-  void _navigateToScreenLimit(BuildContext context, String parentId, String childId) {
-    Navigator.push(context,
+  void _navigateToScreenLimit(
+      BuildContext context, String parentId, String childId) {
+    Navigator.push(
+      context,
       MaterialPageRoute(
-        builder: (context) => ScreenLimitView(parentId: parentId, childId: childId),
+        builder: (context) =>
+            ScreenLimitView(parentId: parentId, childId: childId),
+      ),
+    );
+  }
+
+  /// ✅ التنقل إلى إدارة المحتوى وتمرير `parentId` و `childId`
+  void _navigateToManageContent(
+      BuildContext context, String parentId, String childId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ManageContentView(parentId: parentId, childId: childId),
       ),
     );
   }
@@ -135,14 +166,16 @@ class SettingsController {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
+              child:
+                  const Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
                 await _signOutUser(context);
               },
-              child: const Text('تسجيل الخروج', style: TextStyle(fontFamily: 'alfont')),
+              child: const Text('تسجيل الخروج',
+                  style: TextStyle(fontFamily: 'alfont')),
             ),
           ],
         );
@@ -155,7 +188,8 @@ class SettingsController {
       await _auth.signOut();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('تم تسجيل الخروج بنجاح', style: TextStyle(fontFamily: 'alfont')),
+          content: Text('تم تسجيل الخروج بنجاح',
+              style: TextStyle(fontFamily: 'alfont')),
           backgroundColor: Colors.green,
           duration: Duration(seconds: 2),
         ),
@@ -169,7 +203,8 @@ class SettingsController {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('⚠️ حدث خطأ أثناء تسجيل الخروج: $e', style: const TextStyle(fontFamily: 'alfont')),
+          content: Text('⚠️ حدث خطأ أثناء تسجيل الخروج: $e',
+              style: const TextStyle(fontFamily: 'alfont')),
           backgroundColor: Colors.red,
         ),
       );
