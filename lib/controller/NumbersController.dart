@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../model/NumbersModel.dart';
 
 class NumbersController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

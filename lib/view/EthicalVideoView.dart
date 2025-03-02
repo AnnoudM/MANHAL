@@ -10,11 +10,11 @@ class EthicalVideoView extends StatefulWidget {
   final EthicalValueModel ethicalValue;
 
   const EthicalVideoView({
-    Key? key,
+    super.key,
     required this.parentId,
     required this.childId,
     required this.ethicalValue,
-  }) : super(key: key);
+  });
 
   @override
   _EthicalVideoViewState createState() => _EthicalVideoViewState();
