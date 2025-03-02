@@ -92,6 +92,12 @@ Future<void> deleteChildAndNavigate(BuildContext context, String parentId, Strin
             ...child.toMap(), // ✅ إضافة بيانات الطفل
             'level': 1, // ✅ تحديد المستوى الافتراضي للطفل الجديد
             'stickers': [],
+            'lockedContent': { 
+            'letters': <String>[],
+            'numbers': <String>[],
+            'words': <String>[],
+            'ethicalValues': <String>[],
+          }
           });
 
 

@@ -102,6 +102,8 @@ flutter:
   - assets/images/editAvatar.png
   - assets/images/stopwatch.png
   - assets/images/sleeping.png
+  - assets/images/ManhalBackground2.png
+  - assets/images/Lock.png
 
   fonts:
     - family: Blabeloo
