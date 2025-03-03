@@ -36,7 +36,20 @@ void _showEditDialog(String title, String initialValue, Function(String) onSave)
           key: _formKey,
           child: TextFormField(
             controller: textController,
-            validator: (value) => value!.isEmpty ? 'يجب إدخال قيمة' : null,
+            validator: (value) {
+              if (value!.isEmpty) return 'هذا الحقل مطلوب';
+              if (title.contains('الاسم') && !RegExp(r'^[\u0600-\u06FF\s]+$').hasMatch(value)) {
+                return 'يُسمح فقط بالأحرف العربية';
+              }
+              if (title.contains('العمر') && int.tryParse(value) == null) {
+                return 'يرجى إدخال عمر صحيح';
+              }
+              return null;
+            },
+            inputFormatters: title.contains('الاسم')
+                ? [FilteringTextInputFormatter.allow(RegExp(r'^[\u0600-\u06FF\s]+$'))]
+                : [FilteringTextInputFormatter.digitsOnly],
+            keyboardType: title.contains('العمر') ? TextInputType.number : TextInputType.text,
             textDirection: TextDirection.rtl,
             decoration: InputDecoration(
               filled: true,
@@ -105,6 +118,7 @@ void _showEditDialog(String title, String initialValue, Function(String) onSave)
     },
   );
 }
+
 
 @override
 void initState() {
@@ -220,153 +234,155 @@ Future<void> _fetchLatestChildData() async {
   );
 }
 
-  @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          title: const Text(
-            'معلومات الطفل',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'alfont',
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Stack(
-          children: [
-            /// ✅ **إضافة الخلفية الصحيحة بحيث تتناسب مع باقي الصفحات**
-            Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/BackGroundManhal.jpg'), // نفس الخلفية الموجودة في صفحة معلوماتي الشخصية
-                  fit: BoxFit.cover,
-                ),
+@override
+Widget build(BuildContext context) {
+  return Directionality(
+    textDirection: TextDirection.rtl,
+    child: Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          /// ✅ **إضافة الخلفية الصحيحة بحيث تتناسب مع باقي الصفحات**
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/BackGroundManhal.jpg'),
+                fit: BoxFit.cover,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+          ),
+
+          /// ✅ **العنوان وزر الرجوع (بدون AppBar)**
+          Positioned(
+            top: 50, // مسافة من الأعلى لضبط مكان العنوان مثل الـ AppBar السابق
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Center(
-  child: GestureDetector(
-  onTap: () async {
-    final selectedPhoto = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SelectImageView()),
-    );
-    if (selectedPhoto != null) {
-      setState(() {
-        _selectedPhoto = selectedPhoto;
-        _child = _child.copyWith(photoUrl: selectedPhoto);
-      });
-      
-      // تحديث Firebase
-      try {
-        await _controller.updateChildInfo(_child, (updatedChild) {
-          setState(() {
-            _child = updatedChild;
-          });
-        });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم تحديث الصورة بنجاح', style: TextStyle(fontFamily: 'alfont')),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('حدث خطأ في تحديث الصورة: $e', style: const TextStyle(fontFamily: 'alfont')),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  },
-  child: CircleAvatar(
-    radius: 50,
-    backgroundImage: AssetImage(_selectedPhoto ?? 'assets/images/default_avatar.jpg'),
-    child: const Align(
-      alignment: Alignment.bottomRight,
-      child: Icon(Icons.edit, color: Colors.black),
-    ),
-  ),
-),
-),
-
-                  const SizedBox(height: 20),
-                  _buildEditableField(
-  'الاسم',
-  _child.name,
-  () => _showEditDialog(
-    'تعديل الاسم',
-    _child.name,
-    (newName) {
-      setState(() {
-        _child = _child.copyWith(name: newName);
-      });
-      _updateChildInfo();
-
-      // ✅ سناك بار بعد تعديل الاسم
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم تعديل الاسم بنجاح', style: TextStyle(fontFamily: 'alfont')),
-          backgroundColor: Colors.green,
-        ),
-      );
-    },
-  ),
-),
-
-
-                  _buildEditableField(
-  'العمر',
-  _child.age.toString(),
-  () => _showEditDialog(
-    'تعديل العمر',
-    _ageController.text,
-    (newAge) {
-      setState(() {
-        _child = _child.copyWith(age: int.tryParse(newAge) ?? _child.age);
-      });
-      _updateChildInfo();
-
-      // ✅ سناك بار بعد تعديل العمر
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم تعديل العمر بنجاح', style: TextStyle(fontFamily: 'alfont')),
-          backgroundColor: Colors.green,
-        ),
-      );
-    },
-  ),
-),
-
-                  _buildStaticField('الجنس', widget.child.gender), // تمت إضافته بنفس تصميم باقي الحقول
-                  const Spacer(),
-                  _buildActionButton(context, 'حذف الطفل', Colors.redAccent, _deleteChild),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: 50), // مسافة صغيرة بين السهم والعنوان
+                  const Text(
+                    'معلومات الطفل',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'alfont',
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+
+          /// ✅ **المحتوى الأساسي للصفحة**
+          Padding(
+            padding: const EdgeInsets.only(top: 130, left: 20, right: 20), // تأخير المحتوى ليكون أسفل العنوان الجديد
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                /// ✅ صورة الطفل مع إمكانية التعديل
+                Center(
+                  child: GestureDetector(
+                    onTap: () async {
+                      final selectedPhoto = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SelectImageView()),
+                      );
+                      if (selectedPhoto != null) {
+                        setState(() {
+                          _selectedPhoto = selectedPhoto;
+                          _child = _child.copyWith(photoUrl: selectedPhoto);
+                        });
+
+                        // تحديث Firebase
+                        try {
+                          await _controller.updateChildInfo(_child, (updatedChild) {
+                            setState(() {
+                              _child = updatedChild;
+                            });
+                          });
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('تم تحديث الصورة بنجاح', style: TextStyle(fontFamily: 'alfont')),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('حدث خطأ في تحديث الصورة: $e', style: const TextStyle(fontFamily: 'alfont')),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundImage: AssetImage(_selectedPhoto ?? 'assets/images/default_avatar.jpg'),
+                      child: const Align(
+                        alignment: Alignment.bottomRight,
+                        child: Icon(Icons.edit, color: Colors.black),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                /// ✅ الحقول القابلة للتعديل
+                _buildEditableField(
+                  'الاسم',
+                  _child.name,
+                  () => _showEditDialog(
+                    'تعديل الاسم',
+                    _child.name,
+                    (newName) {
+                      setState(() {
+                        _child = _child.copyWith(name: newName);
+                      });
+                      _updateChildInfo();
+                    },
+                  ),
+                ),
+
+                _buildEditableField(
+                  'العمر',
+                  _child.age.toString(),
+                  () => _showEditDialog(
+                    'تعديل العمر',
+                    _ageController.text,
+                    (newAge) {
+                      setState(() {
+                        _child = _child.copyWith(age: int.tryParse(newAge) ?? _child.age);
+                      });
+                      _updateChildInfo();
+                    },
+                  ),
+                ),
+
+                _buildStaticField('الجنس', widget.child.gender),
+
+                const Spacer(),
+
+                /// ✅ زر حذف الطفل
+                _buildActionButton(context, 'حذف الطفل', Colors.redAccent, _deleteChild),
+              ],
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildEditableField(String label, String value, VoidCallback onTap) {
   return Padding(

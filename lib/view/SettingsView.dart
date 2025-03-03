@@ -14,64 +14,77 @@ class SettingsView extends StatelessWidget {
     required this.currentParentId,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    print('🔍 فتح SettingsView لمعرف الطفل: $selectedChildId، معرف الوالد: $currentParentId');
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          title: const Text(
-            'الإعدادات',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'alfont',
+ @override
+Widget build(BuildContext context) {
+  print('🔍 فتح SettingsView لمعرف الطفل: $selectedChildId، معرف الوالد: $currentParentId');
+  
+  return Directionality(
+    textDirection: TextDirection.rtl,
+    child: Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          /// ✅ **إضافة الخلفية**
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/BackGroundManhal.jpg'),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setBool("isParentArea", false); // ✅ إعادة isParentArea إلى false
-  print("🔄 تم تعيين Parent Area إلى false عند الرجوع من الإعدادات");
-  
-  Navigator.pop(context); // ✅ العودة إلى الصفحة السابقة
-},
+
+          /// ✅ **زر الرجوع (بدون AppBar)**
+          Positioned(
+            top: 50, // لضبط موقع زر الرجوع مثل السابق
+            right: 20,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
+              onPressed: () async {
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                prefs.setBool("isParentArea", false); // ✅ إعادة isParentArea إلى false
+                print("🔄 تم تعيين Parent Area إلى false عند الرجوع من الإعدادات");
+                Navigator.pop(context); // ✅ العودة إلى الصفحة السابقة
+              },
+            ),
           ),
-        ),
-        body: Stack(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/BackGroundManhal.jpg'),
-                  fit: BoxFit.cover,
+
+          /// ✅ **العنوان**
+          Positioned(
+            top: 50,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: const Text(
+                'الإعدادات',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'alfont',
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (var setting in settingsOptions)
-                    _buildSettingsOption(context, setting.title),
-                  const Spacer(),
-                  _buildLogoutButton(context),
-                ],
-              ),
+          ),
+
+          /// ✅ **المحتوى الرئيسي**
+          Padding(
+            padding: const EdgeInsets.only(top: 100, left: 20, right: 20), // ✅ لضبط المحتوى بعد العنوان وزر الرجوع
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var setting in settingsOptions)
+                  _buildSettingsOption(context, setting.title),
+                const Spacer(),
+                _buildLogoutButton(context),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSettingsOption(BuildContext context, String title) {
     return Padding(

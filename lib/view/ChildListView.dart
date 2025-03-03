@@ -31,104 +31,116 @@ class _ChildListViewState extends State<ChildListView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Stack(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/BackGroundManhal.jpg'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'أطفالي',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    Expanded(
-                      child: StreamBuilder<QuerySnapshot>(
-                        stream: fetchChildrenStream(),
-                        builder: (context, snapshot) {
-  if (snapshot.connectionState == ConnectionState.waiting) {
-    return const CircularProgressIndicator();
-  } else if (snapshot.hasError) {
-    return const Text('حدث خطأ أثناء تحميل البيانات');
-  } else {
-    var children = snapshot.data?.docs ?? [];
-
-    if (children.isEmpty) {
-      // ✅ عرض رسالة وزر إضافة طفل جديد عند عدم وجود أطفال
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+Widget build(BuildContext context) {
+  return Directionality(
+    textDirection: TextDirection.rtl,
+    child: Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
         children: [
-          const Text(
-            'لا يوجد أطفال مسجلين',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+          /// ✅ **إضافة الخلفية**
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/BackGroundManhal.jpg'),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-          const SizedBox(height: 20),
-          _buildAddChildButton(), // ✅ إظهار زر إضافة طفل جديد
-        ],
-      );
-    }
 
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
-      ),
-      itemCount: children.length + 1, // ✅ زيادة العدد لزر الإضافة
-      itemBuilder: (context, index) {
-        if (index == children.length) {
-          return _buildAddChildButton(); // ✅ زر الإضافة في نهاية القائمة
-        } else {
-          var childData = children[index].data() as Map<String, dynamic>;
-          return _buildChildAvatar(children[index].id, childData);
-        }
-      },
-    );
-  }
-},
+          /// ✅ **زر الرجوع (بدون AppBar)**
+          Positioned(
+            top: 50, // لضبط موقع زر الرجوع مثل السابق
+            right: 20,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ),
 
-                      ),
-                    ),
-                  ],
+          /// ✅ **العنوان**
+          Positioned(
+            top: 50,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: const Text(
+                'أطفالي',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Blabeloo',
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+
+          /// ✅ **المحتوى الرئيسي**
+          Padding(
+            padding: const EdgeInsets.only(top: 100, left: 20, right: 20), // ✅ لضبط المحتوى بعد العنوان وزر الرجوع
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: fetchChildrenStream(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return const Text('حدث خطأ أثناء تحميل البيانات');
+                      } else {
+                        var children = snapshot.data?.docs ?? [];
+
+                        if (children.isEmpty) {
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'لا يوجد أطفال مسجلين',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              _buildAddChildButton(),
+                            ],
+                          );
+                        }
+
+                        return GridView.builder(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 20,
+                            mainAxisSpacing: 20,
+                          ),
+                          itemCount: children.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == children.length) {
+                              return _buildAddChildButton();
+                            } else {
+                              var childData = children[index].data() as Map<String, dynamic>;
+                              return _buildChildAvatar(children[index].id, childData);
+                            }
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   /// بناء عنصر لكل طفل
   Widget _buildChildAvatar(String childId, Map<String, dynamic> childData) {

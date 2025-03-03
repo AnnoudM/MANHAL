@@ -16,86 +16,101 @@ class _PersonalInfoViewState extends State<PersonalInfoView> {
   final PersonalInfoController _controller = PersonalInfoController();
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          title: const Text(
-            'معلوماتي الشخصية',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'alfont',
+Widget build(BuildContext context) {
+  return Directionality(
+    textDirection: TextDirection.rtl,
+    child: Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          /// ✅ **إضافة الخلفية**
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/BackGroundManhal.jpg'),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
+
+          /// ✅ **زر الرجوع (بدون AppBar)**
+          Positioned(
+            top: 50, // لضبط موقع زر الرجوع مثل السابق
+            right: 20,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
           ),
-        ),
-        body: Stack(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/BackGroundManhal.jpg'),
-                  fit: BoxFit.cover,
+
+          /// ✅ **العنوان**
+          Positioned(
+            top: 50,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: const Text(
+                'معلوماتي الشخصية',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'alfont',
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildEditableField(
-                    context,
-                    'الاسم',
+          ),
+
+          /// ✅ **المحتوى الرئيسي**
+          Padding(
+            padding: const EdgeInsets.only(top: 130, left: 20, right: 20), // ✅ لضبط المحتوى بعد العنوان وزر الرجوع
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildEditableField(
+                  context,
+                  'الاسم',
+                  widget.parentInfo.name,
+                  () => _showEditDialog(
+                    'تعديل الاسم',
                     widget.parentInfo.name,
-                    () => _showEditDialog(
-                      'تعديل الاسم',
-                      widget.parentInfo.name,
-                      (newName) {
-                        _controller.updateUserName(context, newName, (updatedName) {
-                          setState(() {
-                            widget.parentInfo.name = updatedName;
-                          });
+                    (newName) {
+                      _controller.updateUserName(context, newName, (updatedName) {
+                        setState(() {
+                          widget.parentInfo.name = updatedName;
                         });
-                      },
-                      isEmail: false, // لا نستخدم التحقق للبريد هنا
-                    ),
+                      });
+                    },
+                    isEmail: false,
                   ),
-                  _buildEditableField(
-                    context,
-                    'البريد الإلكتروني',
+                ),
+                _buildEditableField(
+                  context,
+                  'البريد الإلكتروني',
+                  widget.parentInfo.email,
+                  () => _showEditDialog(
+                    'تغيير البريد الإلكتروني',
                     widget.parentInfo.email,
-                    () => _showEditDialog(
-                      'تغيير البريد الإلكتروني',
-                      widget.parentInfo.email,
-                      (newEmail) => _controller.updateUserEmail(context, newEmail),
-                      isEmail: true, // تمكين التحقق للبريد الإلكتروني
-                    ),
+                    (newEmail) => _controller.updateUserEmail(context, newEmail),
+                    isEmail: true,
                   ),
-                  const Spacer(),
-                  _buildActionButton(context, 'تغيير كلمة مرور الاعدادات', Colors.grey[300]!, () {}),
-                  const SizedBox(height: 15),
-                  _buildActionButton(context, 'حذف الحساب', Colors.redAccent, () {
-                    _controller.deleteUserAccount(context);
-                  }),
-                ],
-              ),
+                ),
+                const Spacer(),
+                _buildActionButton(context, 'تغيير كلمة مرور الاعدادات', Colors.grey[300]!, () {}),
+                const SizedBox(height: 15),
+                _buildActionButton(context, 'حذف الحساب', Colors.redAccent, () {
+                  _controller.deleteUserAccount(context);
+                }),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildEditableField(BuildContext context, String label, String value, VoidCallback onTap) {
     return Padding(
