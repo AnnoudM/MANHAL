@@ -99,7 +99,7 @@ void startUsageMonitoring() async {
     // ✅ التحقق من isParentArea
     bool isParentArea = prefs.getBool("isParentArea") ?? false;
     if (isParentArea) {
-      print("⚠️ الوالد داخل Parent Area، لن يتم التحقق من الحد الزمني.");
+      //print("⚠️ الوالد داخل Parent Area، لن يتم التحقق من الحد الزمني.");
       return;
     }
 
@@ -109,7 +109,7 @@ void startUsageMonitoring() async {
 
     String? selectedChildId = prefs.getString('selectedChildId');
     if (selectedChildId == null || selectedChildId.isEmpty) {
-      print("⚠️ لا يوجد selectedChildId محفوظ في SharedPreferences");
+     // print("⚠️ لا يوجد selectedChildId محفوظ في SharedPreferences");
       return;
     }
 
@@ -122,7 +122,7 @@ void startUsageMonitoring() async {
         .get();
 
     if (!childSnapshot.exists || childSnapshot.data()?['usageLimit'] == null) {
-      print("✅ لا يوجد حد زمني محدد، يمكن للطفل الاستمرار.");
+      //print("✅ لا يوجد حد زمني محدد، يمكن للطفل الاستمرار.");
       return;
     }
 
@@ -131,7 +131,7 @@ void startUsageMonitoring() async {
     String? endTimeString = usageLimit['endTime'];
 
     if (startTimeString == null || endTimeString == null) {
-      print("✅ لا يوجد وقت محدد، يمكن للطفل الاستمرار.");
+     // print("✅ لا يوجد وقت محدد، يمكن للطفل الاستمرار.");
       return;
     }
 
@@ -159,17 +159,17 @@ void startUsageMonitoring() async {
       isWithinAllowedTime = now.isAfter(startTime) && now.isBefore(endTime);
     }
 
-    print("⏰ الوقت الحالي: ${format.format(now)} | مسموح من: ${format.format(startTime)} إلى: ${format.format(endTime)}");
+   // print("⏰ الوقت الحالي: ${format.format(now)} | مسموح من: ${format.format(startTime)} إلى: ${format.format(endTime)}");
 
     if (!isWithinAllowedTime) {
-      print("⛔️ الطفل تجاوز الحد المسموح، سيتم طرده!");
+     // print("⛔️ الطفل تجاوز الحد المسموح، سيتم طرده!");
 
       navigatorKey.currentState?.pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => LockScreenView(childId: selectedChildId, parentId: parentId)),
         (route) => false,
       );
     } else {
-      print("✅ الطفل داخل الوقت المسموح.");
+    //  print("✅ الطفل داخل الوقت المسموح.");
     }
   });
 }

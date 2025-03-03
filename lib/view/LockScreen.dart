@@ -23,79 +23,112 @@ class _LockScreenViewState extends State<LockScreenView> {
     checkIfUnlocked(); // ✅ التحقق إذا كان يمكن إعادة الطفل
   }
 
-  /// ✅ التحقق بشكل دوري إذا كان الوقت المسموح قد بدأ
  void checkIfUnlocked() async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    FirebaseAuth auth = FirebaseAuth.instance;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  FirebaseAuth auth = FirebaseAuth.instance;
 
-    while (mounted) {
-      await Future.delayed(const Duration(seconds: 5)); // ✅ تحقق كل 5 ثوانٍ
+  while (mounted) {
+    await Future.delayed(const Duration(seconds: 5)); // ✅ تحقق كل 5 ثوانٍ
 
-      User? user = auth.currentUser;
-      if (user == null) return;
+    User? user = auth.currentUser;
+    if (user == null) return;
 
-      String parentId = widget.parentId;
-      String childId = widget.childId;
+    String parentId = widget.parentId;
+    String childId = widget.childId;
 
-      DocumentSnapshot<Map<String, dynamic>> childSnapshot = await firestore
-          .collection('Parent')
-          .doc(parentId)
-          .collection('Children')
-          .doc(childId)
-          .get();
+    DocumentSnapshot<Map<String, dynamic>> childSnapshot = await firestore
+        .collection('Parent')
+        .doc(parentId)
+        .collection('Children')
+        .doc(childId)
+        .get();
 
-      if (!childSnapshot.exists) return;
+    if (!childSnapshot.exists) {
+     // print("⚠️ بيانات الطفل غير موجودة في Firestore!");
+      return;
+    }
 
-      var data = childSnapshot.data();
-      if (data == null || !data.containsKey('usageLimit')) return;
+    var data = childSnapshot.data();
 
-      Map<String, dynamic> usageLimit = data['usageLimit'];
-      if (!usageLimit.containsKey('startTime') || !usageLimit.containsKey('endTime')) return;
-
-      String? startTimeString = usageLimit['startTime'];
-      String? endTimeString = usageLimit['endTime'];
-      if (startTimeString == null || endTimeString == null) continue;
-
-      DateTime now = DateTime.now();
-      intl.DateFormat format = intl.DateFormat("HH:mm");
-
-      List<String> startParts = startTimeString.split(":");
-      List<String> endParts = endTimeString.split(":");
-
-      DateTime startTime = DateTime(
-        now.year, now.month, now.day, int.parse(startParts[0]), int.parse(startParts[1]),
-      );
-
-      DateTime endTime = DateTime(
-        now.year, now.month, now.day, int.parse(endParts[0]), int.parse(endParts[1]),
-      );
-
-      // ✅ معالجة حالة عبور منتصف الليل
-      bool isWithinAllowedTime;
-      if (endTime.isBefore(startTime)) {
-        // 🟢 إذا كان `endTime` قبل `startTime` فهذا يعني أن الفترة تمتد عبر منتصف الليل
-        isWithinAllowedTime = now.isAfter(startTime) || now.isBefore(endTime);
-      } else {
-        // 🟢 إذا كانت الفترة طبيعية داخل نفس اليوم
-        isWithinAllowedTime = now.isAfter(startTime) && now.isBefore(endTime);
-      }
-
-      print("⏰ الوقت الحالي: ${format.format(now)} | مسموح من: ${format.format(startTime)} إلى: ${format.format(endTime)}");
-
-      if (isWithinAllowedTime) {
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomePageController(
-                childID: widget.childId,
-              ),
+    // ✅ التحقق مما إذا كان `usageLimit` موجودًا أم لا
+    if (data == null || !data.containsKey('usageLimit')) {
+     // print("✅ لا يوجد حد زمني، سيتم فك القفل!");
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePageController(
+              childID: widget.childId,
             ),
-            (route) => false,
-          );
-        }
+          ),
+          (route) => false,
+        );
+      }
+      return;
+    }
+
+    Map<String, dynamic> usageLimit = data['usageLimit'];
+    if (!usageLimit.containsKey('startTime') || !usageLimit.containsKey('endTime')) {
+     // print("✅ لا يوجد وقت محدد، سيتم فك القفل!");
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePageController(
+              childID: widget.childId,
+            ),
+          ),
+          (route) => false,
+        );
+      }
+      return;
+    }
+
+    String? startTimeString = usageLimit['startTime'];
+    String? endTimeString = usageLimit['endTime'];
+    if (startTimeString == null || endTimeString == null) continue;
+
+    DateTime now = DateTime.now();
+    intl.DateFormat format = intl.DateFormat("HH:mm");
+
+    List<String> startParts = startTimeString.split(":");
+    List<String> endParts = endTimeString.split(":");
+
+    DateTime startTime = DateTime(
+      now.year, now.month, now.day, int.parse(startParts[0]), int.parse(startParts[1]),
+    );
+
+    DateTime endTime = DateTime(
+      now.year, now.month, now.day, int.parse(endParts[0]), int.parse(endParts[1]),
+    );
+
+    // ✅ معالجة حالة عبور منتصف الليل
+    bool isWithinAllowedTime;
+    if (endTime.isBefore(startTime)) {
+      // 🟢 إذا كان `endTime` قبل `startTime` فهذا يعني أن الفترة تمتد عبر منتصف الليل
+      isWithinAllowedTime = now.isAfter(startTime) || now.isBefore(endTime);
+    } else {
+      // 🟢 إذا كانت الفترة طبيعية داخل نفس اليوم
+      isWithinAllowedTime = now.isAfter(startTime) && now.isBefore(endTime);
+    }
+
+   // print("⏰ الوقت الحالي: ${format.format(now)} | مسموح من: ${format.format(startTime)} إلى: ${format.format(endTime)}");
+
+    if (isWithinAllowedTime) {
+     // print("✅ الوقت داخل النطاق، سيتم فك القفل!");
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePageController(
+              childID: widget.childId,
+            ),
+          ),
+          (route) => false,
+        );
       }
     }
+  }
 }
 
   @override
