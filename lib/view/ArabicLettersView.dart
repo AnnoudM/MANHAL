@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../model/ArabicLettersModel.dart';
-import '../view/letter_view.dart'; // تأكد من استيراد الصفحة المستهدفة
+import '../view/letter_view.dart';
+import '../controller/ArabicLettersController.dart';
 
 class ArabicLettersView extends StatefulWidget {
-  const ArabicLettersView({Key? key}) : super(key: key);
+  final String parentId;
+  final String childId;
+
+  const ArabicLettersView({
+    Key? key,
+    required this.parentId,
+    required this.childId,
+  }) : super(key: key);
 
   @override
   _ArabicLettersViewState createState() => _ArabicLettersViewState();
@@ -12,6 +20,24 @@ class ArabicLettersView extends StatefulWidget {
 
 class _ArabicLettersViewState extends State<ArabicLettersView> {
   final AudioPlayer _audioPlayer = AudioPlayer();
+  List<String> lockedLetters = [];
+  final ArabicLettersController _controller = ArabicLettersController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLockedLetters();
+  }
+
+  Future<void> _fetchLockedLetters() async {
+    try {
+      lockedLetters =
+          await _controller.fetchLockedLetters(widget.parentId, widget.childId);
+      setState(() {});
+    } catch (e) {
+      print("❌ خطأ أثناء جلب الحروف المقفلة: $e");
+    }
+  }
 
   @override
   void dispose() {
@@ -22,7 +48,7 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
   Future<void> _playSong() async {
     try {
       await _audioPlayer.setUrl(
-          "https://firebasestorage.googleapis.com/v0/b/manhal-e2276.appspot.com/o/songs%2Fأنشودة%20الحروف.m4a?alt=media");
+          "https://firebasestorage.googleapis.com/v0/b/manhal-e2276.firebasestorage.app/o/songs%2F%D8%A3%D9%86%D8%B4%D9%88%D8%AF%D8%A9%20%D8%A7%D9%84%D8%AD%D8%B1%D9%88%D9%81.m4a?alt=media&token=be1f4e78-c8b0-4267-be65-157acd174911");
       await _audioPlayer.play();
     } catch (e) {
       print("خطأ في تشغيل الصوت: $e");
@@ -119,31 +145,74 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
                 itemCount: ArabicLettersModel.arabicLetters.length,
                 itemBuilder: (context, index) {
                   final letter = ArabicLettersModel.arabicLetters[index];
+                  final isLocked = lockedLetters.contains(letter);
+
                   return GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              ArabicLetterPage(letter: letter),
-                        ),
-                      );
+                      if (!isLocked) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ArabicLetterPage(letter: letter),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text('هذا الحرف مقفل ولا يمكن الدخول إليه!'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                      }
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFD1E3F1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Text(
-                          letter,
-                          style: const TextStyle(
-                            fontFamily: 'Blabeloo',
-                            fontSize: 42,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                        borderRadius: BorderRadius.circular(15),
+                        color: Colors.blue[100]?.withOpacity(0.8),
+                        image: const DecorationImage(
+                          image:
+                              AssetImage("assets/images/ManhalBackground2.png"),
+                          fit: BoxFit.cover,
+                          colorFilter: ColorFilter.mode(
+                            Colors.white10, 
+                            BlendMode
+                                .srcATop, 
                           ),
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 5,
+                            offset: const Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Text(
+                            letter,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 50,
+                              color: Color(0xFF638297),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (isLocked)
+                            Positioned(
+                              bottom: 10,
+                              left: 10,
+                              child: Image.asset(
+                                "assets/images/Lock.png",
+                                width: 20,
+                                height: 20,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   );
