@@ -3,10 +3,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../view/wordsListView.dart';
 
 class ArabicWordsPage extends StatelessWidget {
-  const ArabicWordsPage({super.key});
+  final String parentId;
+  final String childId;
+
+  const ArabicWordsPage({
+    super.key,
+    required this.parentId,
+    required this.childId,
+  });
 
   @override
   Widget build(BuildContext context) {
+    print(
+        "📌 ArabicWordsPage - parentId: $parentId, childId: $childId"); // ✅ تتبع القيم
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -59,8 +69,11 @@ class ArabicWordsPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          WordsListPage(category: categories[index]["name"]!),
+                      builder: (context) => WordsListPage(
+                        parentId: parentId,
+                        childId: childId,
+                        category: categories[index]["name"]!,
+                      ),
                     ),
                   );
                 },

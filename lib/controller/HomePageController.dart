@@ -11,6 +11,7 @@ import '../view/ArabicLettersView.dart';
 import '../view/ArabicNumberView.dart';
 import '../view/EthicalValueView.dart';
 import '../view/sticker_page.dart';
+import '../view/ArabicWordsView.dart';
 
 class HomePageController extends StatefulWidget {
   final String parentId;
@@ -191,10 +192,16 @@ class _HomePageControllerState extends State<HomePageController> {
                 );
                 break;
               case 'رحلة الأرقام':
-                targetPage = const ArabicNumberView();
+                targetPage =  ArabicNumberView(
+                  parentId: widget.parentId,
+                  childId: widget.childID,
+                );
                 break;
               case 'رحلة الكلمات':
-                targetPage = const ArabicLetterPage(letter: 'أ');
+        targetPage = ArabicWordsPage(
+          parentId: widget.parentId, // ✅ التأكد من تمرير معرف الوالد
+          childId: widget.childID,   // ✅ التأكد من تمرير معرف الطفل
+        );
                 break;
               case 'القيم الأخلاقية':
                 targetPage = EthicalValueView(

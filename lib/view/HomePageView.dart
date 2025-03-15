@@ -142,10 +142,7 @@ class HomePageView extends StatelessWidget {
                         iconText: 'نتعلم',
                         iconSize: 70,
                         fontSize: 35,
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const ArabicWordsPage())),
+                        onTap: () => onItemClick('رحلة الكلمات'),
                       ),
                       _buildMenuItem(
                         title: 'القيم الأخلاقية',

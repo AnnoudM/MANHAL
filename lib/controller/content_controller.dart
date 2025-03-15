@@ -26,8 +26,10 @@ class ContentController {
 
       Map<String, dynamic> data =
           (doc.data() ?? {}) as Map<String, dynamic>? ?? {};
-      List<String> lockedItems =
-          List<String>.from(data["lockedContent"]?[category] ?? []);
+      List<String> lockedItems = List<String>.from(data["lockedContent"]
+                  ?[category]
+              ?.map((num) => _convertToArabicNumbers(num)) ??
+          []);
 
       List<ContentModel> contentList = [];
 
@@ -59,7 +61,9 @@ class ContentController {
         for (var doc in query.docs) {
           Map<String, dynamic> numData =
               doc.data() as Map<String, dynamic>? ?? {};
-          contentList.add(ContentModel.fromMap(numData, doc.id)
+
+          String arabicNumber = _convertToArabicNumbers(doc.id);
+          contentList.add(ContentModel.fromMap(numData, arabicNumber)
               .copyWith(isLocked: lockedItems.contains(doc.id)));
         }
       } else if (category == "letters") {
@@ -193,10 +197,14 @@ class ContentController {
         List<String> lockedList =
             List<String>.from(data["lockedContent"][category] ?? []);
 
+        // 🔹 تحويل الأرقام فقط إلى الإنجليزية قبل الحفظ
+        String itemToSave =
+            category == "numbers" ? _convertToEnglishNumbers(itemId) : itemId;
+
         if (isLocked) {
-          if (!lockedList.contains(itemId)) lockedList.add(itemId);
+          if (!lockedList.contains(itemToSave)) lockedList.add(itemToSave);
         } else {
-          lockedList.remove(itemId);
+          lockedList.remove(itemToSave);
         }
 
         await docRef.update({"lockedContent.$category": lockedList});
@@ -204,5 +212,45 @@ class ContentController {
     } catch (e) {
       print("❌ Error updating content: $e");
     }
+  }
+
+  String _convertToArabicNumbers(String englishNumber) {
+    const englishToArabic = {
+      '0': '٠',
+      '1': '١',
+      '2': '٢',
+      '3': '٣',
+      '4': '٤',
+      '5': '٥',
+      '6': '٦',
+      '7': '٧',
+      '8': '٨',
+      '9': '٩',
+    };
+
+    return englishNumber
+        .split('')
+        .map((char) => englishToArabic[char] ?? char)
+        .join();
+  }
+
+  String _convertToEnglishNumbers(String arabicNumber) {
+    const arabicToEnglish = {
+      '٠': '0',
+      '١': '1',
+      '٢': '2',
+      '٣': '3',
+      '٤': '4',
+      '٥': '5',
+      '٦': '6',
+      '٧': '7',
+      '٨': '8',
+      '٩': '9',
+    };
+
+    return arabicNumber
+        .split('')
+        .map((char) => arabicToEnglish[char] ?? char)
+        .join();
   }
 }

@@ -27,7 +27,8 @@ class ContentModel {
 
     return ContentModel(
       id: id,
-      name: data["name"] ?? id, // 🔥 الاسم هو إما "name" أو "id" كبديل
+      name: _convertNumbersToArabic(
+          data["name"] ?? id), // 🔥 تحويل الأرقام للعربية
       isLocked: data["isLocked"] ?? false,
       subCategory: subCategory,
       examples: data["examples"] is List
@@ -44,5 +45,23 @@ class ContentModel {
       subCategory: subCategory,
       examples: examples,
     );
+  }
+
+  /// 🔹 **تحويل الأرقام من الإنجليزية إلى العربية**
+  static String _convertNumbersToArabic(String input) {
+    const englishToArabic = {
+      '0': '٠',
+      '1': '١',
+      '2': '٢',
+      '3': '٣',
+      '4': '٤',
+      '5': '٥',
+      '6': '٦',
+      '7': '٧',
+      '8': '٨',
+      '9': '٩',
+    };
+
+    return input.split('').map((char) => englishToArabic[char] ?? char).join();
   }
 }
