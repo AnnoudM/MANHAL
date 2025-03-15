@@ -13,8 +13,14 @@ import '../view/EthicalValueView.dart';
 import '../view/sticker_page.dart';
 
 class HomePageController extends StatefulWidget {
-  final String childID; // معرف الطفل
-  const HomePageController({super.key, required this.childID});
+  final String parentId;
+  final String childID;
+
+  const HomePageController({
+    Key? key,
+    required this.parentId,
+    required this.childID, // ✅ تعديل هنا بدلًا من childID
+  }) : super(key: key);
 
   @override
   _HomePageControllerState createState() => _HomePageControllerState();
@@ -49,13 +55,13 @@ class _HomePageControllerState extends State<HomePageController> {
       print("⚠️ لم يتم تسجيل الدخول.");
     }
   }
-  
+
 // ✅ إعادة ضبط isParentArea عند دخول الطفل للصفحة الرئيسية
-void _resetParentAreaOnHome() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setBool("isParentArea", false);
-  print("🏠 تم ضبط Parent Area = false عند الدخول إلى الصفحة الرئيسية");
-}
+  void _resetParentAreaOnHome() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool("isParentArea", false);
+    print("🏠 تم ضبط Parent Area = false عند الدخول إلى الصفحة الرئيسية");
+  }
 
   /// ✅ حفظ selectedChildId في SharedPreferences
   Future<void> _saveSelectedChildId(String childId) async {
@@ -114,7 +120,8 @@ void _resetParentAreaOnHome() async {
                   name: childData['name'] ?? 'غير معروف',
                   age: childData['age'] ?? 0,
                   gender: childData['gender'] ?? 'غير معروف',
-                  photoUrl: childData['photoUrl'] ?? 'assets/images/default_avatar.jpg',
+                  photoUrl: childData['photoUrl'] ??
+                      'assets/images/default_avatar.jpg',
                 ),
               ),
             );
@@ -128,50 +135,60 @@ void _resetParentAreaOnHome() async {
             );
           }, // 🔹 التنقل إلى صفحة الإعدادات
           onSettingsClick: () async {
-            print('🔍 فتح SettingsView لمعرف الطفل: $selectedChildId، معرف الوالد: $parentId');
-            if (selectedChildId != null && selectedChildId!.isNotEmpty && parentId != null && parentId!.isNotEmpty) {
-              print("🔹 التنقل إلى PasscodeView - selectedChildId: $selectedChildId");
-           Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => PasscodeView(
-      parentId: parentId!,
-      selectedChildId: selectedChildId!, // ✅ تمرير معرف الطفل الصحيح
-      currentParentId: parentId!, // ✅ تمرير معرف الوالد
-    ),
-  ),
-);
+            print(
+                '🔍 فتح SettingsView لمعرف الطفل: $selectedChildId، معرف الوالد: $parentId');
+            if (selectedChildId != null &&
+                selectedChildId!.isNotEmpty &&
+                parentId != null &&
+                parentId!.isNotEmpty) {
+              print(
+                  "🔹 التنقل إلى PasscodeView - selectedChildId: $selectedChildId");
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PasscodeView(
+                    parentId: parentId!,
+                    selectedChildId:
+                        selectedChildId!, // ✅ تمرير معرف الطفل الصحيح
+                    currentParentId: parentId!, // ✅ تمرير معرف الوالد
+                  ),
+                ),
+              );
 
 // ✅ قبل الدخول إلى PasscodeView، تعطيل المراقبة
-SharedPreferences prefs = await SharedPreferences.getInstance();
-await prefs.setBool('isParentArea', true);
-print("🛑 دخول إلى PasscodeView - تعطيل المراقبة");
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('isParentArea', true);
+              print("🛑 دخول إلى PasscodeView - تعطيل المراقبة");
             } else {
               print('❌ خطأ: معرف الطفل أو معرف الوالد غير صالح');
             }
           },
 
-         // 🔹 التنقل إلى صفحة الملصقات مع تمرير parentId و childId
-onStickersClick: () {
-  if (parentId != null && selectedChildId != null) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => StickerPage(childId: widget.childID, parentId: parentId ?? ''),
-      ),
-    );
-  } else {
-    print("❌ خطأ: لا يمكن فتح صفحة الملصقات، parentId أو childId غير متوفر.");
-  }
-},
-
+          // 🔹 التنقل إلى صفحة الملصقات مع تمرير parentId و childId
+          onStickersClick: () {
+            if (parentId != null && selectedChildId != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => StickerPage(
+                      childId: widget.childID, parentId: parentId ?? ''),
+                ),
+              );
+            } else {
+              print(
+                  "❌ خطأ: لا يمكن فتح صفحة الملصقات، parentId أو childId غير متوفر.");
+            }
+          },
 
           // 🔹 التنقل إلى الصفحات بناءً على العنصر الذي يتم الضغط عليه في GridView
           onItemClick: (String item) {
             Widget targetPage;
             switch (item) {
               case 'رحلة الأحرف':
-                targetPage = const ArabicLettersView();
+                targetPage = ArabicLettersView(
+                  parentId: widget.parentId,
+                  childId: widget.childID,
+                );
                 break;
               case 'رحلة الأرقام':
                 targetPage = const ArabicNumberView();
@@ -180,7 +197,8 @@ onStickersClick: () {
                 targetPage = const ArabicLetterPage(letter: 'أ');
                 break;
               case 'القيم الأخلاقية':
-                targetPage = EthicalValueView(childId: widget.childID, parentId: parentId ?? '');
+                targetPage = EthicalValueView(
+                    childId: widget.childID, parentId: parentId ?? '');
                 break;
               default:
                 return;
