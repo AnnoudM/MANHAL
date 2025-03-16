@@ -125,7 +125,7 @@ void checkUsageTime() async {
           User? user = auth.currentUser;
           if (user == null) return;
           
-          print("⛔️ الطفل الجديد خارج الوقت المسموح. سيتم التوجيه إلى شاشة القفل.");
+         // print("⛔️ الطفل الجديد خارج الوقت المسموح. سيتم التوجيه إلى شاشة القفل.");
           
           // توجيه المستخدم إلى شاشة القفل فوراً
           navigatorKey.currentState?.pushAndRemoveUntil(
@@ -158,7 +158,7 @@ void checkUsageTime() async {
     User? user = auth.currentUser;
     if (user == null) return;
     
-    print("⛔️ تجاوز الحد الزمني المسموح. سيتم التوجيه إلى شاشة القفل.");
+    //print("⛔️ تجاوز الحد الزمني المسموح. سيتم التوجيه إلى شاشة القفل.");
     
     // توجيه المستخدم إلى شاشة القفل
     navigatorKey.currentState?.pushAndRemoveUntil(
@@ -184,7 +184,7 @@ Future<void> setupChildMonitoring({String? childId}) async {
   
   if (selectedChildId == null || selectedChildId.isEmpty) return;
   
-  print("👶 إعداد مراقبة للطفل: $selectedChildId");
+  //print("👶 إعداد مراقبة للطفل: $selectedChildId");
   _currentMonitoredChildId = selectedChildId;
   
   // جلب البيانات الحالية فورًا (لتجنب التأخير في مراقبة الطفل الجديد)
