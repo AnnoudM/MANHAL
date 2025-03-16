@@ -47,12 +47,12 @@ class PersonalInfoController {
 
 
 
-  Future<void> updateUserEmail(BuildContext context, String newEmail) async {
+Future<void> updateUserEmail(BuildContext context, String newEmail) async {
   try {
     User? user = _auth.currentUser;
     if (user == null) return;
 
-    // التحقق مما إذا كان البريد الإلكتروني الجديد مستخدمًا بالفعل
+    // ✅ التأكد أن البريد الجديد غير مستخدم بالفعل
     var emailCheck = await _firestore
         .collection('Parent')
         .where('email', isEqualTo: newEmail)
@@ -68,24 +68,26 @@ class PersonalInfoController {
       return;
     }
 
-    // إرسال رابط التحقق للبريد الجديد
+    // ✅ إرسال رابط التحقق إلى البريد الجديد
     await user.verifyBeforeUpdateEmail(newEmail);
 
-    // تحديث البريد في قاعدة بيانات Firestore بعد التحقق منه
-    await _firestore.collection('Parent').doc(user.uid).update({'email': newEmail});
-
-    // إظهار ديالوج التأكيد
+    // ✅ إظهار ديالوج التأكيد
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Color(0xFFF8F8F8),
           title: Text('تم إرسال رابط التحقق', style: TextStyle(fontFamily: 'alfont')),
-          content: Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.', style: TextStyle(fontFamily: 'alfont')),
+          content: Text(
+            'تم إرسال رابط التحقق إلى بريدك الإلكتروني الجديد. الرجاء الضغط على الرابط المرسل قبل تسجيل الدخول مرة أخرى.',
+            style: TextStyle(fontFamily: 'alfont')),
           actions: [
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
+
+                // ✅ تسجيل خروج المستخدم
+                await FirebaseAuth.instance.signOut();
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -99,6 +101,7 @@ class PersonalInfoController {
         );
       },
     );
+
   } catch (e) {
     debugPrint('Error updating email: $e');
     ScaffoldMessenger.of(context).showSnackBar(
@@ -109,6 +112,7 @@ class PersonalInfoController {
     );
   }
 }
+
 
   Future<void> deleteUserAccount(BuildContext context) async {
   try {

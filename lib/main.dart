@@ -48,6 +48,15 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     startUsageMonitoring(); // ✅ بدء مراقبة الحد اليومي عند تشغيل التطبيق
+    FirebaseAuth.instance.authStateChanges().listen((User? user) async {
+    if (user != null) {
+      // ✅ تحديث Firestore بالبريد الجديد بعد تسجيل الدخول
+      await FirebaseFirestore.instance.collection('Parent').doc(user.uid).update({
+        'email': user.email
+      });
+      print('✅ تم تحديث البريد في Firestore بنجاح');
+    }
+  });
   }
 
   @override
