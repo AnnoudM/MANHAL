@@ -119,7 +119,6 @@ class _ManageSpecificContentViewState extends State<ManageSpecificContentView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(selectedCategory == null
             ? _getCategoryTitle(widget.category)
@@ -153,7 +152,7 @@ class _ManageSpecificContentViewState extends State<ManageSpecificContentView> {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
-                      color: Colors.blue[100]?.withOpacity(0.8),
+                      color: _getTileColor(widget.category),
                       image: const DecorationImage(
                         image:
                             AssetImage("assets/images/ManhalBackground2.png"),
@@ -174,7 +173,7 @@ class _ManageSpecificContentViewState extends State<ManageSpecificContentView> {
                           item.name,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 50,
+                            fontSize: 40,
                             color: Color(0xFF638297),
                             fontWeight: FontWeight.bold,
                           ),
@@ -197,6 +196,20 @@ class _ManageSpecificContentViewState extends State<ManageSpecificContentView> {
               },
             ),
     );
+  }
+}
+
+Color _getTileColor(String category) {
+  switch (category) {
+    case "letters":
+    case "words":
+      return Colors.blue[200]!.withOpacity(0.8);
+    case "numbers":
+      return const Color(0xFFF9EAFB);
+    case "ethicalValues":
+      return Colors.yellow[100]!;
+    default:
+      return Colors.white;
   }
 }
 

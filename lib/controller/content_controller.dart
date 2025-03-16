@@ -6,8 +6,7 @@ class ContentController {
   Future<List<ContentModel>> getContent(
       String parentId, String childId, String category) async {
     try {
-      print(
-          "📥 Fetching child document for: Parent/$parentId/Children/$childId");
+      print("Fetching child document for: Parent/$parentId/Children/$childId");
 
       DocumentSnapshot doc = await _firestore
           .collection("Parent")
@@ -17,12 +16,12 @@ class ContentController {
           .get();
       if (!doc.exists || doc.data() == null) {
         print(
-            "❌ No document found or data is null for: Parent/$parentId/Children/$childId");
+            "No document found or data is null for: Parent/$parentId/Children/$childId");
         return [];
       }
 
       print(
-          "📥 Checking document: ${doc.exists ? doc.data() : "Document not found"}");
+          "Checking document: ${doc.exists ? doc.data() : "Document not found"}");
 
       Map<String, dynamic> data =
           (doc.data() ?? {}) as Map<String, dynamic>? ?? {};
@@ -85,11 +84,26 @@ class ContentController {
         for (var doc in query.docs) {
           Map<String, dynamic> ethicalData =
               doc.data() as Map<String, dynamic>? ?? {};
+          String ethicalId = doc.id; // 🔥 الرقم كما هو بالإنجليزية
+          String ethicalIdInArabic =
+              _convertToArabicNumbers(ethicalId); // ✅ تحويله إلى العربية
+          String ethicalName = ethicalData["name"] ?? "غير معروف";
+
+          // ✅ طباعة القيم للتحقق
+          print("🛠️ lockedItems from Firestore: $lockedItems");
+          print(
+              "🛠️ Current ethicalId (English): $ethicalId | Arabic: $ethicalIdInArabic");
+
+          // ✅ المقارنة باستخدام الرقم العربي
+          bool isLocked = lockedItems.contains(ethicalIdInArabic);
+
+          print(
+              "🔍 Checking Ethical Value: ID $ethicalId | Arabic ID: $ethicalIdInArabic | Name: $ethicalName | Locked: $isLocked");
 
           contentList.add(ContentModel(
-            id: doc.id,
-            name: ethicalData["name"] ?? "غير معروف",
-            isLocked: lockedItems.contains(doc.id),
+            id: ethicalId,
+            name: ethicalName,
+            isLocked: isLocked,
           ));
         }
       }
@@ -197,7 +211,6 @@ class ContentController {
         List<String> lockedList =
             List<String>.from(data["lockedContent"][category] ?? []);
 
-        // 🔹 تحويل الأرقام فقط إلى الإنجليزية قبل الحفظ
         String itemToSave =
             category == "numbers" ? _convertToEnglishNumbers(itemId) : itemId;
 

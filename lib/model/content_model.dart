@@ -28,7 +28,7 @@ class ContentModel {
     return ContentModel(
       id: id,
       name: _convertNumbersToArabic(
-          data["name"] ?? id), // 🔥 تحويل الأرقام للعربية
+          data["name"] ?? id), 
       isLocked: data["isLocked"] ?? false,
       subCategory: subCategory,
       examples: data["examples"] is List
@@ -47,7 +47,6 @@ class ContentModel {
     );
   }
 
-  /// 🔹 **تحويل الأرقام من الإنجليزية إلى العربية**
   static String _convertNumbersToArabic(String input) {
     const englishToArabic = {
       '0': '٠',

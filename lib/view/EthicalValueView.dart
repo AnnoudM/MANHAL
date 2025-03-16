@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:manhal/controller/EthicalValueController.dart';
+import 'package:flutter_tts/flutter_tts.dart'; // raghad:new code
 import 'package:manhal/model/EthicalValueModel.dart';
 import 'package:manhal/view/EthicalVideoView.dart';
 
@@ -8,16 +9,20 @@ class EthicalValueView extends StatefulWidget {
   final String parentId;
   final String childId;
 
-  const EthicalValueView({Key? key, required this.parentId, required this.childId}) : super(key: key);
+  const EthicalValueView(
+      {Key? key, required this.parentId, required this.childId})
+      : super(key: key);
 
   @override
   _EthicalValueViewState createState() => _EthicalValueViewState();
 }
 
-class _EthicalValueViewState extends State<EthicalValueView> with TickerProviderStateMixin {
+class _EthicalValueViewState extends State<EthicalValueView>
+    with TickerProviderStateMixin {
   final EthicalValueController _ethicalController = EthicalValueController();
   late AnimationController _jumpController;
   late Animation<double> _jumpAnimation;
+  FlutterTts flutterTts = FlutterTts(); // raghad:new code
 
   @override
   void initState() {
@@ -39,6 +44,31 @@ class _EthicalValueViewState extends State<EthicalValueView> with TickerProvider
     _jumpController.dispose();
     super.dispose();
   }
+
+  // raghad:new code START: عرض رسالة صوتية عند محاولة فتح قيمة مغلقة
+  Future<void> _showLockedMessage() async {
+    String message = "هذه القيمة مغلقة بواسطة ولي الأمر.";
+
+    // 🔹 تشغيل القراءة الصوتية
+    await flutterTts.speak(message);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // 🔹 منع الإغلاق اليدوي
+      builder: (context) => AlertDialog(
+        title: const Text("القيمة مغلقة"),
+        content: Text(message),
+      ),
+    );
+
+    // 🔹 انتظار انتهاء الصوت ثم إغلاق النافذة
+    flutterTts.setCompletionHandler(() {
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context); // إغلاق النافذة بعد انتهاء القراءة
+      }
+    });
+  }
+// raghad:new code END
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +97,8 @@ class _EthicalValueViewState extends State<EthicalValueView> with TickerProvider
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
+                      icon: const Icon(Icons.arrow_back,
+                          color: Colors.black, size: 30),
                       onPressed: () => Navigator.pop(context),
                     ),
                     const Text(
@@ -99,27 +130,44 @@ class _EthicalValueViewState extends State<EthicalValueView> with TickerProvider
             top: 180, // ✅ تعديل المسافة بعد الكأس
             left: MediaQuery.of(context).size.width * 0.08,
             width: MediaQuery.of(context).size.width * 0.5,
-            child: Image.asset("assets/images/Pathway.png", fit: BoxFit.contain),
+            child:
+                Image.asset("assets/images/Pathway.png", fit: BoxFit.contain),
           ),
 
           // 🔹 استرجاع مستوى الطفل والقيم الأخلاقية
           StreamBuilder<int?>(
-            stream: _ethicalController.fetchChildLevel(widget.parentId, widget.childId),
+            stream: _ethicalController.fetchChildLevel(
+                widget.parentId, widget.childId),
             builder: (context, levelSnapshot) {
-              if (!levelSnapshot.hasData) return const Center(child: CircularProgressIndicator());
+              if (!levelSnapshot.hasData)
+                return const Center(child: CircularProgressIndicator());
               int childLevel = levelSnapshot.data ?? 1;
 
               return StreamBuilder<List<EthicalValueModel>>(
-                stream: _ethicalController.fetchAllEthicalValues(),
+                stream: _ethicalController.fetchAllEthicalValues(
+                    widget.parentId,
+                    widget
+                        .childId), // raghad:new code - تمرير الـ parentId والـ childId
                 builder: (context, valuesSnapshot) {
-                  if (!valuesSnapshot.hasData) return const Center(child: CircularProgressIndicator());
-                  List<EthicalValueModel> ethicalValues = valuesSnapshot.data ?? [];return Stack(
+                  if (!valuesSnapshot.hasData)
+                    return const Center(child: CircularProgressIndicator());
+                  List<EthicalValueModel> ethicalValues =
+                      valuesSnapshot.data ?? [];
+                  return Stack(
                     children: [
                       // ✅ وضع القيم الأخلاقية على المسار
                       ...ethicalValues.map((ethicalValue) {
                         bool isUnlocked = ethicalValue.level <= childLevel;
-                        double positionTop = _getPositionForLevel(ethicalValue.level) + 85;
-                        double positionLeft = _getLeftPositionForLevel(ethicalValue.level) - 20;
+                        // raghad:new code START 🚀
+                        // 🔹 قراءة القيم المقفلة من الوالد من `lockedContent`
+                        bool isLockedByParent =
+                            ethicalValue.isLockedByParent; // raghad:new code
+                        // raghad:new code END 🚀
+
+                        double positionTop =
+                            _getPositionForLevel(ethicalValue.level) + 85;
+                        double positionLeft =
+                            _getLeftPositionForLevel(ethicalValue.level) - 20;
 
                         return Positioned(
                           top: positionTop,
@@ -127,6 +175,14 @@ class _EthicalValueViewState extends State<EthicalValueView> with TickerProvider
                           child: GestureDetector(
                             onTap: isUnlocked
                                 ? () {
+                                    // raghad:new code START 🚀
+                                    if (ethicalValue.isLockedByParent) {
+                                      // 🔹 التحقق إذا كان مقفل من ولي الأمر
+                                      _showLockedMessage(); // عرض رسالة القفل
+                                      return; // منع الدخول
+                                    }
+                                    // raghad:new code END 🚀
+
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -147,9 +203,13 @@ class _EthicalValueViewState extends State<EthicalValueView> with TickerProvider
                                   height: 80,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: isUnlocked ? Colors.white : Colors.grey.shade300,
+                                    color: isUnlocked && !isLockedByParent
+                                        ? Colors.white
+                                        : Colors.grey.shade300,
                                     border: Border.all(
-                                      color: isUnlocked ? Colors.orange : Colors.grey,
+                                      color: isUnlocked && !isLockedByParent
+                                          ? Colors.orange
+                                          : Colors.grey,
                                       width: 3,
                                     ),
                                   ),
@@ -160,18 +220,22 @@ class _EthicalValueViewState extends State<EthicalValueView> with TickerProvider
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: isUnlocked ? Colors.black : Colors.grey.shade600,
+                                        color: isUnlocked && !isLockedByParent
+                                            ? Colors.black
+                                            : Colors.grey.shade600,
                                       ),
                                     ),
                                   ),
                                 ),
 
                                 // ✅ إضافة القفل فقط للقيم المغلقة
-                                if (!isUnlocked)
+                                if (!isUnlocked ||
+                                    isLockedByParent) // raghad:new code
                                   const Positioned(
                                     bottom: 8,
                                     right: 8,
-                                    child: Icon(Icons.lock, color: Colors.red, size: 22),
+                                    child: Icon(Icons.lock,
+                                        color: Colors.red, size: 22),
                                   ),
                               ],
                             ),
@@ -184,16 +248,22 @@ class _EthicalValueViewState extends State<EthicalValueView> with TickerProvider
                         animation: _jumpController,
                         builder: (context, child) {
                           return Positioned(
-                            top: _getPositionForLevel(childLevel) + _jumpAnimation.value + 90,
-                            left: _getLeftPositionForLevel(childLevel) - 90, // ✅ جعله أكثر إلى اليسار
+                            top: _getPositionForLevel(childLevel) +
+                                _jumpAnimation.value +
+                                90,
+                            left: _getLeftPositionForLevel(childLevel) -
+                                90, // ✅ جعله أكثر إلى اليسار
                             child: Image.asset(
-                              childLevel >= 7 ? "assets/images/happyChick.png" : "assets/images/chick.png",
+                              childLevel >= 7
+                                  ? "assets/images/happyChick.png"
+                                  : "assets/images/chick.png",
                               width: 70,
                             ),
                           );
                         },
                       ),
-                    ],);
+                    ],
+                  );
                 },
               );
             },
