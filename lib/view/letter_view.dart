@@ -47,17 +47,25 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
     }
   }
 
+  Future<void> stopAllSounds() async {
+    await _audioPlayer.stop();
+    await flutterTts.stop();
+  }
+
   void _speakLetter() async {
+    await stopAllSounds();
     await flutterTts.setLanguage("ar-SA");
     await flutterTts.speak(widget.letter);
   }
 
   void _speakExample(String example) async {
+    await stopAllSounds();
     await flutterTts.setLanguage("ar-SA");
     await flutterTts.speak(example);
   }
 
   void _playSong(String songUrl) async {
+    await stopAllSounds();
     try {
       await _audioPlayer.setSourceUrl(songUrl);
       await _audioPlayer.resume();
@@ -100,7 +108,7 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
         children: [
           const SizedBox(height: 40),
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: Alignment.centerRight,
             child: Container(
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -115,7 +123,7 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
                 ],
               ),
               child: IconButton(
-                icon: const Icon(Icons.arrow_forward,
+                icon: const Icon(Icons.arrow_back,
                     size: 25, color: Color(0xFF3F414E)),
                 onPressed: () {
                   Navigator.pop(context);
@@ -255,9 +263,10 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ActivityView( 
+              builder: (context) => ActivityView(
                 value: widget.letter,
-                      type: "letter",),
+                type: "letter",
+              ),
             ),
           );
         },
