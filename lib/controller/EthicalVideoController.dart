@@ -111,34 +111,63 @@ class EthicalVideoController {
 void _awardStickersToChild() async {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  // جلب جميع الملصقات من Firestore
+  print("🚀 دخلنا دالة _awardStickersToChild للطفل $childId");
+
+  // جلب بيانات الطفل
+  DocumentSnapshot childSnapshot = await firestore
+      .collection('Parent')
+      .doc(parentId)
+      .collection('Children')
+      .doc(childId)
+      .get();
+
+  if (!childSnapshot.exists) {
+    print("❌ لا يوجد بيانات لهذا الطفل $childId");
+    return;
+  }
+
+  // جلب الملصقات الحالية
+  List<dynamic> currentStickers = List.from(childSnapshot['stickers'] ?? []);
+  List<String> currentStickerIds = currentStickers.map((sticker) => sticker['id'].toString()).toList();
+  print("📦 الملصقات الحالية: $currentStickerIds");
+
+  // جلب جميع الملصقات
   QuerySnapshot snapshot = await firestore.collection('stickers').get();
   List<DocumentSnapshot> allStickers = snapshot.docs;
 
-  if (allStickers.length < 3) return; // تأكد من وجود على الأقل 3 ملصقات
+  // تصفية الملصقات الجديدة
+  List<DocumentSnapshot> newStickers = allStickers.where((doc) => !currentStickerIds.contains(doc.id)).toList();
+  print("🆕 الملصقات الجديدة المحتملة: ${newStickers.map((e) => e.id).toList()}");
 
-  // اختيار 3 ملصقات عشوائية
-  allStickers.shuffle();
-  //List<String> selectedStickerIds = allStickers.take(3).map((doc) => doc.id).toList();
-  List<Map<String, dynamic>> selectedStickers = allStickers.take(3).map((doc) {
-    return {
-      'id': doc.id,
-      'link': doc['link'], // تأكد أن "link" هو الاسم الصحيح للحقل في Firestore
-    };
+  if (newStickers.isEmpty) {
+    print("⚠️ لا يوجد ملصقات جديدة لإضافتها!");
+    return;
+  }
+
+  // اختيار 3 ملصقات أو أقل
+  newStickers.shuffle();
+  List<Map<String, dynamic>> selectedStickers = newStickers.take(3).map((doc) {
+    return {'id': doc.id, 'link': doc['link']};
   }).toList();
+  print("✅ الملصقات التي ستتم إضافتها: $selectedStickers");
 
-  // تحديث مصفوفة الملصقات الخاصة بالطفل داخل Parent > Children
+  // دمج الملصقات
+  List<Map<String, dynamic>> updatedStickers = [
+    ...currentStickers.cast<Map<String, dynamic>>(),
+    ...selectedStickers
+  ];
+
+  // التحديث
   await firestore
-      .collection('Parent') // 🟢 تأكد أن الاسم مطابق لما في Firestore
-      .doc(parentId) // 🟢 تحديد الأب
-      .collection('Children') // 🟢 ثم الوصول إلى Collection الأطفال
-      .doc(childId) // 🟢 وأخيرًا تحديد الطفل
-      .update({
-    'stickers': FieldValue.arrayUnion(selectedStickers),
-  });
+      .collection('Parent')
+      .doc(parentId)
+      .collection('Children')
+      .doc(childId)
+      .update({'stickers': updatedStickers});
 
-  print("✅ تم إضافة 3 ملصقات للطفل $childId بعد مشاهدة الفيديو!");
+  print("🔥 تم التحديث النهائي للملصقات للطفل $childId ✅ المجموع الجديد: ${updatedStickers.length}");
 }
+
 
 /// ✅ متابعة الملصقات الخاصة بالطفل وتحديثها في الوقت الفعلي
 void fetchChildStickers(VoidCallback updateUI) {
