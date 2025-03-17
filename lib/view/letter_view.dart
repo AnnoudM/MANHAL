@@ -42,7 +42,10 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
         isLoading = false;
       });
     } catch (e) {
-      setState(() => isLoading = false);
+      setState(() {
+        letterData = null; 
+        isLoading = false;
+      });
       print("Error loading data: $e");
     }
   }
@@ -58,10 +61,16 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
     await flutterTts.speak(widget.letter);
   }
 
-  void _speakExample(String example) async {
+  void _speakExample(int index) async {
     await stopAllSounds();
     await flutterTts.setLanguage("ar-SA");
-    await flutterTts.speak(example);
+
+    String textToSpeak = (letterData!.examplesTashkeel != null &&
+            letterData!.examplesTashkeel!.length > index)
+        ? letterData!.examplesTashkeel![index]
+        : letterData!.examples[index];
+
+    await flutterTts.speak(textToSpeak);
   }
 
   void _playSong(String songUrl) async {
@@ -185,7 +194,7 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
           IconButton(
             icon: Image.asset("assets/images/high-volume.png",
                 width: 40, height: 40),
-            onPressed: () => _speakExample(letterData!.examples[index]),
+            onPressed: () => _speakExample(index),
           ),
           Expanded(
             child: Center(

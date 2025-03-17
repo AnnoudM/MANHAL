@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:manhal/view/ActivityView.dart'; 
+import 'package:manhal/view/ActivityView.dart';
 
 class WordDetailsPage extends StatefulWidget {
   final String word;
@@ -28,21 +28,29 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
     fetchWordData();
   }
 
+  String? wordForDisplay;
+  String? wordForTTS;
+
   Future<void> fetchWordData() async {
     try {
       DocumentSnapshot doc = await FirebaseFirestore.instance
           .collection("Category")
           .doc("words")
           .collection("content")
-          .doc(widget.category) //
+          .doc(widget.category)
           .get();
 
       var data = doc.data() as Map<String, dynamic>?;
 
-      if (data != null && data["examples"] != null && data["images"] != null) {
+      if (data != null &&
+          data["examples"] != null &&
+          data["examples_tashkeel"] != null &&
+          data["images"] != null) {
         int index = (data["examples"] as List).indexOf(widget.word);
         if (index != -1) {
           setState(() {
+            wordForDisplay = (data["examples"] as List)[index];
+            wordForTTS = (data["examples_tashkeel"] as List)[index];
             imageUrl = (data["images"] as List)[index];
             isLoading = false;
           });
@@ -56,7 +64,7 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
 
   void _speakWord() async {
     await flutterTts.setLanguage("ar-SA");
-    await flutterTts.speak(widget.word);
+    await flutterTts.speak(wordForTTS ?? widget.word);
   }
 
   @override
