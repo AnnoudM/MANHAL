@@ -132,7 +132,10 @@ class _ArabicNumberViewState extends State<ArabicNumberView> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  LearnNumberPage(number: number),
+                                  LearnNumberPage(number: number,
+                                  parentId: widget.parentId, // ✅ تمرير parentId
+                                  childId: widget.childId,   // ✅ تمرير childId 
+                              ),
                             ),
                           );
                         } else {

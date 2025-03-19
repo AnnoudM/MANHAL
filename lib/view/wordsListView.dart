@@ -104,6 +104,8 @@ class _WordsListPageState extends State<WordsListPage> {
                               builder: (context) => WordDetailsPage(
                                 word: word.word,
                                 category: widget.category,
+                                parentId: widget.parentId,  // ✅ تمرير معرف الوالد
+                                childId: widget.childId,    // ✅ تمرير معرف الطفل
                               ),
                             ),
                           );

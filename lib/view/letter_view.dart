@@ -7,8 +7,16 @@ import 'ActivityView.dart';
 
 class ArabicLetterPage extends StatefulWidget {
   final String letter;
+  final String parentId;  // ✅ إضافة معرف الوالد
+  final String childId;   // ✅ إضافة معرف الطفل
+  
 
-  const ArabicLetterPage({super.key, required this.letter});
+    const ArabicLetterPage({
+    Key? key,
+    required this.letter,
+    required this.parentId,  // ✅ تمرير معرف الوالد
+    required this.childId,   // ✅ تمرير معرف الطفل
+  }) : super(key: key);
 
   @override
   _ArabicLetterPageState createState() => _ArabicLetterPageState();
@@ -273,6 +281,8 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
             context,
             MaterialPageRoute(
               builder: (context) => ActivityView(
+                parentId: widget.parentId,  // ✅ تمرير معرف الوالد
+                childId: widget.childId,    // ✅ تمرير معرف الطفل
                 value: widget.letter,
                 type: "letter",
               ),

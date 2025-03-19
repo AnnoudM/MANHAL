@@ -6,11 +6,15 @@ import 'package:manhal/view/ActivityView.dart';
 class WordDetailsPage extends StatefulWidget {
   final String word;
   final String category;
+  final String parentId;  // ✅ إضافة معرف الوالد
+  final String childId;   // ✅ إضافة معرف الطفل
 
   const WordDetailsPage({
     super.key,
     required this.word,
     required this.category,
+    required this.parentId,  // ✅ تمرير معرف الوالد
+    required this.childId,   // ✅ تمرير معرف الطفل
   });
 
   @override
@@ -165,6 +169,8 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
                         builder: (context) => ActivityView(
                           value: widget.word,
                           type: "word",
+                          parentId: widget.parentId,  // ✅ تمرير معرف الوالد
+                          childId: widget.childId,    // ✅ تمرير معرف الطفل
                         ),
                       ),
                     );

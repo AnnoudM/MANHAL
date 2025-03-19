@@ -5,7 +5,15 @@ import 'package:manhal/view/ActivityView.dart'; // تأكد من صحة الاس
 
 class LearnNumberPage extends StatefulWidget {
   final int number; // Receive the selected number
-  const LearnNumberPage({super.key, required this.number});
+  final String parentId; // ✅ إضافة معرف الوالد
+  final String childId;  // ✅ إضافة معرف الطفل
+
+ const LearnNumberPage({
+    super.key, 
+    required this.number,
+    required this.parentId,  // ✅ إضافة معرف الوالد
+    required this.childId,   // ✅ إضافة معرف الطفل
+  });
 
   @override
   _LearnNumberPageState createState() => _LearnNumberPageState();
@@ -127,6 +135,8 @@ class _LearnNumberPageState extends State<LearnNumberPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ActivityView(
+                                     parentId: widget.parentId,  // ✅ تمرير معرف الوالد
+                                     childId: widget.childId,    // ✅ تمرير معرف الطفل
                                     value: widget.number.toString(),
                                     type: "number",
                                   ),

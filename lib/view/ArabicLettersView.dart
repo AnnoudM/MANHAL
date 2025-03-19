@@ -154,7 +154,11 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                ArabicLetterPage(letter: letter),
+                                ArabicLetterPage(
+                                  letter: letter,
+                                  parentId: widget.parentId,  // ✅ تمرير معرف الوالد
+                                  childId: widget.childId,    // ✅ تمرير معرف الطفل),
+                                  ),
                           ),
                         );
                       } else {
