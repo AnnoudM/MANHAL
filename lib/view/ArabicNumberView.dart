@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'number_view.dart';
+import 'package:just_audio/just_audio.dart';
 import '../model/NumbersModel.dart';
 import '../controller/NumbersController.dart';
 
@@ -28,6 +29,7 @@ class ArabicNumberView extends StatefulWidget {
 class _ArabicNumberViewState extends State<ArabicNumberView> {
   final NumbersController _controller = NumbersController();
   List<String> lockedNumbers = [];
+  final AudioPlayer _audioPlayer = AudioPlayer(); 
 
   @override
   void initState() {
@@ -41,12 +43,52 @@ class _ArabicNumberViewState extends State<ArabicNumberView> {
     setState(() {});
   }
 
+  Future<void> _showLockedPopup(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text(
+            "الرقم مقفل",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            "لا يمكنك الدخول إليه الآن",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 20),
+          ),
+        );
+      },
+    );
+
+    try {
+      await _audioPlayer.setUrl(
+          "https://firebasestorage.googleapis.com/v0/b/manhal-e2276.firebasestorage.app/o/audio%2Flocked_number_voice.mp3?alt=media&token=e9914053-97cb-46cb-aba1-240e80f196b0");
+      await _audioPlayer.play();
+
+      await _audioPlayer.playerStateStream.firstWhere(
+          (state) => state.processingState == ProcessingState.completed);
+
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      print("❌ خطأ في تشغيل الصوت: $e");
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          /// ✅ **الخلفية الأصلية**
           Positioned.fill(
             child: Image.asset(
               "assets/images/BackGroundManhal.jpg",
@@ -84,8 +126,7 @@ class _ArabicNumberViewState extends State<ArabicNumberView> {
                       image: AssetImage("assets/images/NumberBackground.png"),
                       fit: BoxFit.cover,
                       colorFilter: ColorFilter.mode(
-                        Colors
-                            .white54, // ✅ تقليل شفافية الصورة دون تغيير الخلفية الأصلية
+                        Colors.white54,
                         BlendMode.dstATop,
                       ),
                     ),
@@ -131,21 +172,15 @@ class _ArabicNumberViewState extends State<ArabicNumberView> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  LearnNumberPage(number: number,
-                                  parentId: widget.parentId, // ✅ تمرير parentId
-                                  childId: widget.childId,   // ✅ تمرير childId 
+                              builder: (context) => LearnNumberPage(
+                                number: number,
+                                parentId: widget.parentId, 
+                                childId: widget.childId, 
                               ),
                             ),
                           );
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content:
-                                  Text('هذا الرقم مقفل ولا يمكن الدخول إليه!'),
-                              duration: Duration(seconds: 1),
-                            ),
-                          );
+                          _showLockedPopup(context);
                         }
                       },
                       child: Container(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../model/ArabicLettersModel.dart';
 import '../view/letter_view.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import '../controller/ArabicLettersController.dart';
 
 class ArabicLettersView extends StatefulWidget {
@@ -23,7 +24,7 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
   List<String> lockedLetters = [];
   final ArabicLettersController _controller = ArabicLettersController();
   bool isPlaying = false;
-
+  final FlutterTts flutterTts = FlutterTts();
   @override
   void initState() {
     super.initState();
@@ -56,15 +57,51 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
     }
   }
 
-Future<void> _toggleSong() async {
-  if (_audioPlayer.playing) {
-    await _audioPlayer.pause(); 
-  } else {
-    await _audioPlayer.play(); 
+  Future<void> _toggleSong() async {
+    if (_audioPlayer.playing) {
+      await _audioPlayer.pause();
+    } else {
+      await _audioPlayer.play();
+    }
+    setState(() {});
   }
-  setState(() {}); 
-}
 
+  void _showLockedPopup(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text(
+            "الحرف مقفل",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            "لا يمكنك الدخول إليه الآن",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 20),
+          ),
+        );
+      },
+    );
+
+    await flutterTts.setLanguage("ar-SA");
+    await flutterTts.setVoice(
+        {"name": "Microsoft Naayf - Arabic (Saudi)", "locale": "ar-SA"});
+    await flutterTts.setPitch(0.6);
+    await flutterTts.setSpeechRate(0.9);
+    await flutterTts.awaitSpeakCompletion(true);
+    await flutterTts.speak(
+        "هٰذَا ٱلْحَرْفُ مُقْفَلٌ. لَا يُمْكِنُكَ ٱلدُّخُولُ إِلَيْهِ ٱلْآنَ  ");
+
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +131,7 @@ Future<void> _toggleSong() async {
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black87),
                 onPressed: () {
-                  _audioPlayer.stop(); // ✅ إيقاف الصوت عند الرجوع
+                  _audioPlayer.stop();
                   Navigator.of(context).pop();
                 },
               ),
@@ -141,7 +178,7 @@ Future<void> _toggleSong() async {
                         width: 30,
                         height: 30,
                       ),
-                      onPressed: _toggleSong, // ✅ تشغيل/إيقاف الصوت عند الضغط
+                      onPressed: _toggleSong,
                     ),
                   ],
                 ),
@@ -164,26 +201,20 @@ Future<void> _toggleSong() async {
                   return GestureDetector(
                     onTap: () {
                       if (!isLocked) {
-                        _audioPlayer.stop(); // ✅ إيقاف الصوت
+                        _audioPlayer.stop();
 
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => ArabicLetterPage(
                               letter: letter,
-                              parentId: widget.parentId, // ✅ تمرير معرف الوالد
-                              childId: widget.childId, // ✅ تمرير معرف الطفل),
+                              parentId: widget.parentId,
+                              childId: widget.childId,
                             ),
                           ),
                         );
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content:
-                                Text('هذا الحرف مقفل ولا يمكن الدخول إليه!'),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
+                        _showLockedPopup(context);
                       }
                     },
                     child: Container(

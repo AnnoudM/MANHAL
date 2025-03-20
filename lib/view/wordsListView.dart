@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controller/wordDetailsController.dart';
 import '../model/wordDetailsModel.dart';
+import 'package:just_audio/just_audio.dart';
 import '../view/wordDetailsview.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -25,6 +26,7 @@ class _WordsListPageState extends State<WordsListPage> {
   bool isLoading = true;
   List<WordModel> words = [];
   List<String> lockedWords = [];
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -32,7 +34,6 @@ class _WordsListPageState extends State<WordsListPage> {
     _loadWords();
   }
 
-  /// ✅ **جلب الكلمات المقفلة من Firebase**
   Future<void> _fetchLockedWords() async {
     try {
       DocumentSnapshot doc = await FirebaseFirestore.instance
@@ -51,15 +52,55 @@ class _WordsListPageState extends State<WordsListPage> {
     }
   }
 
-  /// ✅ **تحميل الكلمات وجلب الكلمات المقفلة**
   Future<void> _loadWords() async {
-    await _fetchLockedWords(); // جلب الكلمات المقفلة أولًا
+    await _fetchLockedWords();
     List<WordModel> fetchedWords =
         await _controller.fetchWords(widget.category);
     setState(() {
       words = fetchedWords;
       isLoading = false;
     });
+  }
+
+  Future<void> _showLockedPopup(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text(
+            "الكلمة مقفلة",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            "لا يمكنك الدخول إليها الآن",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 20),
+          ),
+        );
+      },
+    );
+
+    try {
+      await _audioPlayer.setUrl(
+          "https://firebasestorage.googleapis.com/v0/b/manhal-e2276.firebasestorage.app/o/audio%2Flocked_word_voice.mp3?alt=media&token=c48acd01-3eed-45f2-a847-7fbdb130f656");
+      await _audioPlayer.play();
+
+      await _audioPlayer.playerStateStream.firstWhere(
+          (state) => state.processingState == ProcessingState.completed);
+
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      print("❌ خطأ في تشغيل الصوت: $e");
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+    }
   }
 
   @override
@@ -104,18 +145,13 @@ class _WordsListPageState extends State<WordsListPage> {
                               builder: (context) => WordDetailsPage(
                                 word: word.word,
                                 category: widget.category,
-                                parentId: widget.parentId,  // ✅ تمرير معرف الوالد
-                                childId: widget.childId,    // ✅ تمرير معرف الطفل
+                                parentId: widget.parentId,
+                                childId: widget.childId,
                               ),
                             ),
                           );
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('🚫 هذه الكلمة مقفلة ولا يمكنك الدخول إليها!'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
+                          _showLockedPopup(context);
                         }
                       },
                       child: Container(
