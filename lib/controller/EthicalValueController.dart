@@ -5,24 +5,25 @@ class EthicalValueController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // 🔹 استرجاع جميع القيم الأخلاقية للطفل مع القيم المغلقة من الوالد
-  Stream<List<EthicalValueModel>> fetchAllEthicalValues(String parentId, String childId) { 
+  Stream<List<EthicalValueModel>> fetchAllEthicalValues(
+      String parentId, String childId) {
     return _firestore
         .collection('Parent')
         .doc(parentId)
         .collection('Children')
         .doc(childId)
         .snapshots()
-        .asyncMap((childSnapshot) async { 
-      
+        .asyncMap((childSnapshot) async {
       // 🔹 Raghad: new code - جلب القيم المقفلة من الوالد
       List<String> lockedItems = List<String>.from(
           childSnapshot.data()?['lockedContent']?['ethicalValues'] ?? []);
 
       QuerySnapshot ethicalSnapshot =
           await _firestore.collection('EthicalValue').get();
-          
+
       return ethicalSnapshot.docs.map((doc) {
-        return EthicalValueModel.fromFirestore(doc, lockedItems); // تمرير القيم المغلقة للمودل
+        return EthicalValueModel.fromFirestore(
+            doc, lockedItems); // تمرير القيم المغلقة للمودل
       }).toList();
     });
   } // 🔹 Raghad: new code end
@@ -39,7 +40,8 @@ class EthicalValueController {
   }
 
   // 🔹 تحديث مستوى الطفل بعد إكمال الفيديو
-  Future<void> updateChildLevel(String parentId, String childId, int newLevel) async {
+  Future<void> updateChildLevel(
+      String parentId, String childId, int newLevel) async {
     try {
       await _firestore
           .collection('Parent')

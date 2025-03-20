@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:manhal/controller/EthicalValueController.dart';
-import 'package:flutter_tts/flutter_tts.dart'; // raghad:new code
 import 'package:manhal/model/EthicalValueModel.dart';
 import 'package:manhal/view/EthicalVideoView.dart';
 
@@ -22,7 +21,6 @@ class _EthicalValueViewState extends State<EthicalValueView>
   final EthicalValueController _ethicalController = EthicalValueController();
   late AnimationController _jumpController;
   late Animation<double> _jumpAnimation;
-  FlutterTts flutterTts = FlutterTts(); // raghad:new code
 
   @override
   void initState() {
@@ -45,30 +43,6 @@ class _EthicalValueViewState extends State<EthicalValueView>
     super.dispose();
   }
 
-  // raghad:new code START: عرض رسالة صوتية عند محاولة فتح قيمة مغلقة
-  Future<void> _showLockedMessage() async {
-    String message = "هذه القيمة مغلقة بواسطة ولي الأمر.";
-
-    // 🔹 تشغيل القراءة الصوتية
-    await flutterTts.speak(message);
-
-    showDialog(
-      context: context,
-      barrierDismissible: false, // 🔹 منع الإغلاق اليدوي
-      builder: (context) => AlertDialog(
-        title: const Text("القيمة مغلقة"),
-        content: Text(message),
-      ),
-    );
-
-    // 🔹 انتظار انتهاء الصوت ثم إغلاق النافذة
-    flutterTts.setCompletionHandler(() {
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context); // إغلاق النافذة بعد انتهاء القراءة
-      }
-    });
-  }
-// raghad:new code END
 
   @override
   Widget build(BuildContext context) {
@@ -158,11 +132,7 @@ class _EthicalValueViewState extends State<EthicalValueView>
                       // ✅ وضع القيم الأخلاقية على المسار
                       ...ethicalValues.map((ethicalValue) {
                         bool isUnlocked = ethicalValue.level <= childLevel;
-                        // raghad:new code START 🚀
-                        // 🔹 قراءة القيم المقفلة من الوالد من `lockedContent`
-                        bool isLockedByParent =
-                            ethicalValue.isLockedByParent; // raghad:new code
-                        // raghad:new code END 🚀
+                      
 
                         double positionTop =
                             _getPositionForLevel(ethicalValue.level) + 85;
@@ -175,14 +145,6 @@ class _EthicalValueViewState extends State<EthicalValueView>
                           child: GestureDetector(
                             onTap: isUnlocked
                                 ? () {
-                                    // raghad:new code START 🚀
-                                    if (ethicalValue.isLockedByParent) {
-                                      // 🔹 التحقق إذا كان مقفل من ولي الأمر
-                                      _showLockedMessage(); // عرض رسالة القفل
-                                      return; // منع الدخول
-                                    }
-                                    // raghad:new code END 🚀
-
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -203,11 +165,11 @@ class _EthicalValueViewState extends State<EthicalValueView>
                                   height: 80,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: isUnlocked && !isLockedByParent
+                                    color: isUnlocked 
                                         ? Colors.white
                                         : Colors.grey.shade300,
                                     border: Border.all(
-                                      color: isUnlocked && !isLockedByParent
+                                      color: isUnlocked
                                           ? Colors.orange
                                           : Colors.grey,
                                       width: 3,
@@ -220,7 +182,7 @@ class _EthicalValueViewState extends State<EthicalValueView>
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: isUnlocked && !isLockedByParent
+                                        color: isUnlocked 
                                             ? Colors.black
                                             : Colors.grey.shade600,
                                       ),
@@ -229,8 +191,7 @@ class _EthicalValueViewState extends State<EthicalValueView>
                                 ),
 
                                 // ✅ إضافة القفل فقط للقيم المغلقة
-                                if (!isUnlocked ||
-                                    isLockedByParent) // raghad:new code
+                                if (!isUnlocked) 
                                   const Positioned(
                                     bottom: 8,
                                     right: 8,

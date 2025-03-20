@@ -96,7 +96,6 @@ Future<void> deleteChildAndNavigate(BuildContext context, String parentId, Strin
             'letters': <String>[],
             'numbers': <String>[],
             'words': <String>[],
-            'ethicalValues': <String>[],
           }
           });
 

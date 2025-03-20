@@ -41,15 +41,7 @@ class ManageContentView extends StatelessWidget {
         "fontSize": 20.0,
         "iconSize": 50.0,
       },
-      {
-        "id": "ethicalValues",
-        "title": "إدارة القيم الأخلاقية",
-        "color": Colors.pink[100],
-        "textColor": const Color.fromARGB(255, 124, 80, 108),
-        "iconPath": "assets/images/ethicalIcon.png",
-        "iconSize": 40.0,
-        "fontSize": 20.0,
-      },
+
     ];
 
     return Scaffold(

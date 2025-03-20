@@ -222,8 +222,7 @@ String _getCategoryTitle(String category) {
       return "إدارة الأرقام";
     case "words":
       return "إدارة الكلمات";
-    case "ethicalValues":
-      return "إدارة القيم الأخلاقية";
+
     default:
       return "إدارة المحتوى";
   }

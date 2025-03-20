@@ -78,34 +78,6 @@ class ContentController {
           contentList.add(ContentModel.fromMap(letterData, doc.id)
               .copyWith(isLocked: lockedItems.contains(doc.id)));
         }
-      } else if (category == "ethicalValues") {
-        QuerySnapshot query = await _firestore.collection("EthicalValue").get();
-
-        for (var doc in query.docs) {
-          Map<String, dynamic> ethicalData =
-              doc.data() as Map<String, dynamic>? ?? {};
-          String ethicalId = doc.id; // 🔥 الرقم كما هو بالإنجليزية
-          String ethicalIdInArabic =
-              _convertToArabicNumbers(ethicalId); // ✅ تحويله إلى العربية
-          String ethicalName = ethicalData["name"] ?? "غير معروف";
-
-          // ✅ طباعة القيم للتحقق
-          print("🛠️ lockedItems from Firestore: $lockedItems");
-          print(
-              "🛠️ Current ethicalId (English): $ethicalId | Arabic: $ethicalIdInArabic");
-
-          // ✅ المقارنة باستخدام الرقم العربي
-          bool isLocked = lockedItems.contains(ethicalIdInArabic);
-
-          print(
-              "🔍 Checking Ethical Value: ID $ethicalId | Arabic ID: $ethicalIdInArabic | Name: $ethicalName | Locked: $isLocked");
-
-          contentList.add(ContentModel(
-            id: ethicalId,
-            name: ethicalName,
-            isLocked: isLocked,
-          ));
-        }
       }
 
       print("✅ Successfully fetched ${contentList.length} items.");
