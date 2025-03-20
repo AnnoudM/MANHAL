@@ -22,11 +22,13 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   List<String> lockedLetters = [];
   final ArabicLettersController _controller = ArabicLettersController();
+  bool isPlaying = false;
 
   @override
   void initState() {
     super.initState();
     _fetchLockedLetters();
+    _preloadSong();
   }
 
   Future<void> _fetchLockedLetters() async {
@@ -45,15 +47,24 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
     super.dispose();
   }
 
-  Future<void> _playSong() async {
+  Future<void> _preloadSong() async {
     try {
       await _audioPlayer.setUrl(
           "https://firebasestorage.googleapis.com/v0/b/manhal-e2276.firebasestorage.app/o/songs%2F%D8%A3%D9%86%D8%B4%D9%88%D8%AF%D8%A9%20%D8%A7%D9%84%D8%AD%D8%B1%D9%88%D9%81.m4a?alt=media&token=be1f4e78-c8b0-4267-be65-157acd174911");
-      await _audioPlayer.play();
     } catch (e) {
-      print("خطأ في تشغيل الصوت: $e");
+      print("خطأ في تحميل الصوت: $e");
     }
   }
+
+Future<void> _toggleSong() async {
+  if (_audioPlayer.playing) {
+    await _audioPlayer.pause(); 
+  } else {
+    await _audioPlayer.play(); 
+  }
+  setState(() {}); 
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +93,10 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
               centerTitle: true,
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  _audioPlayer.stop(); // ✅ إيقاف الصوت عند الرجوع
+                  Navigator.of(context).pop();
+                },
               ),
             ),
             Padding(
@@ -127,7 +141,7 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
                         width: 30,
                         height: 30,
                       ),
-                      onPressed: _playSong,
+                      onPressed: _toggleSong, // ✅ تشغيل/إيقاف الصوت عند الضغط
                     ),
                   ],
                 ),
@@ -150,15 +164,16 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
                   return GestureDetector(
                     onTap: () {
                       if (!isLocked) {
+                        _audioPlayer.stop(); // ✅ إيقاف الصوت
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                ArabicLetterPage(
-                                  letter: letter,
-                                  parentId: widget.parentId,  // ✅ تمرير معرف الوالد
-                                  childId: widget.childId,    // ✅ تمرير معرف الطفل),
-                                  ),
+                            builder: (context) => ArabicLetterPage(
+                              letter: letter,
+                              parentId: widget.parentId, // ✅ تمرير معرف الوالد
+                              childId: widget.childId, // ✅ تمرير معرف الطفل),
+                            ),
                           ),
                         );
                       } else {
@@ -180,9 +195,8 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
                               AssetImage("assets/images/ManhalBackground2.png"),
                           fit: BoxFit.cover,
                           colorFilter: ColorFilter.mode(
-                            Colors.white10, 
-                            BlendMode
-                                .srcATop, 
+                            Colors.white10,
+                            BlendMode.srcATop,
                           ),
                         ),
                         boxShadow: [
