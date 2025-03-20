@@ -5,11 +5,18 @@ import '../controller/ActivityController.dart';
 import '../model/ActivityModel.dart';
 
 class ActivityView extends StatefulWidget {
+  final String parentId; // ✅ معرف الوالد
+  final String childId;  // ✅ معرف الطفل
   final String value;
   final String type;
 
-  const ActivityView({Key? key, required this.value, required this.type})
-      : super(key: key);
+  const ActivityView({
+    Key? key,
+    required this.parentId, // ✅ تمرير parentId عند استدعاء الصفحة
+    required this.childId,  // ✅ تمرير childId عند استدعاء الصفحة
+    required this.value,
+    required this.type,
+  }) : super(key: key);
 
   @override
   _ActivityViewState createState() => _ActivityViewState();
@@ -197,11 +204,16 @@ class _ActivityViewState extends State<ActivityView> {
   }
 
   /// ✅ **التحقق من الإجابة**
-  void _checkAnswer(String selectedAnswer) {
+  void _checkAnswer(String selectedAnswer) async{
     if (selectedAnswer == activityData?.correctAnswer) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ إجابة صحيحة!')),
       );
+       print("🔹 استدعاء addStickerToChild بعد الإجابة الصحيحة");
+
+    // ✅ إضافة الملصق للطفل في Firestore عند الإجابة الصحيحة
+    await _controller.addStickerToChild(widget.parentId, widget.childId, "1"); // ✅ تأكدي أن stickerId صحيح
+    
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('❌ إجابة خاطئة، حاول مرة أخرى!')),

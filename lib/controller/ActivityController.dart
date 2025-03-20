@@ -41,4 +41,48 @@ class ActivityController {
       return null;
     }
   }
+// ✅ دالة لإضافة الملصق إلى بيانات الطفل داخل Firestore
+  Future<void> addStickerToChild(String parentId, String childId, String stickerId) async {
+    try {
+      print("🔹 جلب بيانات الملصق برقم: $stickerId");
+
+      // 🔹 جلب بيانات الملصق من `stickers` باستخدام `stickerId`
+      DocumentSnapshot stickerDoc = await _firestore.collection("stickers").doc(stickerId).get();
+
+      if (!stickerDoc.exists) {
+        print("❌ الملصق غير موجود في Firestore!");
+        return;
+      }
+
+      // 🔹 استخراج بيانات الملصق
+      Map<String, dynamic>? stickerData = stickerDoc.data() as Map<String, dynamic>?;
+
+      if (stickerData == null || !stickerData.containsKey("link")) {
+        print("❌ لا يوجد رابط للملصق!");
+        return;
+      }
+
+      // 🔹 الوصول إلى المستند الخاص بالطفل داخل Firestore
+      DocumentReference childRef = _firestore
+          .collection("Parent")
+          .doc(parentId)
+          .collection("Children")
+          .doc(childId);
+
+      // 🔹 إضافة الملصق إلى `stickers` في وثيقة الطفل
+      await childRef.update({
+        "stickers": FieldValue.arrayUnion([
+          {
+            "id": stickerId,
+            "link": stickerData["link"],
+          }
+        ])
+      });
+
+      print("🎉 تمت إضافة الملصق للطفل بنجاح!");
+    } catch (e) {
+      print("❌ خطأ أثناء إضافة الملصق: $e");
+    }
+  }
+
 }
