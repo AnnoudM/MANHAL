@@ -73,7 +73,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
                   ),
                 ),
                 child: const Text("حسناً",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'BLabeloo'),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: 'BLabeloo'),
                 ),
               ),
             ],

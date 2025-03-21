@@ -138,120 +138,144 @@ class _ScreenLimitViewState extends State<ScreenLimitView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("تحديد وقت الاستخدام", style: TextStyle(fontFamily: "alfont"))),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "تحديد ساعات الطفل",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: "alfont"),
-                ),
-                Switch(
-                  value: isLimitEnabled,
-                  onChanged: (value) {
-                    if (!value) {
-                      _deleteLimit();
-                    } else {
-                      setState(() {
-                        isLimitEnabled = value;
-                      });
-                    }
-                  },
-                ),
-              ],
+      extendBodyBehindAppBar: true,  // يجعل خلفية الـ AppBar تمتد خلف المحتوى
+      appBar: AppBar(
+       
+          title: Text("تحديد وقت الاستخدام", style: TextStyle(fontFamily: "alfont")),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,  // خلفية شفافة للـ AppBar
+        elevation: 0,  // لإزالة الظل الذي يظهر تحت الـ AppBar
+      ),
+      body: Stack(
+        children: [
+          // صورة الخلفية التي تغطي كامل الصفحة
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/BackGroundManhal.jpg',
+              fit: BoxFit.cover,  // يجعل الصورة تغطي كامل الشاشة
             ),
-            SizedBox(height: 5),
-            Text(
-              "عند تفعيل هذا الزر، ستتمكن من تحديد الأوقات المتاحة لطفلك لاستخدام التطبيق. ",
-              style: TextStyle(fontSize: 14, color: Colors.grey, fontFamily: "alfont"),
-              textAlign: TextAlign.right,
-            ),
-            SizedBox(height: 20),
-            if (isLimitEnabled)
-              Column(
+          ),
+          // المحتوى الذي سيتم عرضه فوق الصورة
+          SafeArea(  // استخدام SafeArea لتجنب التداخل مع الـ AppBar
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey, width: 1),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: DropdownButton<String>(
-  value: selectedStartTime,
-  hint: Text("اختر وقت البداية", style: TextStyle(fontFamily: "alfont")),
-  isExpanded: true,
-  items: timeOptions
-      .map((time) => DropdownMenuItem(
-            value: time,
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 10), // ✅ مسافة داخلية لكل خيار
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey.shade300)), // ✅ خط بين كل خيار
-              ),
-              child: Center(child: Text(time, style: TextStyle(fontFamily: "alfont"))),
-            ),
-          ))
-      .toList(),
-  onChanged: (value) {
-    setState(() {
-      selectedStartTime = value;
-    });
-  },
-),
-                  ),
-
-SizedBox(height: 20),
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey, width: 1),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: DropdownButton<String>(
-  value: selectedEndTime,
-  hint: Text("اختر وقت النهاية", style: TextStyle(fontFamily: "alfont")),
-  isExpanded: true,
-  items: timeOptions
-      .map((time) => DropdownMenuItem(
-            value: time,
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 10), // ✅ مسافة داخلية لكل خيار
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey.shade300)), // ✅ خط بين كل خيار
-              ),
-              child: Center(child: Text(time, style: TextStyle(fontFamily: "alfont"))),
-            ),
-          ))
-      .toList(),
-  onChanged: (value) {
-    setState(() {
-      selectedEndTime = value;
-    });
-  },
-),
-                  ),
-                  SizedBox(height: 40),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _saveLimit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "تحديد ساعات الطفل",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: "alfont",
                         ),
                       ),
-                      child: Text("حفظ", style: TextStyle(fontSize: 18, fontFamily: "alfont")),
-                    ),
+                      Switch(
+                        value: isLimitEnabled,
+                        onChanged: (value) {
+                          if (!value) {
+                            _deleteLimit();
+                          } else {
+                            setState(() {
+                              isLimitEnabled = value;
+                            });
+                          }
+                        },
+                      ),
+                    ],
                   ),
+                  SizedBox(height: 5),
+                  Text(
+                    "عند تفعيل هذا الزر، ستتمكن من تحديد الأوقات المتاحة لطفلك لاستخدام التطبيق. ",
+                    style: TextStyle(fontSize: 14, color: Colors.grey, fontFamily: "alfont"),
+                    textAlign: TextAlign.right,
+                  ),
+                  SizedBox(height: 20),
+                  if (isLimitEnabled)
+                    Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey, width: 1),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: DropdownButton<String>(
+                            value: selectedStartTime,
+                            hint: Text("اختر وقت البداية", style: TextStyle(fontFamily: "alfont")),
+                            isExpanded: true,
+                            items: timeOptions
+                                .map((time) => DropdownMenuItem(
+                                      value: time,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(vertical: 10),
+                                        decoration: BoxDecoration(
+                                          border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+                                        ),
+                                        child: Center(child: Text(time, style: TextStyle(fontFamily: "alfont"))),
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedStartTime = value;
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey, width: 1),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: DropdownButton<String>(
+                            value: selectedEndTime,
+                            hint: Text("اختر وقت النهاية", style: TextStyle(fontFamily: "alfont")),
+                            isExpanded: true,
+                            items: timeOptions
+                                .map((time) => DropdownMenuItem(
+                                      value: time,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(vertical: 10),
+                                        decoration: BoxDecoration(
+                                          border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+                                        ),
+                                        child: Center(child: Text(time, style: TextStyle(fontFamily: "alfont"))),
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedEndTime = value;
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 40),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _saveLimit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: Text("حفظ", style: TextStyle(color: Colors.white, fontFamily: "alfont")),
+                          ),
+                        ),
+                      ],
+                    ),
                 ],
               ),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
