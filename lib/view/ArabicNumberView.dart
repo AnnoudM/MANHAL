@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'number_view.dart';
-import 'package:just_audio/just_audio.dart';
 import '../model/NumbersModel.dart';
 import '../controller/NumbersController.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 // Function to convert numbers to Arabic numerals
 String convertToArabicNumbers(int number) {
@@ -29,7 +29,7 @@ class ArabicNumberView extends StatefulWidget {
 class _ArabicNumberViewState extends State<ArabicNumberView> {
   final NumbersController _controller = NumbersController();
   List<String> lockedNumbers = [];
-  final AudioPlayer _audioPlayer = AudioPlayer(); 
+  final FlutterTts flutterTts = FlutterTts();
 
   @override
   void initState() {
@@ -65,22 +65,18 @@ class _ArabicNumberViewState extends State<ArabicNumberView> {
       },
     );
 
-    try {
-      await _audioPlayer.setUrl(
-          "https://firebasestorage.googleapis.com/v0/b/manhal-e2276.firebasestorage.app/o/audio%2Flocked_number_voice.mp3?alt=media&token=e9914053-97cb-46cb-aba1-240e80f196b0");
-      await _audioPlayer.play();
+    await flutterTts.setLanguage("ar-SA");
+    await flutterTts.setVoice(
+        {"name": "Microsoft Naayf - Arabic (Saudi)", "locale": "ar-SA"});
+    await flutterTts.setPitch(0.6);
+    await flutterTts.setSpeechRate(1.0);
+    await flutterTts.awaitSpeakCompletion(true);
+    await flutterTts.speak(
+        "هٰذَاالرَّقْمُ مُقْفَلٌ. لَا يُمْكِنُكَ الدُّخُولُ إِلَيْهِ الآنَ  ");
 
-      await _audioPlayer.playerStateStream.firstWhere(
-          (state) => state.processingState == ProcessingState.completed);
-
-      if (Navigator.canPop(context)) {
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      print("❌ خطأ في تشغيل الصوت: $e");
-      if (Navigator.canPop(context)) {
-        Navigator.of(context).pop();
-      }
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
     }
   }
 
@@ -174,8 +170,8 @@ class _ArabicNumberViewState extends State<ArabicNumberView> {
                             MaterialPageRoute(
                               builder: (context) => LearnNumberPage(
                                 number: number,
-                                parentId: widget.parentId, 
-                                childId: widget.childId, 
+                                parentId: widget.parentId,
+                                childId: widget.childId,
                               ),
                             ),
                           );

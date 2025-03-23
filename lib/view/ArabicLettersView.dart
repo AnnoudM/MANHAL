@@ -92,10 +92,10 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
     await flutterTts.setVoice(
         {"name": "Microsoft Naayf - Arabic (Saudi)", "locale": "ar-SA"});
     await flutterTts.setPitch(0.6);
-    await flutterTts.setSpeechRate(0.9);
+    await flutterTts.setSpeechRate(1.0);
     await flutterTts.awaitSpeakCompletion(true);
     await flutterTts.speak(
-        "هٰذَا ٱلْحَرْفُ مُقْفَلٌ. لَا يُمْكِنُكَ ٱلدُّخُولُ إِلَيْهِ ٱلْآنَ  ");
+        "هٰذَا الْحَرْفُ مُقْفَلٌ. لَا يُمْكِنُكَ ٱلدُّخُولُ إِلَيْهِ الآنَ  ");
 
     await Future.delayed(const Duration(milliseconds: 500));
     if (Navigator.canPop(context)) {

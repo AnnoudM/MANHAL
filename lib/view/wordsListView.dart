@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../controller/wordDetailsController.dart';
 import '../model/wordDetailsModel.dart';
-import 'package:just_audio/just_audio.dart';
 import '../view/wordDetailsview.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class WordsListPage extends StatefulWidget {
   final String parentId;
@@ -26,7 +26,7 @@ class _WordsListPageState extends State<WordsListPage> {
   bool isLoading = true;
   List<WordModel> words = [];
   List<String> lockedWords = [];
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  final FlutterTts flutterTts = FlutterTts();
 
   @override
   void initState() {
@@ -84,22 +84,18 @@ class _WordsListPageState extends State<WordsListPage> {
       },
     );
 
-    try {
-      await _audioPlayer.setUrl(
-          "https://firebasestorage.googleapis.com/v0/b/manhal-e2276.firebasestorage.app/o/audio%2Flocked_word_voice.mp3?alt=media&token=c48acd01-3eed-45f2-a847-7fbdb130f656");
-      await _audioPlayer.play();
+    await flutterTts.setLanguage("ar-SA");
+    await flutterTts.setVoice(
+        {"name": "Microsoft Naayf - Arabic (Saudi)", "locale": "ar-SA"});
+    await flutterTts.setPitch(0.6);
+    await flutterTts.setSpeechRate(1.0);
+    await flutterTts.awaitSpeakCompletion(true);
+    await flutterTts.speak(
+        "هٰذِهِ الكَلِمَةُ مُقْفَلَة، لَا يُمْكِنُكَ الدُّخُولُ إِلَيْهَا الآنَ.");
 
-      await _audioPlayer.playerStateStream.firstWhere(
-          (state) => state.processingState == ProcessingState.completed);
-
-      if (Navigator.canPop(context)) {
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      print("❌ خطأ في تشغيل الصوت: $e");
-      if (Navigator.canPop(context)) {
-        Navigator.of(context).pop();
-      }
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
     }
   }
 
