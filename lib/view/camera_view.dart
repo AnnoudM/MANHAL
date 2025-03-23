@@ -38,6 +38,7 @@ class _CameraViewState extends State<CameraView> {
 
       // إرسال الصورة إلى السيرفر
       String? recognizedText = await _sendImageToServer(imagePath);
+      print("📄 النص المستخرج: $recognizedText");
 
       if (recognizedText != null && recognizedText.isNotEmpty) {
         Navigator.push(
@@ -51,6 +52,7 @@ class _CameraViewState extends State<CameraView> {
           ),
         );
       } else {
+        print("🚫 لم يتم التعرف على نص.");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("لم يتم العثور على نص، حاول مرة أخرى!")),
         );
@@ -65,26 +67,36 @@ class _CameraViewState extends State<CameraView> {
   }
 
   Future<String?> _sendImageToServer(String imagePath) async {
-    try {
-      var request = http.MultipartRequest(
-          'POST', Uri.parse('http://192.168.11.248:5000/recognize'));
-      request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+  print("🚀 نحاول نرسل الصورة للسيرفر...");
 
-      var response = await request.send();
-      var responseBody = await response.stream.bytesToString();
-      print("Response from server: $responseBody");
+  try {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://192.168.100.201:5000/recognize'),
+    );
+    request.files.add(await http.MultipartFile.fromPath('image', imagePath));
 
-      if (response.statusCode == 200) {
-        var jsonResponse = json.decode(responseBody);
-        return jsonResponse['text'];
-      } else {
-        print("Error: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Exception while sending image: $e");
+    var response = await request.send();
+    var responseBody = await response.stream.bytesToString();
+
+    print("📩 رد السيرفر بالكامل: $responseBody");
+
+    if (response.statusCode == 200) {
+      var jsonResponse = json.decode(responseBody);
+      print("✅ النص المستخرج: ${jsonResponse['text']}");
+      return jsonResponse['text'];
+    } else {
+      print("⚠️ السيرفر رجع خطأ: ${response.statusCode}");
+      print("❗ تفاصيل الخطأ: $responseBody");
     }
-    return null;
+  } catch (e) {
+    print("❌ Exception أثناء الإرسال: $e");
   }
+
+  return null;
+}
+
+
 
   @override
   void dispose() {
