@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:manhal/view/ProgressView.dart';
 import '../view/InitialView.dart';
 import '../view/ChildListView.dart';
 import '../view/PersonalInfoView.dart';
 import '../view/ChildPageView.dart';
 import '../view/ScreenLimitView.dart'; // ✅ استيراد صفحة الحد اليومي
 import '../view/manage_contnet_view.dart'; // ✅ استيراد إدارة المحتوى
+import '../view/ProgressView.dart'; 
 import '../model/PersonalInfoModel.dart';
 import '../model/child_model.dart';
 
@@ -49,7 +51,11 @@ class SettingsController {
         _navigateToManageContent(
             context, parentId, childId); // ✅ إضافة التنقل لإدارة المحتوى
       }
-    } else {
+    } else if (settingName == 'متابعة الطفل') {
+      if (childId != null && parentId != null) {
+        _navigateToProgress(
+            context, parentId, childId); // ✅ إضافة التنقل 
+      } } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -145,6 +151,16 @@ class SettingsController {
       MaterialPageRoute(
         builder: (context) =>
             ManageContentView(parentId: parentId, childId: childId),
+      ),
+    );
+  }
+  void _navigateToProgress(
+      BuildContext context, String parentId,String childId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ProgressView(parentId: parentId, childId: childId),
       ),
     );
   }

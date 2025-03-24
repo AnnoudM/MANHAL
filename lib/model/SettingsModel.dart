@@ -11,4 +11,5 @@ List<SettingsModel> settingsOptions = [
   SettingsModel('الحد اليومي للاستخدام'),
   SettingsModel('إدارة المحتوى'),
   SettingsModel('أطفالي'),
+  SettingsModel('متابعة الطفل'),
 ];
