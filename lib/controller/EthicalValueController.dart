@@ -48,7 +48,10 @@ class EthicalValueController {
           .doc(parentId)
           .collection('Children')
           .doc(childId)
-          .update({'level': newLevel});
+          .update({'level': newLevel,
+           'progress.EthicalValue': FieldValue.increment(1), // زيادة قيمة EthicalValue بمقدار 1});
+          });
+          
 
       print("✅ تم تحديث مستوى الطفل إلى $newLevel");
     } catch (e) {
