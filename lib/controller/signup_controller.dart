@@ -49,6 +49,12 @@ class SignUpController {
       ...child.toMap(), // ✅ نأخذ جميع البيانات من child
       'level': 1, // ✅ نضيف level = 1 هنا حتى لو لم يكن في child.toMap()
       'stickers': [],
+      'progress':{
+        'letters':0,
+        'numbers':0,
+        'words':0,
+        'EthicalValue':0,
+      }
     }); 
     } catch (e) {
       print('Error adding child: $e');
