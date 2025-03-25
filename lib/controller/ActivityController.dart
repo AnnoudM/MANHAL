@@ -85,8 +85,48 @@ class ActivityController {
     }
   }
   
-  // ✅ دالة لتحديث حالة الـ progress للطفل في Firestore
-  Future<void> updateProgress(String parentId, String childId, String type) async {
+  // ✅ دالة للتحقق إذا كانت الإجابة موجودة في المصفوفة الخاصة بالنشاط
+  Future<bool> hasAnsweredCorrectly(String parentId, String childId, String type, String answer) async {
+    try {
+      // تحديد الحقل بناءً على نوع النشاط
+      String progressField = '';
+      if (type == "letter") {
+        progressField = 'letters';
+      } else if (type == "number") {
+        progressField = 'numbers';
+      } else if (type == "word") {
+        progressField = 'words';
+      } else {
+        print("⚠️ نوع غير معروف: $type");
+        return false;
+      }
+
+      // جلب مرجع وثيقة الطفل
+      DocumentReference childRef = _firestore
+          .collection("Parent")
+          .doc(parentId)
+          .collection("Children")
+          .doc(childId);
+
+      // جلب بيانات الطفل
+      DocumentSnapshot childDoc = await childRef.get();
+
+      if (childDoc.exists) {
+        // جلب الإجابات المخزنة في المصفوفة المناسبة
+        List<dynamic> answers = childDoc.get("progress.$progressField") ?? [];
+        
+        // التحقق إذا كانت الإجابة موجودة في المصفوفة
+        return answers.contains(answer);
+      }
+      return false;
+    } catch (e) {
+      print("❌ خطأ أثناء التحقق من الإجابة: $e");
+      return false;
+    }
+  }
+
+  // ✅ دالة لتحديث حالة الـ progress للطفل في Firestore مع تخزين الإجابة
+  Future<void> updateProgressWithAnswer(String parentId, String childId, String type, String answer) async {
     try {
       // تحديد الحقل الذي سيتم تحديثه بناءً على نوع النشاط
       String progressField = '';
@@ -108,12 +148,12 @@ class ActivityController {
           .collection("Children")
           .doc(childId);
 
-      // تحديث حالة الـ progress بزيادة العدد الحالي في الحقل المناسب
+      // إضافة الإجابة إلى المصفوفة المناسبة
       await childRef.update({
-        "progress.$progressField": FieldValue.increment(1), // زيادة العدد في الحقل المناسب
+        "progress.$progressField": FieldValue.arrayUnion([answer]), // إضافة الإجابة إلى المصفوفة
       });
 
-      print("🎉 تم تحديث حالة التقدم بنجاح!");
+      print("🎉 تم تحديث حالة التقدم مع الإجابة بنجاح!");
     } catch (e) {
       print("❌ خطأ أثناء تحديث حالة التقدم: $e");
     }

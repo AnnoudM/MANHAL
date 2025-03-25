@@ -11,11 +11,10 @@ class ProgressModel {
     required this.totalCount,
   });
 
-  static Future<List<ProgressModel>> fetchProgress(
-      String parentId, String childId) async {
+  static Future<List<ProgressModel>> fetchProgress(String parentId, String childId) async {
     List<ProgressModel> progressList = [];
 
-    // Fetch child's document
+    // ✅ جلب بيانات الطفل
     DocumentSnapshot childDoc = await FirebaseFirestore.instance
         .collection('Parent')
         .doc(parentId)
@@ -23,19 +22,21 @@ class ProgressModel {
         .doc(childId)
         .get();
 
-    // Extract progress map
-    Map<String, dynamic> progressMap = childDoc['progress'];
+    // ✅ التأكد من وجود progress قبل استخدامه
+    Map<String, dynamic> progressMap = {};
+    if (childDoc.exists && childDoc.data() != null) {
+      progressMap = (childDoc.data() as Map<String, dynamic>)['progress'] ?? {};
+    }
 
-    // Fetch categories (letters, numbers, words)
-    QuerySnapshot categorySnapshot =
-        await FirebaseFirestore.instance.collection('Category').get();
+    // ✅ جلب جميع الفئات (الحروف، الأرقام، الكلمات)
+    QuerySnapshot categorySnapshot = await FirebaseFirestore.instance.collection('Category').get();
 
     for (var doc in categorySnapshot.docs) {
       String categoryName = doc.id;
       int totalCount = 0;
 
       if (categoryName == 'numbers') {
-        // Handle special case for "numbers"
+        // ✅ حساب العدد الكلي للأرقام
         QuerySnapshot contentSnapshot = await FirebaseFirestore.instance
             .collection('Category')
             .doc(doc.id)
@@ -43,24 +44,21 @@ class ProgressModel {
             .get();
         totalCount = contentSnapshot.size;
       } else if (categoryName == 'words') {
-        // Handle special case for "words"
+        // ✅ حساب العدد الكلي للكلمات (داخل التصنيفات الفرعية)
         QuerySnapshot contentSnapshot = await FirebaseFirestore.instance
             .collection('Category')
             .doc(doc.id)
             .collection('content')
             .get();
 
-        // Loop through each subcategory (shapes, colors, animals, food)
         for (var subDoc in contentSnapshot.docs) {
           Map<String, dynamic> subData = subDoc.data() as Map<String, dynamic>;
-
           if (subData.containsKey('examples') && subData['examples'] is List) {
-            List examples = subData['examples']; // Extract words list
-            totalCount += examples.length; // Add word count
+            totalCount += (subData['examples'] as List).length;
           }
         }
       } else {
-        // Default case for other categories (letters, etc.)
+        // ✅ الحساب لبقية الفئات مثل الحروف
         QuerySnapshot contentSnapshot = await FirebaseFirestore.instance
             .collection('Category')
             .doc(doc.id)
@@ -69,8 +67,14 @@ class ProgressModel {
         totalCount = contentSnapshot.size;
       }
 
-      // Match progress for the category
-      int progressCount = progressMap[categoryName] ?? 0;
+      // ✅ استخراج التقدم بناءً على المصفوفة
+      int progressCount = 0;
+      if (progressMap.containsKey(categoryName)) {
+        var progressData = progressMap[categoryName];
+        if (progressData is List) {
+          progressCount = progressData.length; // ✅ احسب عدد العناصر داخل المصفوفة
+        }
+      }
 
       progressList.add(ProgressModel(
         categoryName: categoryName,
@@ -79,12 +83,17 @@ class ProgressModel {
       ));
     }
 
-    // Fetch Ethical Values
-    QuerySnapshot ethicalSnapshot =
-        await FirebaseFirestore.instance.collection('EthicalValue').get();
-
+    // ✅ حساب تقدم القيم الأخلاقية (Ethical Values)
+    QuerySnapshot ethicalSnapshot = await FirebaseFirestore.instance.collection('EthicalValue').get();
     int ethicalTotalCount = ethicalSnapshot.docs.length;
-    int ethicalProgressCount = progressMap['EthicalValue'] ?? 0;
+    int ethicalProgressCount = 0;
+
+    if (progressMap.containsKey('EthicalValue')) {
+      var ethicalData = progressMap['EthicalValue'];
+      if (ethicalData is List) {
+        ethicalProgressCount = ethicalData.length;
+      }
+    }
 
     progressList.add(ProgressModel(
       categoryName: "Ethical Values",

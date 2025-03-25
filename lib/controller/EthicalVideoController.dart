@@ -84,7 +84,7 @@ class EthicalVideoController {
   void _updateChildLevelIfNeeded(VoidCallback updateUI) {
     int nextLevel = ethicalValue.level + 1;
     if (childCurrentLevel != null && nextLevel > childCurrentLevel!) {
-      _ethicalController.updateChildLevel(parentId, childId, nextLevel);
+      _ethicalController.updateChildLevel(parentId, childId, nextLevel, ethicalValue.name);
       updateUI();
 
       // ✅ استدعاء onLevelComplete عند انتهاء المستوى

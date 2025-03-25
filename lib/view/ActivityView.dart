@@ -211,11 +211,18 @@ class _ActivityViewState extends State<ActivityView> {
     );
     print("🔹 استدعاء addStickerToChild بعد الإجابة الصحيحة");
 
-    // ✅ إضافة الملصق للطفل في Firestore عند الإجابة الصحيحة
-    await _controller.addStickerToChild(widget.parentId, widget.childId, "1"); // تأكد من أن stickerId صحيح
+    // تحقق إذا كانت الإجابة موجودة مسبقًا في المصفوفة الخاصة بالنشاط
+    bool hasAnswered = await _controller.hasAnsweredCorrectly(widget.parentId, widget.childId, widget.type, selectedAnswer);
 
-    // ✅ استدعاء دالة تحديث التقدم بعد الإجابة الصحيحة
-    await _controller.updateProgress(widget.parentId, widget.childId, widget.type);  // هنا يتم تحديد نوع النشاط
+    if (!hasAnswered) {
+      // ✅ إضافة الملصق للطفل في Firestore عند الإجابة الصحيحة
+      await _controller.addStickerToChild(widget.parentId, widget.childId, "1"); // تأكد من أن stickerId صحيح
+
+      // ✅ استدعاء دالة تحديث التقدم بعد الإجابة الصحيحة فقط إذا لم تكن الإجابة موجودة مسبقًا
+      await _controller.updateProgressWithAnswer(widget.parentId, widget.childId, widget.type, selectedAnswer);  // هنا يتم تحديد نوع النشاط
+    } else {
+      print("⚠️ الإجابة تم إضافتها مسبقًا، لن يتم إضافة التقدم.");
+    }
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('❌ إجابة خاطئة، حاول مرة أخرى!')),

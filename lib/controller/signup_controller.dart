@@ -50,10 +50,10 @@ class SignUpController {
       'level': 1, // ✅ نضيف level = 1 هنا حتى لو لم يكن في child.toMap()
       'stickers': [],
       'progress':{
-        'letters':0,
-        'numbers':0,
-        'words':0,
-        'EthicalValue':0,
+        'letters':<String>[],
+        'numbers':<String>[],
+        'words':<String>[],
+        'EthicalValue':<String>[],
       }
     }); 
     } catch (e) {

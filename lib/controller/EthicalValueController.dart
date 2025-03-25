@@ -41,7 +41,7 @@ class EthicalValueController {
 
   // 🔹 تحديث مستوى الطفل بعد إكمال الفيديو
   Future<void> updateChildLevel(
-      String parentId, String childId, int newLevel) async {
+      String parentId, String childId, int newLevel, String name) async {
     try {
       await _firestore
           .collection('Parent')
@@ -49,7 +49,7 @@ class EthicalValueController {
           .collection('Children')
           .doc(childId)
           .update({'level': newLevel,
-           'progress.EthicalValue': FieldValue.increment(1), // زيادة قيمة EthicalValue بمقدار 1});
+           'progress.EthicalValue': FieldValue.arrayUnion([name]), // زيادة قيمة EthicalValue بمقدار 1});
           });
           
 
