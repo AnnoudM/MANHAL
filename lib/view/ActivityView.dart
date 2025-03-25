@@ -204,20 +204,22 @@ class _ActivityViewState extends State<ActivityView> {
   }
 
   /// ✅ **التحقق من الإجابة**
-  void _checkAnswer(String selectedAnswer) async{
-    if (selectedAnswer == activityData?.correctAnswer) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ إجابة صحيحة!')),
-      );
-       print("🔹 استدعاء addStickerToChild بعد الإجابة الصحيحة");
+  void _checkAnswer(String selectedAnswer) async {
+  if (selectedAnswer == activityData?.correctAnswer) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('✅ إجابة صحيحة!')),
+    );
+    print("🔹 استدعاء addStickerToChild بعد الإجابة الصحيحة");
 
     // ✅ إضافة الملصق للطفل في Firestore عند الإجابة الصحيحة
-    await _controller.addStickerToChild(widget.parentId, widget.childId, "1"); // ✅ تأكدي أن stickerId صحيح
-    
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ إجابة خاطئة، حاول مرة أخرى!')),
-      );
-    }
+    await _controller.addStickerToChild(widget.parentId, widget.childId, "1"); // تأكد من أن stickerId صحيح
+
+    // ✅ استدعاء دالة تحديث التقدم بعد الإجابة الصحيحة
+    await _controller.updateProgress(widget.parentId, widget.childId, widget.type);  // هنا يتم تحديد نوع النشاط
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('❌ إجابة خاطئة، حاول مرة أخرى!')),
+    );
   }
+}
 }

@@ -84,5 +84,39 @@ class ActivityController {
       print("❌ خطأ أثناء إضافة الملصق: $e");
     }
   }
+  
+  // ✅ دالة لتحديث حالة الـ progress للطفل في Firestore
+  Future<void> updateProgress(String parentId, String childId, String type) async {
+    try {
+      // تحديد الحقل الذي سيتم تحديثه بناءً على نوع النشاط
+      String progressField = '';
+      if (type == "letter") {
+        progressField = 'letters';
+      } else if (type == "number") {
+        progressField = 'numbers';
+      } else if (type == "word") {
+        progressField = 'words';
+      } else {
+        print("⚠️ نوع غير معروف: $type");
+        return;
+      }
 
+      // جلب مرجع الطفل داخل Firestore
+      DocumentReference childRef = _firestore
+          .collection("Parent")
+          .doc(parentId)
+          .collection("Children")
+          .doc(childId);
+
+      // تحديث حالة الـ progress بزيادة العدد الحالي في الحقل المناسب
+      await childRef.update({
+        "progress.$progressField": FieldValue.increment(1), // زيادة العدد في الحقل المناسب
+      });
+
+      print("🎉 تم تحديث حالة التقدم بنجاح!");
+    } catch (e) {
+      print("❌ خطأ أثناء تحديث حالة التقدم: $e");
+    }
+  }
 }
+

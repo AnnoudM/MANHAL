@@ -35,32 +35,34 @@ class _ScreenLimitViewState extends State<ScreenLimitView> {
     super.initState();
     _loadUsageLimit();
   }
+void _loadUsageLimit() async {
+  var usageLimit = await _controller.getUsageLimit(widget.parentId, widget.childId);
+  if (usageLimit != null) {
+    setState(() {
+      isLimitEnabled = true;
+      selectedStartTime = ScreenLimitModel.formatTimeToDisplay(usageLimit['startTime']);
+      selectedEndTime = ScreenLimitModel.formatTimeToDisplay(usageLimit['endTime']);
+    });
+  }
+}
 
-  void _loadUsageLimit() async {
-    var usageLimit = await _controller.getUsageLimit(widget.parentId, widget.childId);
-    if (usageLimit != null) {
-      setState(() {
-        isLimitEnabled = true;
-        selectedStartTime = ScreenLimitModel.formatTimeToDisplay(usageLimit['startTime']);
-        selectedEndTime = ScreenLimitModel.formatTimeToDisplay(usageLimit['endTime']);
-      });
-    }
+/// ✅ حفظ الحد الزمني مع تأكيد
+void _saveLimit() {
+  if (selectedStartTime == null || selectedEndTime == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("يجب اختيار وقت البداية والنهاية", style: TextStyle(fontFamily: "alfont")),
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
   }
 
-  /// ✅ حفظ الحد الزمني مع تأكيد
-  void _saveLimit() {
-    if (selectedStartTime == null || selectedEndTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("يجب اختيار وقت البداية والنهاية", style: TextStyle(fontFamily: "alfont")),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+  // تحويل الوقت من صيغة 12 ساعة (بالأرقام العربية) إلى صيغة 24 ساعة
+  String startTime24 = ScreenLimitModel.formatTimeToStorage(selectedStartTime!);
+  String endTime24 = ScreenLimitModel.formatTimeToStorage(selectedEndTime!);
 
-    String startTime24 = ScreenLimitModel.formatTimeToStorage(selectedStartTime!);
-    String endTime24 = ScreenLimitModel.formatTimeToStorage(selectedEndTime!);
+
 
     showDialog(
       context: context,
@@ -141,7 +143,7 @@ class _ScreenLimitViewState extends State<ScreenLimitView> {
       extendBodyBehindAppBar: true,  // يجعل خلفية الـ AppBar تمتد خلف المحتوى
       appBar: AppBar(
        
-          title: Text("تحديد وقت الاستخدام", style: TextStyle(fontFamily: "alfont")),
+          title: Text("تحديد وقت الاستخدام", style: TextStyle(fontFamily: "alfont", fontSize: 28)),
         centerTitle: true,
         backgroundColor: Colors.transparent,  // خلفية شفافة للـ AppBar
         elevation: 0,  // لإزالة الظل الذي يظهر تحت الـ AppBar
