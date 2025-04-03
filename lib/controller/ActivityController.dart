@@ -7,7 +7,6 @@ class ActivityController {
   // Fetch activity data from Firestore based on type and value
   Future<ActivityModel?> fetchActivity(String value, String type) async {
     try {
-     
       // تحديد اسم المجموعة الفرعية بناءً على النوع
       String subcollection;
       if (type == "letter") {
@@ -41,7 +40,8 @@ class ActivityController {
       return null;
     }
   }
-// ✅ دالة لإضافة الملصق إلى بيانات الطفل داخل Firestore
+
+  // ✅ دالة لإضافة الملصق إلى بيانات الطفل داخل Firestore
   Future<void> addStickerToChild(String parentId, String childId, String stickerId) async {
     try {
       print("🔹 جلب بيانات الملصق برقم: $stickerId");
@@ -84,7 +84,7 @@ class ActivityController {
       print("❌ خطأ أثناء إضافة الملصق: $e");
     }
   }
-  
+
   // ✅ دالة للتحقق إذا كانت الإجابة موجودة في المصفوفة الخاصة بالنشاط
   Future<bool> hasAnsweredCorrectly(String parentId, String childId, String type, String answer) async {
     try {
@@ -114,7 +114,7 @@ class ActivityController {
       if (childDoc.exists) {
         // جلب الإجابات المخزنة في المصفوفة المناسبة
         List<dynamic> answers = childDoc.get("progress.$progressField") ?? [];
-        
+
         // التحقق إذا كانت الإجابة موجودة في المصفوفة
         return answers.contains(answer);
       }
@@ -158,5 +158,19 @@ class ActivityController {
       print("❌ خطأ أثناء تحديث حالة التقدم: $e");
     }
   }
-}
 
+  // ✅ دالة لجلب ملصق عشوائي من Firestore
+  Future<String> getRandomStickerFromFirestore() async {
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('stickers').get();
+      if (snapshot.docs.isNotEmpty) {
+        List<String> stickers = snapshot.docs.map((doc) => doc['link'] as String).toList();
+        stickers.shuffle(); // خلط القائمة لاختيار عشوائي
+        return stickers.first; // اختيار أول عنصر بعد الخلط
+      }
+    } catch (e) {
+      print("❌ خطأ أثناء جلب الملصقات: $e");
+    }
+    return 'assets/images/default_sticker.png'; // صورة افتراضية في حالة عدم العثور على ملصقات
+  }
+}

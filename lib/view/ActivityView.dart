@@ -3,17 +3,21 @@ import 'package:just_audio/just_audio.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../controller/ActivityController.dart';
 import '../model/ActivityModel.dart';
+import 'ArabicLettersView.dart';
+import 'ArabicNumberView.dart';
+import 'ArabicWordsView.dart';
+
 
 class ActivityView extends StatefulWidget {
-  final String parentId; // ✅ معرف الوالد
-  final String childId;  // ✅ معرف الطفل
+  final String parentId;
+  final String childId;
   final String value;
   final String type;
 
   const ActivityView({
     Key? key,
-    required this.parentId, // ✅ تمرير parentId عند استدعاء الصفحة
-    required this.childId,  // ✅ تمرير childId عند استدعاء الصفحة
+    required this.parentId,
+    required this.childId,
     required this.value,
     required this.type,
   }) : super(key: key);
@@ -51,11 +55,100 @@ class _ActivityViewState extends State<ActivityView> {
     }
   }
 
-  Future<void> _speakQuestion() async {
-    if (activityData?.question != null && activityData!.question!.isNotEmpty) {
-      await flutterTts.setLanguage("ar-SA");
-      await flutterTts.speak(activityData!.question!);
+  Future<void> _speakMessage(String message) async {
+    await flutterTts.setLanguage("ar-SA");
+    await flutterTts.speak(message);
+  }
+
+  void _showAnswerDialog(bool isCorrect) async {
+    String message = isCorrect ? "إجابة صحيحة! أكمل التعلم." : "إجابة خاطئة! حاول مرة أخرى.";
+    Color textColor = isCorrect ? Colors.green : Colors.red;
+    String buttonText = "حسنًا";
+
+    Widget nextPage;
+    switch (widget.type) {
+      case "letter":
+        nextPage = ArabicLettersView(parentId: widget.parentId, childId: widget.childId);
+        break;
+      case "number":
+        nextPage = ArabicNumberView(parentId: widget.parentId, childId: widget.childId);
+        break;
+      case "word":
+        nextPage = ArabicWordsPage(parentId: widget.parentId, childId: widget.childId);
+        break;
+      default:
+        nextPage = ArabicLettersView(parentId: widget.parentId, childId: widget.childId);
     }
+
+    String stickerPath = isCorrect
+        ? await _controller.getRandomStickerFromFirestore()
+        : 'assets/images/Sad.png';
+
+    VoidCallback onPressed = isCorrect
+        ? () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => nextPage),
+            );
+          }
+        : () {
+            Navigator.pop(context);
+          };
+
+    _speakMessage(message);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            isCorrect ? "إجابة صحيحة!" : "إجابة خاطئة!",
+            style: TextStyle(color: textColor, fontSize: 24, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(stickerPath, width: 100, height: 100),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.center, // جعل الزر في المنتصف
+          actions: [
+            TextButton(
+              onPressed: onPressed,
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.green.shade400,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: Text(buttonText, style: const TextStyle(color: Colors.white, fontSize: 18)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _checkAnswer(String selectedAnswer) async {
+    bool isCorrect = selectedAnswer == activityData?.correctAnswer;
+
+    if (isCorrect) {
+      bool hasAnswered = await _controller.hasAnsweredCorrectly(widget.parentId, widget.childId, widget.type, selectedAnswer);
+
+      if (!hasAnswered) {
+        await _controller.addStickerToChild(widget.parentId, widget.childId, "1");
+        await _controller.updateProgressWithAnswer(widget.parentId, widget.childId, widget.type, selectedAnswer);
+      }
+    }
+
+    _showAnswerDialog(isCorrect);
   }
 
   @override
@@ -70,7 +163,6 @@ class _ActivityViewState extends State<ActivityView> {
               ? const Center(child: CircularProgressIndicator())
               : Column(
                   children: [
-                    // ✅ الجزء العلوي يحتوي على السؤال، زر الصوت، والصور
                     Expanded(
                       flex: 3,
                       child: Container(
@@ -86,30 +178,24 @@ class _ActivityViewState extends State<ActivityView> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // ✅ عرض السؤال
                             Text(
                               activityData?.question ?? "❌ لا يوجد سؤال",
                               style: const TextStyle(
                                 fontSize: 30,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF3F414E),
-                                fontFamily: 'Blabeloo',
                               ),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 10),
-
-                            // ✅ زر تشغيل الصوت
                             GestureDetector(
-                              onTap: _speakQuestion,
+                              onTap: () => _speakMessage(activityData?.question ?? ""),
                               child: Image.asset(
                                 'assets/images/high-volume.png',
                                 width: 70,
                                 height: 70,
                               ),
                             ),
-
-                            // ✅ عرض الصور بناءً على القيمة
                             if (activityData?.imageUrl != null)
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -132,8 +218,6 @@ class _ActivityViewState extends State<ActivityView> {
                         ),
                       ),
                     ),
-
-                    // ✅ أزرار الاختيار
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                       child: GridView.builder(
@@ -170,63 +254,17 @@ class _ActivityViewState extends State<ActivityView> {
                     ),
                   ],
                 ),
-
-          // ✅ زر الرجوع الوحيد في أعلى الصفحة
-          Positioned(
-            top: 40,
-            right: 10,
-            child: FloatingActionButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              mini: true,
-              backgroundColor: Colors.white.withOpacity(0.7),
-              child: const Icon(Icons.arrow_back, color: Colors.black),
-            ),
-          ),
         ],
       ),
     );
   }
 
-  /// ✅ **الحصول على لون الخلفية حسب نوع النشاط**
   Color _getBackgroundColor() {
     switch (widget.type) {
-      case "letter":
-        return const Color(0xffD1E3F1);
-      case "number":
-        return const Color(0xFFF9EAFB);
-      case "word":
-        return const Color(0xFFFFF3C7);
-      default:
-        return const Color(0xffD1E3F1);
+      case "letter": return const Color(0xffD1E3F1);
+      case "number": return const Color(0xFFF9EAFB);
+      case "word": return const Color(0xFFFFF3C7);
+      default: return const Color(0xffD1E3F1);
     }
   }
-
-  /// ✅ **التحقق من الإجابة**
-  void _checkAnswer(String selectedAnswer) async {
-  if (selectedAnswer == activityData?.correctAnswer) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('✅ إجابة صحيحة!')),
-    );
-    print("🔹 استدعاء addStickerToChild بعد الإجابة الصحيحة");
-
-    // تحقق إذا كانت الإجابة موجودة مسبقًا في المصفوفة الخاصة بالنشاط
-    bool hasAnswered = await _controller.hasAnsweredCorrectly(widget.parentId, widget.childId, widget.type, selectedAnswer);
-
-    if (!hasAnswered) {
-      // ✅ إضافة الملصق للطفل في Firestore عند الإجابة الصحيحة
-      await _controller.addStickerToChild(widget.parentId, widget.childId, "1"); // تأكد من أن stickerId صحيح
-
-      // ✅ استدعاء دالة تحديث التقدم بعد الإجابة الصحيحة فقط إذا لم تكن الإجابة موجودة مسبقًا
-      await _controller.updateProgressWithAnswer(widget.parentId, widget.childId, widget.type, selectedAnswer);  // هنا يتم تحديد نوع النشاط
-    } else {
-      print("⚠️ الإجابة تم إضافتها مسبقًا، لن يتم إضافة التقدم.");
-    }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('❌ إجابة خاطئة، حاول مرة أخرى!')),
-    );
-  }
-}
 }
