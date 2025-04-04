@@ -7,7 +7,6 @@ import 'ArabicLettersView.dart';
 import 'ArabicNumberView.dart';
 import 'ArabicWordsView.dart';
 
-
 class ActivityView extends StatefulWidget {
   final String parentId;
   final String childId;
@@ -80,6 +79,7 @@ class _ActivityViewState extends State<ActivityView> {
         nextPage = ArabicLettersView(parentId: widget.parentId, childId: widget.childId);
     }
 
+    // ✅ جلب الملصق العشوائي أو الصورة الافتراضية في حال الخطأ
     String stickerPath = isCorrect
         ? await _controller.getRandomStickerFromFirestore()
         : 'assets/images/Sad.png';
@@ -111,7 +111,9 @@ class _ActivityViewState extends State<ActivityView> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(stickerPath, width: 100, height: 100),
+              stickerPath.startsWith("http")
+                  ? Image.network(stickerPath, width: 100, height: 100, fit: BoxFit.contain)
+                  : Image.asset(stickerPath, width: 100, height: 100),
               const SizedBox(height: 16),
               Text(
                 message,
@@ -120,7 +122,7 @@ class _ActivityViewState extends State<ActivityView> {
               ),
             ],
           ),
-          actionsAlignment: MainAxisAlignment.center, // جعل الزر في المنتصف
+          actionsAlignment: MainAxisAlignment.center,
           actions: [
             TextButton(
               onPressed: onPressed,
@@ -261,10 +263,14 @@ class _ActivityViewState extends State<ActivityView> {
 
   Color _getBackgroundColor() {
     switch (widget.type) {
-      case "letter": return const Color(0xffD1E3F1);
-      case "number": return const Color(0xFFF9EAFB);
-      case "word": return const Color(0xFFFFF3C7);
-      default: return const Color(0xffD1E3F1);
+      case "letter":
+        return const Color(0xffD1E3F1);
+      case "number":
+        return const Color(0xFFF9EAFB);
+      case "word":
+        return const Color(0xFFFFF3C7);
+      default:
+        return const Color(0xffD1E3F1);
     }
   }
 }
