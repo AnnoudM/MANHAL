@@ -79,7 +79,6 @@ class _ActivityViewState extends State<ActivityView> {
         nextPage = ArabicLettersView(parentId: widget.parentId, childId: widget.childId);
     }
 
-    // ✅ جلب الملصق العشوائي أو الصورة الافتراضية في حال الخطأ
     String stickerPath = isCorrect
         ? await _controller.getRandomStickerFromFirestore()
         : 'assets/images/Sad.png';
@@ -256,6 +255,18 @@ class _ActivityViewState extends State<ActivityView> {
                     ),
                   ],
                 ),
+          Positioned(
+            top: 40,
+            right: 10,
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              mini: true,
+              backgroundColor: Colors.white.withOpacity(0.7),
+              child: Icon(Icons.arrow_back, color: Colors.black),
+            ),
+          ),
         ],
       ),
     );
