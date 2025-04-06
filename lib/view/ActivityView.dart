@@ -59,98 +59,154 @@ class _ActivityViewState extends State<ActivityView> {
     await flutterTts.speak(message);
   }
 
-  void _showAnswerDialog(bool isCorrect) async {
-    String message = isCorrect ? "إجابة صحيحة! أكمل التعلم." : "إجابة خاطئة! حاول مرة أخرى.";
-    Color textColor = isCorrect ? Colors.green : Colors.red;
-    String buttonText = "حسنًا";
+void _showAnswerDialog(bool isCorrect, [String? earnedStickerUrl]) async {
+  String message = isCorrect ? "إجابة صحيحة! أكمل التعلم." : "إجابة خاطئة! حاول مرة أخرى.";
+  Color textColor = isCorrect ? Colors.green : Colors.red;
+  String buttonText = "حسنًا";
 
-    Widget nextPage;
-    switch (widget.type) {
-      case "letter":
-        nextPage = ArabicLettersView(parentId: widget.parentId, childId: widget.childId);
-        break;
-      case "number":
-        nextPage = ArabicNumberView(parentId: widget.parentId, childId: widget.childId);
-        break;
-      case "word":
-        nextPage = ArabicWordsPage(parentId: widget.parentId, childId: widget.childId);
-        break;
-      default:
-        nextPage = ArabicLettersView(parentId: widget.parentId, childId: widget.childId);
-    }
+  Widget nextPage;
+  switch (widget.type) {
+    case "letter":
+      nextPage = ArabicLettersView(parentId: widget.parentId, childId: widget.childId);
+      break;
+    case "number":
+      nextPage = ArabicNumberView(parentId: widget.parentId, childId: widget.childId);
+      break;
+    case "word":
+      nextPage = ArabicWordsPage(parentId: widget.parentId, childId: widget.childId);
+      break;
+    default:
+      nextPage = ArabicLettersView(parentId: widget.parentId, childId: widget.childId);
+  }
 
-    String stickerPath = isCorrect
-        ? await _controller.getRandomStickerFromFirestore()
-        : 'assets/images/Sad.png';
+  // ✅ لا تعيد جلب الستكر، استخدم فقط earnedStickerUrl
+  String stickerPath = isCorrect
+      ? (earnedStickerUrl ?? 'assets/images/default_sticker.png')
+      : 'assets/images/Sad.png';
 
-    VoidCallback onPressed = isCorrect
-        ? () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => nextPage),
-            );
-          }
-        : () {
-            Navigator.pop(context);
-          };
+  VoidCallback onPressed = isCorrect
+      ? () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => nextPage),
+          );
+        }
+      : () {
+          Navigator.pop(context);
+        };
 
-    _speakMessage(message);
+  _speakMessage(message);
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text(
-            isCorrect ? "إجابة صحيحة!" : "إجابة خاطئة!",
-            style: TextStyle(color: textColor, fontSize: 24, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              stickerPath.startsWith("http")
-                  ? Image.network(stickerPath, width: 100, height: 100, fit: BoxFit.contain)
-                  : Image.asset(stickerPath, width: 100, height: 100),
-              const SizedBox(height: 16),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 18),
-              ),
-            ],
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: [
-            TextButton(
-              onPressed: onPressed,
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.green.shade400,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              ),
-              child: Text(buttonText, style: const TextStyle(color: Colors.white, fontSize: 18)),
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          isCorrect ? "إجابة صحيحة!" : "إجابة خاطئة!",
+          style: TextStyle(color: textColor, fontSize: 24, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            stickerPath.startsWith("http")
+                ? Image.network(stickerPath, width: 100, height: 100, fit: BoxFit.contain)
+                : Image.asset(stickerPath, width: 100, height: 100),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18),
             ),
           ],
-        );
-      },
-    );
-  }
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            onPressed: onPressed,
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.green.shade400,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            child: Text(buttonText, style: const TextStyle(color: Colors.white, fontSize: 18)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   void _checkAnswer(String selectedAnswer) async {
     bool isCorrect = selectedAnswer == activityData?.correctAnswer;
-
+    String? earnedStickerUrl;
     if (isCorrect) {
       bool hasAnswered = await _controller.hasAnsweredCorrectly(widget.parentId, widget.childId, widget.type, selectedAnswer);
-
+      if (hasAnswered) {
+      // ✅ الطفل جاوب من قبل
+      _showRepeatedAnswerDialog(); // ديلوق مخصص
+      return;
+    }
       if (!hasAnswered) {
-        await _controller.addStickerToChild(widget.parentId, widget.childId, "1");
+     if (widget.type == "number") {
+  final stickerUrl = await _controller.getNextNumberSticker(
+    parentId: widget.parentId,
+    childId: widget.childId,
+    number: selectedAnswer,
+  );
+
+  if (stickerUrl != null) {
+    earnedStickerUrl = stickerUrl; // ⬅️ نخزن الرابط هنا
+    await _controller.addStickerToChild(
+  widget.parentId,
+  widget.childId,
+  selectedAnswer, // بس نرسل الـ ID حق الرقم
+);
+  }
+}
+
+
         await _controller.updateProgressWithAnswer(widget.parentId, widget.childId, widget.type, selectedAnswer);
       }
     }
 
-    _showAnswerDialog(isCorrect);
+    _showAnswerDialog(isCorrect,earnedStickerUrl);
   }
+void _showRepeatedAnswerDialog() {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "تمت الإجابة سابقًا",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.orange, fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          "لقد أجبت على هذا السؤال من قبل، جرّب سؤالًا جديدًا!",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.orange,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            child: const Text("حسنًا", style: TextStyle(color: Colors.white, fontSize: 18)),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {

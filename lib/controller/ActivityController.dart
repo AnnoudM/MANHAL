@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:manhal/model/ActivityModel.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
 
 class ActivityController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -42,48 +44,51 @@ class ActivityController {
   }
 
   // ✅ دالة لإضافة الملصق إلى بيانات الطفل داخل Firestore
-  Future<void> addStickerToChild(String parentId, String childId, String stickerId) async {
-    try {
-      print("🔹 جلب بيانات الملصق برقم: $stickerId");
+Future<void> addStickerToChild(String parentId, String childId, String stickerId) async {
+  try {
+    // ✅ نحول الرقم من عربي إلى إنجليزي قبل استخدامه كمفتاح للمستند
+    final englishId = _convertArabicToEnglish(stickerId);
 
-      // 🔹 جلب بيانات الملصق من `stickers` باستخدام `stickerId`
-      DocumentSnapshot stickerDoc = await _firestore.collection("stickers").doc(stickerId).get();
+    print("🔹 جلب بيانات الملصق برقم: $englishId");
 
-      if (!stickerDoc.exists) {
-        print("❌ الملصق غير موجود في Firestore!");
-        return;
-      }
+    DocumentSnapshot stickerDoc = await _firestore.collection("stickersNumbers").doc(englishId).get();
 
-      // 🔹 استخراج بيانات الملصق
-      Map<String, dynamic>? stickerData = stickerDoc.data() as Map<String, dynamic>?;
-
-      if (stickerData == null || !stickerData.containsKey("link")) {
-        print("❌ لا يوجد رابط للملصق!");
-        return;
-      }
-
-      // 🔹 الوصول إلى المستند الخاص بالطفل داخل Firestore
-      DocumentReference childRef = _firestore
-          .collection("Parent")
-          .doc(parentId)
-          .collection("Children")
-          .doc(childId);
-
-      // 🔹 إضافة الملصق إلى `stickers` في وثيقة الطفل
-      await childRef.update({
-        "stickers": FieldValue.arrayUnion([
-          {
-            "id": stickerId,
-            "link": stickerData["link"],
-          }
-        ])
-      });
-
-      print("🎉 تمت إضافة الملصق للطفل بنجاح!");
-    } catch (e) {
-      print("❌ خطأ أثناء إضافة الملصق: $e");
+    if (!stickerDoc.exists) {
+      print("❌ الملصق غير موجود في Firestore داخل stickersNumbers!");
+      return;
     }
+
+    Map<String, dynamic>? stickerData = stickerDoc.data() as Map<String, dynamic>?;
+
+    if (stickerData == null || !stickerData.containsKey("link")) {
+      print("❌ لا يوجد رابط للملصق!");
+      return;
+    }
+
+    String stickerLink = stickerData["link"];
+
+    DocumentReference childRef = _firestore
+        .collection("Parent")
+        .doc(parentId)
+        .collection("Children")
+        .doc(childId);
+
+    await childRef.update({
+      "stickers": FieldValue.arrayUnion([
+        {
+          "id": englishId,
+          "link": stickerLink,
+        }
+      ]),
+      "stickersProgress.numbers": FieldValue.increment(1),
+    });
+
+    print("🎉 تمت إضافة الملصق للطفل بنجاح من stickersNumbers!");
+  } catch (e) {
+    print("❌ خطأ أثناء إضافة الملصق من stickersNumbers: $e");
   }
+}
+
 
   // ✅ دالة للتحقق إذا كانت الإجابة موجودة في المصفوفة الخاصة بالنشاط
   Future<bool> hasAnsweredCorrectly(String parentId, String childId, String type, String answer) async {
@@ -173,4 +178,150 @@ class ActivityController {
     }
     return 'assets/images/default_sticker.png'; // صورة افتراضية في حالة عدم العثور على ملصقات
   }
+
+ Future<String?> getNextNumberSticker({
+  required String parentId,
+  required String childId,
+  required String number,
+}) async {
+  try {
+    final firestore = FirebaseFirestore.instance;
+
+    print("📦 نحاول نجيب ملصق للرقم: $number");
+
+    // ✅ نحاول نجيب الطفل
+    DocumentSnapshot childDoc = await firestore
+        .collection("Parent")
+        .doc(parentId)
+        .collection("Children")
+        .doc(childId)
+        .get();
+
+    // ✅ نتحقق إذا الطفل حل هذا الرقم مسبقًا
+    if (childDoc.exists) {
+      var data = childDoc.data() as Map<String, dynamic>;
+
+      if (data.containsKey("progress") &&
+          data["progress"].containsKey("numbers")) {
+        List<dynamic> solvedNumbers = data["progress"]["numbers"];
+        if (solvedNumbers.contains(number)) {
+          print("⚠️ الطفل حل هذا الرقم مسبقًا، ما راح نعطي ملصق.");
+          return null;
+        }
+      }
+    }
+    // نحول الرقم العربي إلى رقم إنجليزي
+    final englishNumber = _convertArabicToEnglish(number);
+
+    // ✅ نجيب الملصق من stickersNumbers باستخدام رقم السؤال
+    DocumentSnapshot stickerDoc = await firestore
+        .collection("stickersNumbers")
+        .doc(englishNumber)
+        .get();
+
+    if (!stickerDoc.exists) {
+      print("❌ لا يوجد ملصق لهذا الرقم: $number");
+      return null;
+    }
+
+    Map<String, dynamic> stickerData =
+        stickerDoc.data() as Map<String, dynamic>;
+
+    return stickerData["link"];
+  } catch (e) {
+    print("❌ خطأ في getNextNumberSticker: $e");
+    return null;
+  }
+}
+
+
+Future<void> giveNumberSticker(String parentId, String childId) async {
+  final firestore = FirebaseFirestore.instance;
+
+  try {
+    // 1. جلب مستند الطفل
+    DocumentReference childRef = firestore
+        .collection("Parent")
+        .doc(parentId)
+        .collection("Children")
+        .doc(childId);
+    DocumentSnapshot childDoc = await childRef.get();
+
+    int currentIndex = 0;
+    if (childDoc.exists) {
+      final data = childDoc.data() as Map<String, dynamic>;
+      if (data.containsKey("stickersProgress") &&
+          data["stickersProgress"].containsKey("numbers")) {
+        currentIndex = data["stickersProgress"]["numbers"];
+      }
+    }
+
+    int nextIndex = currentIndex + 1;
+
+    // 2. جلب ملصق من stickersNumbers
+    DocumentSnapshot stickerDoc = await firestore
+        .collection("stickersNumbers")
+        .doc(nextIndex.toString())
+        .get();
+
+    if (!stickerDoc.exists) {
+      print("❌ لا يوجد ملصق للرقم $nextIndex");
+      return;
+    }
+
+    final stickerData = stickerDoc.data() as Map<String, dynamic>;
+    String link = stickerData["link"];
+    String id = stickerData["id"].toString();
+
+    // 3. تحديث ملصقات الطفل + progress
+    await childRef.update({
+      "stickers": FieldValue.arrayUnion([
+        {"id": id, "link": link}
+      ]),
+      "stickersProgress.numbers": nextIndex,
+    });
+
+    print("🎉 تم إعطاء ملصق جديد للطفل!");
+  } catch (e) {
+    print("❌ خطأ في giveNumberSticker: $e");
+  }
+}
+
+Future<String?> getNumberStickerByAnswer(String answer) async {
+  try {
+    final firestore = FirebaseFirestore.instance;
+
+    // الرقم هو الـ ID حق المستند
+    DocumentSnapshot doc = await firestore.collection('stickersNumbers').doc(answer).get();
+
+    if (doc.exists && doc.data() != null) {
+      final data = doc.data() as Map<String, dynamic>;
+      return data['link'];
+    } else {
+      print("❌ لا يوجد ملصق لهذا الرقم: $answer");
+      return null;
+    }
+  } catch (e) {
+    print("❌ خطأ في getNumberStickerByAnswer: $e");
+    return null;
+  }
+}
+String _convertArabicToEnglish(String input) {
+  const arabicToEnglish = {
+    '٠': '0',
+    '١': '1',
+    '٢': '2',
+    '٣': '3',
+    '٤': '4',
+    '٥': '5',
+    '٦': '6',
+    '٧': '7',
+    '٨': '8',
+    '٩': '9',
+  };
+
+  return input.split('').map((char) => arabicToEnglish[char] ?? char).join();
+}
+
+
 }
