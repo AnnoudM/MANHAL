@@ -102,7 +102,13 @@ Future<void> deleteChildAndNavigate(BuildContext context, String parentId, Strin
         'numbers':<String>[],
         'words':<String>[],
         'EthicalValue':<String>[],
-      }
+      },
+      'stickersProgress': {
+      'numbers': 0,
+      'letters': 0,
+      'videos': 0,
+      },
+
           });
 
 

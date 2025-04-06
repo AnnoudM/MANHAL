@@ -54,6 +54,11 @@ class SignUpController {
         'numbers':<String>[],
         'words':<String>[],
         'EthicalValue':<String>[],
+      },
+      'stickersProgress': {
+      'numbers': 0,
+      'letters': 0,
+      'videos': 0,
       }
     }); 
     } catch (e) {
