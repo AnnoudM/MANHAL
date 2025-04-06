@@ -15,7 +15,7 @@ class StickerPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('ملصقاتي', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: Colors.pink[100]!,
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
