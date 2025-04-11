@@ -6,6 +6,14 @@ import 'package:firebase_storage/firebase_storage.dart';
 class ActivityController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+ final Map<String, int> _arabicLetterToStickerId = {
+  "أ": 1, "ب": 2, "ت": 3, "ث": 4, "ج": 5, "ح": 6, "خ": 7,
+  "د": 8, "ذ": 9, "ر": 10, "ز": 11, "س": 12, "ش": 13,
+  "ص": 14, "ض": 15, "ط": 16, "ظ": 17, "ع": 18, "غ": 19,
+  "ف": 20, "ق": 21, "ك": 22, "ل": 23, "م": 24, "ن": 25,
+  "هـ": 26, "و": 27, "ي": 28,
+};
+
   // Fetch activity data from Firestore based on type and value
   Future<ActivityModel?> fetchActivity(String value, String type) async {
     try {
@@ -231,6 +239,81 @@ Future<void> addStickerToChild(String parentId, String childId, String stickerId
   } catch (e) {
     print("❌ خطأ في getNextNumberSticker: $e");
     return null;
+  }
+}
+
+Future<String?> getLetterSticker({
+  required String parentId,
+  required String childId,
+  required String letter,
+}) async {
+  try {
+    int? stickerId = _arabicLetterToStickerId[letter];
+    if (stickerId == null) {
+      print("⚠️ لا يوجد رقم مرتبط بهذا الحرف: $letter");
+      return null;
+    }
+
+    DocumentSnapshot stickerDoc = await _firestore
+        .collection("stickersLetters")
+        .doc(stickerId.toString())
+        .get();
+
+    if (!stickerDoc.exists) {
+      print("❌ لا يوجد مستند sticker لهذا الحرف: $letter");
+      return null;
+    }
+
+    final data = stickerDoc.data() as Map<String, dynamic>;
+    return data["link"];
+  } catch (e) {
+    print("❌ خطأ في getLetterSticker: $e");
+    return null;
+  }
+}
+
+Future<void> addLetterStickerToChild({
+  required String parentId,
+  required String childId,
+  required String letter,
+}) async {
+  try {
+    int? stickerId = _arabicLetterToStickerId[letter];
+    if (stickerId == null) {
+      print("⚠️ لا يوجد رقم مرتبط بهذا الحرف: $letter");
+      return;
+    }
+
+    DocumentSnapshot stickerDoc = await _firestore
+        .collection("stickersLetters")
+        .doc(stickerId.toString())
+        .get();
+
+    if (!stickerDoc.exists) {
+      print("❌ لا يوجد sticker للحرف $letter");
+      return;
+    }
+
+    final data = stickerDoc.data() as Map<String, dynamic>;
+    final link = data["link"];
+    final id = data["id"];
+
+    DocumentReference childRef = _firestore
+        .collection("Parent")
+        .doc(parentId)
+        .collection("Children")
+        .doc(childId);
+
+    await childRef.update({
+      "stickers": FieldValue.arrayUnion([
+        {"id": id, "link": link}
+      ]),
+      "stickersProgress.letters": FieldValue.increment(1),
+    });
+
+    print("🎉 تم حفظ ملصق الحرف '$letter' للطفل بنجاح!");
+  } catch (e) {
+    print("❌ خطأ في addLetterStickerToChild: $e");
   }
 }
 

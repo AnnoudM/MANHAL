@@ -166,6 +166,22 @@ void _showAnswerDialog(bool isCorrect, [String? earnedStickerUrl]) async {
 );
   }
 }
+else if (widget.type == "letter") {
+  final stickerUrl = await _controller.getLetterSticker(
+    parentId: widget.parentId,
+    childId: widget.childId,
+    letter: selectedAnswer,
+  );
+
+  if (stickerUrl != null) {
+    earnedStickerUrl = stickerUrl;
+    await _controller.addLetterStickerToChild(
+      parentId: widget.parentId,
+      childId: widget.childId,
+      letter: selectedAnswer,
+    );
+  }
+}
 
 
         await _controller.updateProgressWithAnswer(widget.parentId, widget.childId, widget.type, selectedAnswer);
