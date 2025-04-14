@@ -26,7 +26,7 @@ class EthicalVideoController {
   });
 
   /// ✅ تحميل الفيديو والتحكم به
-  void initializeVideo(VoidCallback updateUI) async {
+  void initializeVideo(VoidCallback updateUI, BuildContext context) async {
     videoController = VideoPlayerController.network(ethicalValue.videoUrl)
       ..initialize().then((_) async {
         int? lastPosition = await loadLastPosition(); // ⬅️ استرجاع الموضع الخاص بكل طفل
@@ -39,9 +39,9 @@ class EthicalVideoController {
       ..addListener(() {
         if (videoController!.value.position >= videoController!.value.duration) {
           videoCompleted = true;
-          print("🎥 الفيديو انتهى، يتم تحديث مستوى الطفل وإضافة الملصقات...");
+          print("🎥 الفيديو انتهى، يتم تحديث مستوى الطفل وت...");
           _updateChildLevelIfNeeded(updateUI);
-          _awardStickersToChild();
+          //awardEthicalStickerOnceWithDialog(context);
         }
       });
 
@@ -108,65 +108,113 @@ class EthicalVideoController {
     chewieController?.dispose();
   }
 
-void _awardStickersToChild() async {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+Future<void> awardEthicalStickerOnceWithDialog(BuildContext context) async {
+  final firestore = FirebaseFirestore.instance;
+  final stickerId = ethicalValue.level.toString(); // كل فيديو له ستكر بنفس رقم المستوى
+  final childRef = firestore.collection("Parent").doc(parentId).collection("Children").doc(childId);
+  final childDoc = await childRef.get();
 
-  print("🚀 دخلنا دالة _awardStickersToChild للطفل $childId");
+  if (!childDoc.exists) return;
 
-  // جلب بيانات الطفل
-  DocumentSnapshot childSnapshot = await firestore
-      .collection('Parent')
-      .doc(parentId)
-      .collection('Children')
-      .doc(childId)
-      .get();
+  final data = childDoc.data() as Map<String, dynamic>;
+  List<dynamic> stickers = data['stickers'] ?? [];
+  List<String> stickerIds = stickers.map((s) => s['id'].toString()).toList();
 
-  if (!childSnapshot.exists) {
-    print("❌ لا يوجد بيانات لهذا الطفل $childId");
+  if (stickerIds.contains(stickerId)) {
+    _showAlreadyWatchedDialog(context); // ✅ تم مشاهدة هذا الفيديو سابقًا
     return;
   }
 
-  // جلب الملصقات الحالية
-  List<dynamic> currentStickers = List.from(childSnapshot['stickers'] ?? []);
-  List<String> currentStickerIds = currentStickers.map((sticker) => sticker['id'].toString()).toList();
-  print("📦 الملصقات الحالية: $currentStickerIds");
-
-  // جلب جميع الملصقات
-  QuerySnapshot snapshot = await firestore.collection('stickers').get();
-  List<DocumentSnapshot> allStickers = snapshot.docs;
-
-  // تصفية الملصقات الجديدة
-  List<DocumentSnapshot> newStickers = allStickers.where((doc) => !currentStickerIds.contains(doc.id)).toList();
-  print("🆕 الملصقات الجديدة المحتملة: ${newStickers.map((e) => e.id).toList()}");
-
-  if (newStickers.isEmpty) {
-    print("⚠️ لا يوجد ملصقات جديدة لإضافتها!");
+  final stickerDoc = await firestore.collection("stickers").doc(stickerId).get();
+  if (!stickerDoc.exists) {
+    print("❌ لا يوجد ستكر مرتبط بـ level $stickerId");
     return;
   }
 
-  // اختيار 3 ملصقات أو أقل
-  newStickers.shuffle();
-  List<Map<String, dynamic>> selectedStickers = newStickers.take(3).map((doc) {
-    return {'id': doc.id, 'link': doc['link']};
-  }).toList();
-  print("✅ الملصقات التي ستتم إضافتها: $selectedStickers");
+  final stickerLink = stickerDoc['link'];
+  final newSticker = {"id": stickerId, "link": stickerLink};
 
-  // دمج الملصقات
-  List<Map<String, dynamic>> updatedStickers = [
-    ...currentStickers.cast<Map<String, dynamic>>(),
-    ...selectedStickers
-  ];
+  await childRef.update({
+    "stickers": FieldValue.arrayUnion([newSticker]),
+  });
 
-  // التحديث
-  await firestore
-      .collection('Parent')
-      .doc(parentId)
-      .collection('Children')
-      .doc(childId)
-      .update({'stickers': updatedStickers});
+  // ✅ بعد الحفظ نعرض نفس الستكر في الديالوق
+  await _showStickerDialog(context, stickerLink);
 
-  print("🔥 تم التحديث النهائي للملصقات للطفل $childId ✅ المجموع الجديد: ${updatedStickers.length}");
+  // ✅ بعدها نحدث المستوى
+  _updateChildLevelIfNeeded(() {}); // نمرر دالة فاضية لو ما تحتاج تحديث UI مباشر
 }
+
+Future<void> _showStickerDialog(BuildContext context, String link) async {
+  return showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      title: const Text("إجابة صحيحة!", textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.network(link, width: 100, height: 100),
+          const SizedBox(height: 10),
+          const Text("إجابة صحيحة، أكمل التعلم.", textAlign: TextAlign.center),
+        ],
+      ),
+      actions: [
+        Center(
+           child: ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // يغلق الديالوق
+              Navigator.of(context).pop(); // يرجع للصفحة السابقة
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green.shade400,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text(
+              "حسناً",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'BLabeloo',
+  ),
+),
+
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+void _showAlreadyWatchedDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      title: const Text("تمت الإجابة سابقًا", textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orange)),
+      content: const Text("لقد شاهدت هذا الفيديو من قبل. جرّب فيديو آخر!", textAlign: TextAlign.center),
+      actions: [
+        Center(
+          child: TextButton(
+            onPressed: () {
+  Navigator.of(context).pop(); // يغلق الديالوق
+  Navigator.of(context).pop(); // يرجع للخلف
+},
+
+            child: const Text("حسنًا", style: TextStyle(fontSize: 18)),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 
 
 /// ✅ متابعة الملصقات الخاصة بالطفل وتحديثها في الوقت الفعلي
