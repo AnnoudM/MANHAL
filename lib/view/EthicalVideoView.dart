@@ -30,9 +30,9 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
       parentId: widget.parentId,
       childId: widget.childId,
       ethicalValue: widget.ethicalValue,
-      onLevelComplete: _showCompletionDialog,
+      //onLevelComplete: _showCompletionDialog,
     );
-    _controller!.initializeVideo(() => setState(() {}));
+    _controller!.initializeVideo(() => setState(() {}), context);
   }
 
   /// ✅ عرض رسالة نجاح عند إنهاء مرحلة والانتقال للمستوى التالي
@@ -63,7 +63,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  Navigator.pop(context);
+                  Navigator.of(context).pop(); // يغلق الديالوق
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green.shade400,
@@ -146,7 +146,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
                     if (_controller!.videoCompleted ||
                         (_controller!.childCurrentLevel != null &&
                             _controller!.childCurrentLevel! > widget.ethicalValue.level)) {
-                      Navigator.pop(context);
+                     _controller!.awardEthicalStickerOnceWithDialog(context);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
