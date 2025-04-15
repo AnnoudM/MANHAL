@@ -3,6 +3,7 @@ import 'number_view.dart';
 import '../model/NumbersModel.dart';
 import '../controller/NumbersController.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import'../controller/HomePageController.dart';
 
 // Function to convert numbers to Arabic numerals
 String convertToArabicNumbers(int number) {
@@ -107,9 +108,19 @@ class _ArabicNumberViewState extends State<ArabicNumberView> {
                 elevation: 0,
                 centerTitle: true,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
+  icon: const Icon(Icons.arrow_back, color: Colors.black87),
+  onPressed: () {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomePageController(
+          parentId: widget.parentId,
+          childID: widget.childId,
+        ),
+      ),
+    );
+  },
+),
               ),
               Padding(
                 padding: const EdgeInsets.all(16.0),

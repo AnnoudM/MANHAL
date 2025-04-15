@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../view/wordsListView.dart';
+import '../controller/HomePageController.dart'; // ✅ تأكد من المسار الصحيح
 
 class ArabicWordsPage extends StatelessWidget {
   final String parentId;
@@ -34,7 +35,17 @@ class ArabicWordsPage extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: IconButton(
             icon: const Icon(Icons.arrow_back, color: Color(0xFF3F414E)),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomePageController(
+                    parentId: parentId,
+                    childID: childId,
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),

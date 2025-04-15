@@ -191,8 +191,24 @@ else if (widget.type == "letter") {
     _showAnswerDialog(isCorrect,earnedStickerUrl);
   }
 void _showRepeatedAnswerDialog() {
+  Widget nextPage;
+  switch (widget.type) {
+    case "letter":
+      nextPage = ArabicLettersView(parentId: widget.parentId, childId: widget.childId);
+      break;
+    case "number":
+      nextPage = ArabicNumberView(parentId: widget.parentId, childId: widget.childId);
+      break;
+    case "word":
+      nextPage = ArabicWordsPage(parentId: widget.parentId, childId: widget.childId);
+      break;
+    default:
+      nextPage = ArabicLettersView(parentId: widget.parentId, childId: widget.childId);
+  }
+
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (context) {
       return AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -210,7 +226,10 @@ void _showRepeatedAnswerDialog() {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => nextPage),
+              );
             },
             style: TextButton.styleFrom(
               backgroundColor: Colors.orange,

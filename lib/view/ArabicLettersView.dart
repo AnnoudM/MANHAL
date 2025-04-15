@@ -4,6 +4,7 @@ import '../model/ArabicLettersModel.dart';
 import '../view/letter_view.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../controller/ArabicLettersController.dart';
+import'../controller/HomePageController.dart';
 
 class ArabicLettersView extends StatefulWidget {
   final String parentId;
@@ -128,13 +129,20 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                onPressed: () {
-                  _audioPlayer.stop();
-                  Navigator.of(context).pop();
-                },
-              ),
+             leading: IconButton(
+  icon: const Icon(Icons.arrow_back, color: Colors.black87),
+  onPressed: () {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomePageController(
+          parentId: widget.parentId,
+          childID: widget.childId,
+        ),
+      ),
+    );
+  },
+),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
