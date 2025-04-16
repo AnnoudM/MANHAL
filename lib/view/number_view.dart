@@ -95,33 +95,57 @@ class _LearnNumberPageState extends State<LearnNumberPage> {
                                     fit: BoxFit.contain,
                                   ),
                                 ),
-                                SizedBox(height: 30),
-                                Expanded(
-                                  flex: 3,
-                                  child: SingleChildScrollView(
-                                    child: Wrap(
-                                      alignment: WrapAlignment.center,
-                                      spacing: 10,
-                                      runSpacing: 10,
-                                      children: numberData?['images'] != null
-                                          ? (numberData!['images'] as List)
-                                              .map((imageUrl) {
-                                              return SizedBox(
-                                                width: 80,
-                                                height: 80,
-                                                child: Image.network(
-                                                  imageUrl,
-                                                  fit: BoxFit.contain,
-                                                ),
-                                              );
-                                            }).toList()
-                                          : [
-                                              Icon(Icons.image_not_supported,
-                                                  size: 100),
-                                            ],
-                                    ),
-                                  ),
-                                ),
+                              SizedBox(height: 5),
+Expanded(
+  flex: 3,
+  child: Center(
+    child: SizedBox(
+      height: widget.number == 1
+    ? MediaQuery.of(context).size.height * 0.3
+    : MediaQuery.of(context).size.height * 0.25,
+      child: SingleChildScrollView(
+child: Center(
+  child: (numberData?['images'] as List).length == 1
+      ? Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: (numberData!['images'] as List).map((imageUrl) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: SizedBox(
+                width: 180,
+                height: 180,
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            );
+          }).toList(),
+        )
+      : Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 10,
+          runSpacing: 10,
+          children: (numberData!['images'] as List).map((imageUrl) {
+            return SizedBox(
+              width: 80,
+              height: 80,
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+              ),
+            );
+          }).toList(),
+        ),
+),
+
+
+
+      ),
+    ),
+  ),
+),
+
                               ],
                             ),
                           ),
