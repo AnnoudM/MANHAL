@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:manhal/model/ActivityModel.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import '../constants/word_categories.dart';
 
 
 class ActivityController {
@@ -406,5 +407,94 @@ String _convertArabicToEnglish(String input) {
   return input.split('').map((char) => arabicToEnglish[char] ?? char).join();
 }
 
+Future<String?> updateWordProgressAndCheckSticker({
+  required String parentId,
+  required String childId,
+  required String word,
+}) async {
+  final category = wordToCategory[word];
+  if (category == null) return null;
+
+  final childRef = _firestore
+      .collection("Parent")
+      .doc(parentId)
+      .collection("Children")
+      .doc(childId);
+
+  final doc = await childRef.get();
+  if (!doc.exists) return null;
+
+  final data = doc.data() as Map<String, dynamic>;
+
+  List<String> learnedWords = List<String>.from(data["progress"]["words"] ?? []);
+  Map<String, dynamic> wordsProgress = Map<String, dynamic>.from(
+    data["stickersProgress"]["wordsProgress"] ?? {},
+  );
+
+  // ✅ إذا الطفل جاوب نفس الكلمة قبل، لا نحسبها ولا نعرض ملصق
+  if (learnedWords.contains(word)) return null;
+
+  // ✅ نحفظ الكلمة الجديدة
+  learnedWords.add(word);
+  int currentCount = wordsProgress[category] ?? 0;
+  wordsProgress[category] = currentCount + 1;
+
+  // ✅ نحدث بيانات الطفل
+  await childRef.update({
+    "progress.words": learnedWords,
+    "stickersProgress.wordsProgress": wordsProgress,
+  });
+
+  // ✅ إذا وصل للعدد المطلوب للفئة → يرجع رابط الملصق
+  final requiredCount = wordCategoryThreshold[category] ?? 99;
+  if (wordsProgress[category] == requiredCount) {
+    return await _getStickerForWordCategory(category);
+  }
+
+  return null;
+}
+
+Future<String?> _getStickerForWordCategory(String category) async {
+  const Map<String, String> wordCategoryToStickerId = {
+    'shapes': '1',
+    'colors': '2',
+    'animals': '3',
+    'food': '4',
+  };
+
+  final id = wordCategoryToStickerId[category];
+  if (id == null) return null;
+
+  final doc = await _firestore.collection("stickersWords").doc(id).get();
+  if (!doc.exists) return null;
+
+  final data = doc.data() as Map<String, dynamic>;
+  return data["link"];
+}
+
+Future<void> addWordCategoryStickerToChild({
+  required String parentId,
+  required String childId,
+  required String category,
+  required String link,
+}) async {
+  final childRef = _firestore
+      .collection("Parent")
+      .doc(parentId)
+      .collection("Children")
+      .doc(childId);
+
+  await childRef.update({
+    "stickers": FieldValue.arrayUnion([
+      {
+        "id": category,
+        "link": link,
+      }
+    ]),
+    "stickersProgress.wordsProgress.$category": FieldValue.increment(0), // موجودة أصلًا لكن نضمن
+  });
+
+  print("🎉 تمت إضافة ملصق فئة $category للطفل!");
+}
 
 }
