@@ -6,6 +6,23 @@ import '../model/ActivityModel.dart';
 import 'ArabicLettersView.dart';
 import 'ArabicNumberView.dart';
 import 'ArabicWordsView.dart';
+import '../constants/word_categories.dart';
+
+
+String categoryNameToArabic(String key) {
+  switch (key) {
+    case 'shapes':
+      return 'الأشكال';
+    case 'colors':
+      return 'الألوان';
+    case 'animals':
+      return 'الحيوانات';
+    case 'food':
+      return 'الطعام';
+    default:
+      return 'الكلمات';
+  }
+}
 
 class ActivityView extends StatefulWidget {
   final String parentId;
@@ -181,10 +198,31 @@ else if (widget.type == "letter") {
       letter: selectedAnswer,
     );
   }
+}else if (widget.type == "word") {
+  final stickerUrl = await _controller.updateWordProgressAndCheckSticker(
+    parentId: widget.parentId,
+    childId: widget.childId,
+    word: selectedAnswer,
+  );
+
+  if (stickerUrl != null) {
+    earnedStickerUrl = stickerUrl;
+     
+   await _controller.addWordCategoryStickerToChild(
+    parentId: widget.parentId,
+    childId: widget.childId,
+    category: wordToCategory[selectedAnswer] ?? "",
+    link: stickerUrl,
+  );
+
+  } else {
+        // 🟢 لا يوجد ستيكر حالياً، نعرض رسالة تشجيعية
+        final category = wordToCategory[selectedAnswer] ?? "الكلمات";
+        _showProgressDialog(categoryNameToArabic(category));
+        return;
+      }
 }
-
-
-        await _controller.updateProgressWithAnswer(widget.parentId, widget.childId, widget.type, selectedAnswer);
+     //   await _controller.updateProgressWithAnswer(widget.parentId, widget.childId, widget.type, selectedAnswer);
       }
     }
 
@@ -375,4 +413,52 @@ void _showRepeatedAnswerDialog() {
         return const Color(0xffD1E3F1);
     }
   }
+  void _showProgressDialog(String categoryName)async {
+
+  await flutterTts.setLanguage("ar-SA"); // <-- يضبط اللغة للنطق العربي
+  await flutterTts.speak("ممتاز! أكمل باقي الأسئلة لمجموعة $categoryName لتحصل على ملصق");
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "إجابة صحيحة!",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.green, fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            Text(
+              "ممتاز! أكمل باقي الأسئلة لمجموعة \"$categoryName\" لتحصل على ملصق 🎁",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18),
+            ),
+          ],
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            onPressed: () {
+    Navigator.of(context).pop(); // يقفل الديلوق
+    Navigator.of(context).pop(); // يقفل الصفحة الحالية
+    Navigator.of(context).pop(); // يقفل الصفحة اللي قبلها
+     Navigator.of(context).pop(); // يقفل الصفحة اللي قبلها
+  },
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.green,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            child: const Text("متابعة", style: TextStyle(color: Colors.white, fontSize: 18)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 }
