@@ -98,8 +98,6 @@ Widget build(BuildContext context) {
                   ),
                 ),
                 const Spacer(),
-                _buildActionButton(context, 'تغيير كلمة مرور الاعدادات', Colors.grey[300]!, () {}),
-                const SizedBox(height: 15),
                 _buildActionButton(context, 'حذف الحساب', Colors.redAccent, () {
                   _controller.deleteUserAccount(context);
                 }),

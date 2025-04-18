@@ -1,8 +1,24 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+
 class SettingsModel {
   final String title;
 
   SettingsModel(this.title);
+
+  
+
 }
+
+class SettingsFunctions {
+  Future<void> clearPasscode(String parentId) async {
+    await FirebaseFirestore.instance
+        .collection('Parent')
+        .doc(parentId)
+        .update({'Passcode': FieldValue.delete()});
+  }
+}
+
 
 // هذه القائمة تمثل خيارات الإعدادات
 List<SettingsModel> settingsOptions = [

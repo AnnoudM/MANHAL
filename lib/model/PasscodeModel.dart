@@ -11,4 +11,9 @@ class PasscodeModel {
   Future<void> savePasscode(String parentId, String passcode) async {
     await _firestore.collection('Parent').doc(parentId).set({'Passcode': passcode}, SetOptions(merge: true));
   }
+  
+  Future<void> clearPasscode(String parentId) async {
+  await _firestore.collection('Parent').doc(parentId).update({'Passcode': FieldValue.delete()});
+}
+
 }

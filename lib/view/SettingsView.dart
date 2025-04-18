@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../controller/SettingsCont.dart';
 import '../model/SettingsModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../view/PasscodeView.dart';
 
 class SettingsView extends StatelessWidget {
   final SettingsController controller = SettingsController();
@@ -76,7 +78,22 @@ Widget build(BuildContext context) {
                 for (var setting in settingsOptions)
                   _buildSettingsOption(context, setting.title),
                 const Spacer(),
-                _buildLogoutButton(context),
+                _buildActionButton(
+  context,
+  'تغيير كلمة مرور الاعدادات',
+  Colors.grey[300]!,
+  () {
+    _showResetPasscodeDialog(
+      context: context,
+      parentId: currentParentId,
+      selectedChildId: selectedChildId,
+      currentParentId: currentParentId,
+    );
+  },
+),
+const SizedBox(height: 15),
+_buildLogoutButton(context),
+
               ],
             ),
           ),
@@ -149,4 +166,140 @@ Widget build(BuildContext context) {
       ),
     );
   }
+
+  Widget _buildActionButton(BuildContext context, String text, Color color, VoidCallback onPressed) {
+  return ElevatedButton(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: color,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      shadowColor: Colors.grey.withOpacity(0.5),
+      elevation: 5,
+      padding: const EdgeInsets.symmetric(vertical: 15),
+    ),
+    onPressed: onPressed,
+    child: Text(
+      text,
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.black,
+        fontFamily: 'alfont',
+      ),
+    ),
+  );
+}
+
+void _showResetPasscodeDialog({
+  required BuildContext context,
+  required String parentId,
+  required String selectedChildId,
+  required String currentParentId,
+}) {
+  final TextEditingController passwordController = TextEditingController();
+  String? errorText;
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text(
+              "إعادة تعيين الرقم السري",
+              style: TextStyle(fontFamily: 'alfont', fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "أدخل كلمة المرور لحسابك لتأكيد هويتك",
+                  style: TextStyle(fontFamily: 'alfont', fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    hintText: "كلمة المرور",
+                    hintStyle: TextStyle(fontFamily: 'alfont'),
+                    border: OutlineInputBorder(),
+                  ),
+                  style: const TextStyle(fontFamily: 'alfont'),
+                ),
+                if (errorText != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    errorText!,
+                    style: const TextStyle(color: Colors.red, fontFamily: 'alfont'),
+                  ),
+                ]
+              ],
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // زر الإلغاء
+                },
+                child: const Text(
+                  "إلغاء",
+                  style: TextStyle(fontFamily: 'alfont', fontSize: 16),
+                ),
+              ),
+              TextButton(
+                onPressed: () async {
+                  try {
+                    final auth = FirebaseAuth.instance;
+                    final user = auth.currentUser;
+
+                    if (user != null) {
+                      final credential = EmailAuthProvider.credential(
+                        email: user.email!,
+                        password: passwordController.text,
+                      );
+
+                      await user.reauthenticateWithCredential(credential);
+                      await SettingsFunctions().clearPasscode(parentId);
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PasscodeView(
+                            parentId: parentId,
+                            selectedChildId: selectedChildId,
+                            currentParentId: currentParentId,
+                          ),
+                        ),
+                      );
+                    } else {
+                      setState(() {
+                        errorText = "حدث خطأ، حاول لاحقًا";
+                      });
+                    }
+                  } catch (e) {
+                    print("❌ خطأ في إعادة التحقق: $e");
+                    setState(() {
+                      errorText = "كلمة المرور غير صحيحة";
+                    });
+                  }
+                },
+                child: const Text(
+                  "تأكيد",
+                  style: TextStyle(fontFamily: 'alfont', fontSize: 16),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 }

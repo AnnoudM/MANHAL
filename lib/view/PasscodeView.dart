@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/PasscodeCont.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../model/PasscodeModel.dart';
 
 class PasscodeView extends StatelessWidget {
   final String selectedChildId;
@@ -57,9 +59,9 @@ class PasscodeView extends StatelessWidget {
                             ),
                             const SizedBox(height: 20),
                             Text(
-                              controller.enteredPasscode.padRight(4, '•'),
-                              style: const TextStyle(fontSize: 32, letterSpacing: 8, fontFamily: 'alfont', color: Colors.black),
-                            ),
+  ('${'*' * controller.enteredPasscode.length}'.padRight(4, '•')),
+  style: const TextStyle(fontSize: 32, letterSpacing: 8, fontFamily: 'alfont', color: Colors.black),
+),
                             const SizedBox(height: 20),
                             if (controller.errorMessage != null)
                               Text(controller.errorMessage!,
@@ -68,9 +70,111 @@ class PasscodeView extends StatelessWidget {
                             _buildNumberPad(controller, context),
                             const SizedBox(height: 40),
                             GestureDetector(
-                              onTap: () async {
-                                print("تم النقر على نسيت الرقم السري");
-                              },
+                              onTap: () {
+  showDialog(
+    context: context,
+    builder: (context) {
+      final TextEditingController passwordController = TextEditingController();
+      String? errorText;
+
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text(
+              "إعادة تعيين الرقم السري",
+              style: TextStyle(fontFamily: 'alfont', fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "أدخل كلمة المرور لحسابك لتأكيد هويتك",
+                  style: TextStyle(fontFamily: 'alfont', fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    hintText: "كلمة المرور",
+                    hintStyle: TextStyle(fontFamily: 'alfont'),
+                    border: OutlineInputBorder(),
+                  ),
+                  style: const TextStyle(fontFamily: 'alfont'),
+                ),
+                if (errorText != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    errorText!,
+                    style: const TextStyle(color: Colors.red, fontFamily: 'alfont'),
+                  ),
+                ]
+              ],
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+  TextButton(
+    onPressed: () {
+      Navigator.pop(context); // ✅ إغلاق الديالوق بدون تغيير
+    },
+    child: const Text(
+      "إلغاء",
+      style: TextStyle(fontFamily: 'alfont', fontSize: 16),
+    ),
+  ),
+  TextButton(
+    onPressed: () async {
+      try {
+        final auth = FirebaseAuth.instance;
+        final user = auth.currentUser;
+
+        if (user != null) {
+          final credential = EmailAuthProvider.credential(
+            email: user.email!,
+            password: passwordController.text,
+          );
+
+          await user.reauthenticateWithCredential(credential);
+          await PasscodeModel().clearPasscode(parentId);
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PasscodeView(
+                parentId: parentId,
+                selectedChildId: selectedChildId,
+                currentParentId: currentParentId,
+              ),
+            ),
+          );
+        } else {
+          setState(() {
+            errorText = "حدث خطأ، حاول لاحقًا";
+          });
+        }
+      } catch (e) {
+        print("❌ خطأ في إعادة التحقق: $e");
+        setState(() {
+          errorText = "كلمة المرور غير صحيحة";
+        });
+      }
+    },
+    child: const Text(
+      "تأكيد",
+      style: TextStyle(fontFamily: 'alfont', fontSize: 16),
+    ),
+  ),
+],
+          );
+        },
+      );
+    },
+  );
+},
                               child: const Text(
                                 "نسيت الرقم السري؟",
                                 style: TextStyle(
