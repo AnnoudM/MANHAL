@@ -143,19 +143,14 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
                 // ✅ زر "انتهى"
                 GestureDetector(
                   onTap: () {
-                    if (_controller!.videoCompleted ||
-                        (_controller!.childCurrentLevel != null &&
-                            _controller!.childCurrentLevel! > widget.ethicalValue.level)) {
-                     _controller!.awardEthicalStickerOnceWithDialog(context);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("يجب إكمال المقطع التعليمي أولًا!"),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  },
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text("يتم منح المكافأة تلقائيًا بعد انتهاء الفيديو."),
+      backgroundColor: Colors.blueGrey,
+    ),
+  );
+},
+
                   child: Container(
                     width: 80,
                     height: 50,
