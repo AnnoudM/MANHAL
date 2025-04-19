@@ -77,6 +77,7 @@ class _EthicalValueViewState extends State<EthicalValueView>
                     ),
                     const Text(
                       "القيم الأخلاقية",
+                      key: Key('ethical_title'),
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
