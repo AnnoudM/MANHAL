@@ -5,12 +5,16 @@ import '../model/EthicalValueModel.dart';
 import 'EthicalValueController.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+
 
 class EthicalVideoController {
   final String parentId;
   final String childId;
   final EthicalValueModel ethicalValue;
   final EthicalValueController _ethicalController = EthicalValueController();
+  final FlutterTts flutterTts = FlutterTts();
+
 
   VideoPlayerController? videoController;
   ChewieController? chewieController;
@@ -30,18 +34,26 @@ class EthicalVideoController {
     videoController = VideoPlayerController.network(ethicalValue.videoUrl)
       ..initialize().then((_) async {
         int? lastPosition = await loadLastPosition(); // ⬅️ استرجاع الموضع الخاص بكل طفل
-        if (lastPosition != null) {
-          videoController!.seekTo(Duration(milliseconds: lastPosition)); // ⬅️ استئناف الفيديو
-        }
+       if (lastPosition != null) {
+  final videoDuration = videoController!.value.duration.inMilliseconds;
+  if (lastPosition < videoDuration - 1000) {
+    videoController!.seekTo(Duration(milliseconds: lastPosition));
+  } else {
+    videoController!.seekTo(Duration.zero); // يبدأ من البداية
+  }
+}
+
         updateUI();
         videoController!.play();
       })
       ..addListener(() {
         if (videoController!.value.position >= videoController!.value.duration) {
-          videoCompleted = true;
-          print("🎥 الفيديو انتهى، يتم تحديث مستوى الطفل وت...");
-          _updateChildLevelIfNeeded(updateUI);
-          //awardEthicalStickerOnceWithDialog(context);
+        if (!videoCompleted) {
+      videoCompleted = true;
+      print("🎥 الفيديو انتهى، يتم تحديث مستوى الطفل وت...");
+      _updateChildLevelIfNeeded(updateUI);
+      awardEthicalStickerOnceWithDialog(context); // ✅ فعّل المكافأة هنا
+    }
         }
       });
 
@@ -146,19 +158,21 @@ Future<void> awardEthicalStickerOnceWithDialog(BuildContext context) async {
 }
 
 Future<void> _showStickerDialog(BuildContext context, String link) async {
+
+await flutterTts.speak("أحسنت! لقد شاهدت الفيديو التعليمي بالكامل.");
   return showDialog(
     context: context,
     barrierDismissible: false,
     builder: (_) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      title: const Text("إجابة صحيحة!", textAlign: TextAlign.center,
+      title: const Text("أحسنت!", textAlign: TextAlign.center,
         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Image.network(link, width: 100, height: 100),
           const SizedBox(height: 10),
-          const Text("إجابة صحيحة، أكمل التعلم.", textAlign: TextAlign.center),
+          const Text(" لقد شاهدت الفيديو التعليمي بالكامل، أكمل التعلم.", textAlign: TextAlign.center),
         ],
       ),
       actions: [
@@ -191,12 +205,15 @@ Future<void> _showStickerDialog(BuildContext context, String link) async {
   );
 }
 
-void _showAlreadyWatchedDialog(BuildContext context) {
+void _showAlreadyWatchedDialog(BuildContext context) async {
+
+await flutterTts.speak("لقد شاهدت هذا الفيديو من قبل. جرّب فيديو آخر!"); 
+
   showDialog(
     context: context,
     builder: (_) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      title: const Text("تمت الإجابة سابقًا", textAlign: TextAlign.center,
+      title: const Text("تمت المشاهدة سابقًا", textAlign: TextAlign.center,
         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orange)),
       content: const Text("لقد شاهدت هذا الفيديو من قبل. جرّب فيديو آخر!", textAlign: TextAlign.center),
       actions: [
