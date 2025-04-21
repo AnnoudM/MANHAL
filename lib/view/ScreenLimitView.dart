@@ -19,50 +19,43 @@ class _ScreenLimitViewState extends State<ScreenLimitView> {
   String? selectedStartTime;
   String? selectedEndTime;
 
-  /// ✅ قائمة الأوقات بصيغة 12 ساعة ولكن يتم تخزينها بصيغة 24 ساعة
-  final List<String> timeOptions = List.generate(
-      48,
-      (index) {
-        int hour = index ~/ 2;
-        int minute = (index % 2) * 30;
-        String formatted12Hour = ScreenLimitModel.formatTimeToDisplay("$hour:${minute.toString().padLeft(2, '0')}");
-        return formatted12Hour;
-      });
+  final List<String> timeOptions = List.generate(48, (index) {
+    int hour = index ~/ 2;
+    int minute = (index % 2) * 30;
+    String formatted12Hour = ScreenLimitModel.formatTimeToDisplay("$hour:${minute.toString().padLeft(2, '0')}");
+    return formatted12Hour;
+  });
 
-  /// ✅ جلب الحد الزمني من Firebase عند فتح الصفحة
   @override
   void initState() {
     super.initState();
     _loadUsageLimit();
   }
-void _loadUsageLimit() async {
-  var usageLimit = await _controller.getUsageLimit(widget.parentId, widget.childId);
-  if (usageLimit != null) {
-    setState(() {
-      isLimitEnabled = true;
-      selectedStartTime = ScreenLimitModel.formatTimeToDisplay(usageLimit['startTime']);
-      selectedEndTime = ScreenLimitModel.formatTimeToDisplay(usageLimit['endTime']);
-    });
-  }
-}
 
-/// ✅ حفظ الحد الزمني مع تأكيد
-void _saveLimit() {
-  if (selectedStartTime == null || selectedEndTime == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("يجب اختيار وقت البداية والنهاية", style: TextStyle(fontFamily: "alfont")),
-        backgroundColor: Colors.red,
-      ),
-    );
-    return;
+  void _loadUsageLimit() async {
+    var usageLimit = await _controller.getUsageLimit(widget.parentId, widget.childId);
+    if (usageLimit != null) {
+      setState(() {
+        isLimitEnabled = true;
+        selectedStartTime = ScreenLimitModel.formatTimeToDisplay(usageLimit['startTime']);
+        selectedEndTime = ScreenLimitModel.formatTimeToDisplay(usageLimit['endTime']);
+      });
+    }
   }
 
-  // تحويل الوقت من صيغة 12 ساعة (بالأرقام العربية) إلى صيغة 24 ساعة
-  String startTime24 = ScreenLimitModel.formatTimeToStorage(selectedStartTime!);
-  String endTime24 = ScreenLimitModel.formatTimeToStorage(selectedEndTime!);
+  void _saveLimit() {
+    if (selectedStartTime == null || selectedEndTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("يجب اختيار وقت البداية والنهاية", style: TextStyle(fontFamily: "alfont")),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
-
+    String startTime24 = ScreenLimitModel.formatTimeToStorage(selectedStartTime!);
+    String endTime24 = ScreenLimitModel.formatTimeToStorage(selectedEndTime!);
 
     showDialog(
       context: context,
@@ -100,7 +93,6 @@ void _saveLimit() {
     );
   }
 
-  /// ✅ حذف الحد الزمني مع تأكيد
   void _deleteLimit() {
     showDialog(
       context: context,
@@ -137,28 +129,109 @@ void _saveLimit() {
     );
   }
 
+  /// ✅ عنصر منسق لقائمة منسدلة يعرض الوقت الآخر ويوسّط النصوص
+  Widget _buildDropdown({
+    required String? value,
+    required String hintText,
+    String? noteText,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        border: Border.all(color: Colors.grey.shade400, width: 1),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          hint: Center(
+            child: Text(
+              hintText,
+              style: TextStyle(fontFamily: "alfont", color: Colors.black54),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          isExpanded: true,
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          icon: Icon(Icons.arrow_drop_down),
+          style: TextStyle(fontFamily: "alfont", color: Colors.black),
+          onChanged: onChanged,
+          selectedItemBuilder: (BuildContext context) {
+            return timeOptions.map((time) {
+              return Center(
+                child: Text(
+                  time,
+                  style: TextStyle(fontFamily: "alfont"),
+                  textAlign: TextAlign.center,
+                ),
+              );
+            }).toList();
+          },
+          items: timeOptions.map((time) {
+            String label = time;
+            if (noteText != null && noteText == time) {
+              label += time == selectedStartTime ? " (وقت البداية)" : " (وقت النهاية)";
+            }
+
+            return DropdownMenuItem<String>(
+              value: time,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Center(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontFamily: "alfont",
+                          fontWeight: noteText == time ? FontWeight.bold : FontWeight.normal,
+                          color: noteText == time ? Colors.blue : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 1,
+                    color: Colors.grey.shade300,
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,  // يجعل خلفية الـ AppBar تمتد خلف المحتوى
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-       
-          title: Text("تحديد وقت الاستخدام", style: TextStyle(fontFamily: "alfont", fontSize: 28)),
+        title: Text("تحديد وقت الاستخدام", style: TextStyle(fontFamily: "alfont", fontSize: 28)),
         centerTitle: true,
-        backgroundColor: Colors.transparent,  // خلفية شفافة للـ AppBar
-        elevation: 0,  // لإزالة الظل الذي يظهر تحت الـ AppBar
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Stack(
         children: [
-          // صورة الخلفية التي تغطي كامل الصفحة
           Positioned.fill(
             child: Image.asset(
               'assets/images/BackGroundManhal.jpg',
-              fit: BoxFit.cover,  // يجعل الصورة تغطي كامل الشاشة
+              fit: BoxFit.cover,
             ),
           ),
-          // المحتوى الذي سيتم عرضه فوق الصورة
-          SafeArea(  // استخدام SafeArea لتجنب التداخل مع الـ AppBar
+          SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -191,7 +264,7 @@ void _saveLimit() {
                   ),
                   SizedBox(height: 5),
                   Text(
-                    "عند تفعيل هذا الزر، ستتمكن من تحديد الأوقات المتاحة لطفلك لاستخدام التطبيق. ",
+                    "عند تفعيل هذا الزر، ستتمكن من تحديد الأوقات المتاحة لطفلك لاستخدام التطبيق.",
                     style: TextStyle(fontSize: 14, color: Colors.grey, fontFamily: "alfont"),
                     textAlign: TextAlign.right,
                   ),
@@ -199,62 +272,18 @@ void _saveLimit() {
                   if (isLimitEnabled)
                     Column(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey, width: 1),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: DropdownButton<String>(
-                            value: selectedStartTime,
-                            hint: Text("اختر وقت البداية", style: TextStyle(fontFamily: "alfont")),
-                            isExpanded: true,
-                            items: timeOptions
-                                .map((time) => DropdownMenuItem(
-                                      value: time,
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(vertical: 10),
-                                        decoration: BoxDecoration(
-                                          border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
-                                        ),
-                                        child: Center(child: Text(time, style: TextStyle(fontFamily: "alfont"))),
-                                      ),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedStartTime = value;
-                              });
-                            },
-                          ),
+                        _buildDropdown(
+                          value: selectedStartTime,
+                          hintText: "اختر وقت البداية",
+                          noteText: selectedEndTime,
+                          onChanged: (value) => setState(() => selectedStartTime = value),
                         ),
                         SizedBox(height: 20),
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey, width: 1),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: DropdownButton<String>(
-                            value: selectedEndTime,
-                            hint: Text("اختر وقت النهاية", style: TextStyle(fontFamily: "alfont")),
-                            isExpanded: true,
-                            items: timeOptions
-                                .map((time) => DropdownMenuItem(
-                                      value: time,
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(vertical: 10),
-                                        decoration: BoxDecoration(
-                                          border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
-                                        ),
-                                        child: Center(child: Text(time, style: TextStyle(fontFamily: "alfont"))),
-                                      ),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedEndTime = value;
-                              });
-                            },
-                          ),
+                        _buildDropdown(
+                          value: selectedEndTime,
+                          hintText: "اختر وقت النهاية",
+                          noteText: selectedStartTime,
+                          onChanged: (value) => setState(() => selectedEndTime = value),
                         ),
                         SizedBox(height: 40),
                         SizedBox(
