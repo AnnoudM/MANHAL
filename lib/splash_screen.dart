@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../view/initialView.dart';
 import '../view/childlistview.dart'; // تأكد من استيراد الصفحة الصحيحة
+import '../controller/HomePageController.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -32,24 +35,41 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   void _checkLoginStatus() async {
-    await Future.delayed(Duration(seconds: 3)); // انتظار عرض الشاشة لمدة 3 ثوانٍ
+  await Future.delayed(Duration(seconds: 3));
 
-    User? user = FirebaseAuth.instance.currentUser;
+  User? user = FirebaseAuth.instance.currentUser;
 
-    if (user != null) {
-      // 🔹 المستخدم مسجل دخول → توجيهه إلى ChildListView
+  if (user != null) {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? selectedChildId = prefs.getString('selectedChildId');
+
+    if (selectedChildId != null && selectedChildId.isNotEmpty) {
+      // ✅ عندنا طفل محفوظ → نوديه مباشرة على الصفحة الرئيسية
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => ChildListView()), // عدل هذا وفقًا لصفحتك الفعلية
+        MaterialPageRoute(
+          builder: (_) => HomePageController(
+            parentId: user.uid,
+            childID: selectedChildId,
+          ),
+        ),
       );
     } else {
-      // 🔹 المستخدم غير مسجل → توجيهه إلى InitialPage
+      // ❌ ما فيه طفل محفوظ → نوديه على قائمة الأطفال
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => InitialPage()),
+        MaterialPageRoute(builder: (_) => ChildListView()),
       );
     }
+  } else {
+    // ❌ مو مسجل دخول
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => InitialPage()),
+    );
   }
+}
+
 
   @override
   void dispose() {
