@@ -36,17 +36,15 @@ void resetParentArea() async {
   print("🔄 تم إعادة ضبط Parent Area عند تشغيل التطبيق");
 }
 
-void main() async {
+Future<void> startApp() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
-    resetParentArea(); // ✅ إعادة ضبط الوضع عند بدء التطبيق
-    runApp(const MyApp());
-  } catch (e) {
-    print("Error initializing Firebase: $e");
-    runApp(const MyApp());
-  }
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  resetParentArea();
+  runApp(const MyApp());
+}
+
+void main() async {
+  startApp();
 }
 
 class MyApp extends StatefulWidget {
