@@ -1,0 +1,2 @@
+C:/Users/Alano/OneDrive/Documents/GitHub/manhal/android/app/.cxx/Debug/h1e292i5/x86/CMakeFiles/edit_cache.dir
+C:/Users/Alano/OneDrive/Documents/GitHub/manhal/android/app/.cxx/Debug/h1e292i5/x86/CMakeFiles/rebuild_cache.dir
