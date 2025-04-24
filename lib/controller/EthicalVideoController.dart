@@ -137,7 +137,7 @@ Future<void> awardEthicalStickerOnceWithDialog(BuildContext context) async {
     return;
   }
 
-  final stickerDoc = await firestore.collection("stickers").doc(stickerId).get();
+  final stickerDoc = await firestore.collection("stickersVideos").doc(stickerId).get();
   if (!stickerDoc.exists) {
     print("❌ لا يوجد ستكر مرتبط بـ level $stickerId");
     return;
