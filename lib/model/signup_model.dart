@@ -9,7 +9,7 @@ class SignUpModel {
     return {
       'name': name,
       'email': email,
-      'password': password,
+    //'password': password,
     };
   }
 }
