@@ -3,10 +3,13 @@ import 'package:manhal/model/ActivityModel.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../constants/word_categories.dart';
 
-
+// Controller class responsible for handling activities and stickers
 class ActivityController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+
+// ============= Helper Functions and Constants =============
+// Mapping Arabic letters to their corresponding sticker IDs
  final Map<String, int> _arabicLetterToStickerId = {
   "أ": 1, "ب": 2, "ت": 3, "ث": 4, "ج": 5, "ح": 6, "خ": 7,
   "د": 8, "ذ": 9, "ر": 10, "ز": 11, "س": 12, "ش": 13,
@@ -15,10 +18,29 @@ class ActivityController {
   "هـ": 26, "و": 27, "ي": 28,
 };
 
-  // Fetch activity data from Firestore based on type and value
+// Converts Arabic digits to English digits (used internally for Firestore document keys)
+String _convertArabicToEnglish(String input) {
+  const arabicToEnglish = {
+    '٠': '0',
+    '١': '1',
+    '٢': '2',
+    '٣': '3',
+    '٤': '4',
+    '٥': '5',
+    '٦': '6',
+    '٧': '7',
+    '٨': '8',
+    '٩': '9',
+  };
+
+  return input.split('').map((char) => arabicToEnglish[char] ?? char).join();
+}
+
+// ================= Fetch Data Functions =================
+  // Fetch an activity based on its value and type (letter, number, word)
   Future<ActivityModel?> fetchActivity(String value, String type) async {
     try {
-      // تحديد اسم المجموعة الفرعية بناءً على النوع
+      // Determine subcollection name based on the activity type
       String subcollection;
       if (type == "letter") {
         subcollection = "letters";
@@ -31,7 +53,7 @@ class ActivityController {
         return null;
       }
 
-      // جلب المستند من المجموعة الفرعية المحددة
+     // Fetch the document from the specified subcollection
       DocumentSnapshot doc = await _firestore
           .collection('Activity')
           .doc(subcollection)
@@ -52,10 +74,139 @@ class ActivityController {
     }
   }
 
-  // ✅ دالة لإضافة الملصق إلى بيانات الطفل داخل Firestore
+// Get the next number sticker based on the number answered by the child
+ Future<String?> getNextNumberSticker({
+  required String parentId,
+  required String childId,
+  required String number,
+}) async {
+  try {
+    final firestore = FirebaseFirestore.instance;
+
+    print("📦 نحاول نجيب ملصق للرقم: $number");
+
+    // Fetch the child document
+    DocumentSnapshot childDoc = await firestore
+        .collection("Parent")
+        .doc(parentId)
+        .collection("Children")
+        .doc(childId)
+        .get();
+
+      // Check if the child has already solved this number
+    if (childDoc.exists) {
+      var data = childDoc.data() as Map<String, dynamic>;
+
+      if (data.containsKey("progress") &&
+          data["progress"].containsKey("numbers")) {
+        List<dynamic> solvedNumbers = data["progress"]["numbers"];
+        if (solvedNumbers.contains(number)) {
+          print("⚠️ الطفل حل هذا الرقم مسبقًا، ما راح نعطي ملصق.");
+          return null;
+        }
+      }
+    }
+    // Convert Arabic number to English
+    final englishNumber = _convertArabicToEnglish(number);
+
+   // Fetch the sticker document
+    DocumentSnapshot stickerDoc = await firestore
+        .collection("stickersNumbers")
+        .doc(englishNumber)
+        .get();
+
+    if (!stickerDoc.exists) {
+      print("❌ لا يوجد ملصق لهذا الرقم: $number");
+      return null;
+    }
+
+    Map<String, dynamic> stickerData =
+        stickerDoc.data() as Map<String, dynamic>;
+
+    return stickerData["link"];
+  } catch (e) {
+    print("❌ خطأ في getNextNumberSticker: $e");
+    return null;
+  }
+}
+
+// Retrieves the sticker link corresponding to a given Arabic letter
+Future<String?> getLetterSticker({
+  required String parentId,
+  required String childId,
+  required String letter,
+}) async {
+  try {
+    int? stickerId = _arabicLetterToStickerId[letter];
+    if (stickerId == null) {
+      print("⚠️ لا يوجد رقم مرتبط بهذا الحرف: $letter");
+      return null;
+    }
+
+    DocumentSnapshot stickerDoc = await _firestore
+        .collection("stickersLetters")
+        .doc(stickerId.toString())
+        .get();
+
+    if (!stickerDoc.exists) {
+      print("❌ لا يوجد مستند sticker لهذا الحرف: $letter");
+      return null;
+    }
+
+    final data = stickerDoc.data() as Map<String, dynamic>;
+    return data["link"];
+  } catch (e) {
+    print("❌ خطأ في getLetterSticker: $e");
+    return null;
+  }
+}
+
+ // Retrieves a sticker link based on the answered numbe
+Future<String?> getNumberStickerByAnswer(String answer) async {
+  try {
+    final firestore = FirebaseFirestore.instance;
+
+    // Fetch the sticker document based on the answer (number ID)
+    DocumentSnapshot doc = await firestore.collection('stickersNumbers').doc(answer).get();
+
+    if (doc.exists && doc.data() != null) {
+      final data = doc.data() as Map<String, dynamic>;
+      return data['link'];
+    } else {
+      print("❌ لا يوجد ملصق لهذا الرقم: $answer");
+      return null;
+    }
+  } catch (e) {
+    print("❌ خطأ في getNumberStickerByAnswer: $e");
+    return null;
+  }
+}
+
+ // Internal helper to fetch the sticker link for a completed word category
+Future<String?> _getStickerForWordCategory(String category) async {
+  const Map<String, String> wordCategoryToStickerId = {
+    'shapes': '1',
+    'colors': '2',
+    'animals': '3',
+    'food': '4',
+  };
+
+  final id = wordCategoryToStickerId[category];
+  if (id == null) return null;
+
+  final doc = await _firestore.collection("stickersWords").doc(id).get();
+  if (!doc.exists) return null;
+
+  final data = doc.data() as Map<String, dynamic>;
+  return data["link"];
+}
+
+
+// ============= Stickers Management Functions =============
+ // Add a sticker to a child's data under stickersNumbers collection
 Future<void> addStickerToChild(String parentId, String childId, String stickerId) async {
   try {
-    // ✅ نحول الرقم من عربي إلى إنجليزي قبل استخدامه كمفتاح للمستند
+    // Convert Arabic number to English number before using it as a document key
     final englishId = _convertArabicToEnglish(stickerId);
 
     print("🔹 جلب بيانات الملصق برقم: $englishId");
@@ -98,181 +249,7 @@ Future<void> addStickerToChild(String parentId, String childId, String stickerId
   }
 }
 
-
-  // ✅ دالة للتحقق إذا كانت الإجابة موجودة في المصفوفة الخاصة بالنشاط
-  Future<bool> hasAnsweredCorrectly(String parentId, String childId, String type, String answer) async {
-    try {
-      // تحديد الحقل بناءً على نوع النشاط
-      String progressField = '';
-      if (type == "letter") {
-        progressField = 'letters';
-      } else if (type == "number") {
-        progressField = 'numbers';
-      } else if (type == "word") {
-        progressField = 'words';
-      } else {
-        print("⚠️ نوع غير معروف: $type");
-        return false;
-      }
-
-      // جلب مرجع وثيقة الطفل
-      DocumentReference childRef = _firestore
-          .collection("Parent")
-          .doc(parentId)
-          .collection("Children")
-          .doc(childId);
-
-      // جلب بيانات الطفل
-      DocumentSnapshot childDoc = await childRef.get();
-
-      if (childDoc.exists) {
-        // جلب الإجابات المخزنة في المصفوفة المناسبة
-        List<dynamic> answers = childDoc.get("progress.$progressField") ?? [];
-
-        // التحقق إذا كانت الإجابة موجودة في المصفوفة
-        return answers.contains(answer);
-      }
-      return false;
-    } catch (e) {
-      print("❌ خطأ أثناء التحقق من الإجابة: $e");
-      return false;
-    }
-  }
-
-  // ✅ دالة لتحديث حالة الـ progress للطفل في Firestore مع تخزين الإجابة
-  Future<void> updateProgressWithAnswer(String parentId, String childId, String type, String answer) async {
-    try {
-      // تحديد الحقل الذي سيتم تحديثه بناءً على نوع النشاط
-      String progressField = '';
-      if (type == "letter") {
-        progressField = 'letters';
-      } else if (type == "number") {
-        progressField = 'numbers';
-      } else if (type == "word") {
-        progressField = 'words';
-      } else {
-        print("⚠️ نوع غير معروف: $type");
-        return;
-      }
-
-      // جلب مرجع الطفل داخل Firestore
-      DocumentReference childRef = _firestore
-          .collection("Parent")
-          .doc(parentId)
-          .collection("Children")
-          .doc(childId);
-
-      // إضافة الإجابة إلى المصفوفة المناسبة
-      await childRef.update({
-        "progress.$progressField": FieldValue.arrayUnion([answer]), // إضافة الإجابة إلى المصفوفة
-      });
-
-      print("🎉 تم تحديث حالة التقدم مع الإجابة بنجاح!");
-    } catch (e) {
-      print("❌ خطأ أثناء تحديث حالة التقدم: $e");
-    }
-  }
-
-  // ✅ دالة لجلب ملصق عشوائي من Firestore
-  Future<String> getRandomStickerFromFirestore() async {
-    try {
-      QuerySnapshot snapshot = await _firestore.collection('stickers').get();
-      if (snapshot.docs.isNotEmpty) {
-        List<String> stickers = snapshot.docs.map((doc) => doc['link'] as String).toList();
-        stickers.shuffle(); // خلط القائمة لاختيار عشوائي
-        return stickers.first; // اختيار أول عنصر بعد الخلط
-      }
-    } catch (e) {
-      print("❌ خطأ أثناء جلب الملصقات: $e");
-    }
-    return 'assets/images/default_sticker.png'; // صورة افتراضية في حالة عدم العثور على ملصقات
-  }
-
- Future<String?> getNextNumberSticker({
-  required String parentId,
-  required String childId,
-  required String number,
-}) async {
-  try {
-    final firestore = FirebaseFirestore.instance;
-
-    print("📦 نحاول نجيب ملصق للرقم: $number");
-
-    // ✅ نحاول نجيب الطفل
-    DocumentSnapshot childDoc = await firestore
-        .collection("Parent")
-        .doc(parentId)
-        .collection("Children")
-        .doc(childId)
-        .get();
-
-    // ✅ نتحقق إذا الطفل حل هذا الرقم مسبقًا
-    if (childDoc.exists) {
-      var data = childDoc.data() as Map<String, dynamic>;
-
-      if (data.containsKey("progress") &&
-          data["progress"].containsKey("numbers")) {
-        List<dynamic> solvedNumbers = data["progress"]["numbers"];
-        if (solvedNumbers.contains(number)) {
-          print("⚠️ الطفل حل هذا الرقم مسبقًا، ما راح نعطي ملصق.");
-          return null;
-        }
-      }
-    }
-    // نحول الرقم العربي إلى رقم إنجليزي
-    final englishNumber = _convertArabicToEnglish(number);
-
-    // ✅ نجيب الملصق من stickersNumbers باستخدام رقم السؤال
-    DocumentSnapshot stickerDoc = await firestore
-        .collection("stickersNumbers")
-        .doc(englishNumber)
-        .get();
-
-    if (!stickerDoc.exists) {
-      print("❌ لا يوجد ملصق لهذا الرقم: $number");
-      return null;
-    }
-
-    Map<String, dynamic> stickerData =
-        stickerDoc.data() as Map<String, dynamic>;
-
-    return stickerData["link"];
-  } catch (e) {
-    print("❌ خطأ في getNextNumberSticker: $e");
-    return null;
-  }
-}
-
-Future<String?> getLetterSticker({
-  required String parentId,
-  required String childId,
-  required String letter,
-}) async {
-  try {
-    int? stickerId = _arabicLetterToStickerId[letter];
-    if (stickerId == null) {
-      print("⚠️ لا يوجد رقم مرتبط بهذا الحرف: $letter");
-      return null;
-    }
-
-    DocumentSnapshot stickerDoc = await _firestore
-        .collection("stickersLetters")
-        .doc(stickerId.toString())
-        .get();
-
-    if (!stickerDoc.exists) {
-      print("❌ لا يوجد مستند sticker لهذا الحرف: $letter");
-      return null;
-    }
-
-    final data = stickerDoc.data() as Map<String, dynamic>;
-    return data["link"];
-  } catch (e) {
-    print("❌ خطأ في getLetterSticker: $e");
-    return null;
-  }
-}
-
+// Add a letter sticker to the child's stickers list
 Future<void> addLetterStickerToChild({
   required String parentId,
   required String childId,
@@ -318,12 +295,38 @@ Future<void> addLetterStickerToChild({
   }
 }
 
+// Add a word category sticker to the child's stickers list
+Future<void> addWordCategoryStickerToChild({
+  required String parentId,
+  required String childId,
+  required String category,
+  required String link,
+}) async {
+  final childRef = _firestore
+      .collection("Parent")
+      .doc(parentId)
+      .collection("Children")
+      .doc(childId);
 
+  await childRef.update({
+    "stickers": FieldValue.arrayUnion([
+      {
+        "id": category,
+        "link": link,
+      }
+    ]),
+    "stickersProgress.wordsProgress.$category": FieldValue.increment(0), // موجودة أصلًا لكن نضمن
+  });
+
+  print("🎉 تمت إضافة ملصق فئة $category للطفل!");
+}
+
+// Assign a new number sticker to a child based on their progress
 Future<void> giveNumberSticker(String parentId, String childId) async {
   final firestore = FirebaseFirestore.instance;
 
   try {
-    // 1. جلب مستند الطفل
+    // Fetch the child document
     DocumentReference childRef = firestore
         .collection("Parent")
         .doc(parentId)
@@ -342,7 +345,7 @@ Future<void> giveNumberSticker(String parentId, String childId) async {
 
     int nextIndex = currentIndex + 1;
 
-    // 2. جلب ملصق من stickersNumbers
+    // Fetch the next sticker from stickersNumbers collection
     DocumentSnapshot stickerDoc = await firestore
         .collection("stickersNumbers")
         .doc(nextIndex.toString())
@@ -357,7 +360,7 @@ Future<void> giveNumberSticker(String parentId, String childId) async {
     String link = stickerData["link"];
     String id = stickerData["id"].toString();
 
-    // 3. تحديث ملصقات الطفل + progress
+    // Update child's stickers list and progress
     await childRef.update({
       "stickers": FieldValue.arrayUnion([
         {"id": id, "link": link}
@@ -371,42 +374,83 @@ Future<void> giveNumberSticker(String parentId, String childId) async {
   }
 }
 
-Future<String?> getNumberStickerByAnswer(String answer) async {
-  try {
-    final firestore = FirebaseFirestore.instance;
 
-    // الرقم هو الـ ID حق المستند
-    DocumentSnapshot doc = await firestore.collection('stickersNumbers').doc(answer).get();
+// ============= Progress and Answer Management Functions =============
+  // Check if a child has already answered correctly for a specific type
+  Future<bool> hasAnsweredCorrectly(String parentId, String childId, String type, String answer) async {
+    try {
+      // Determine the progress field based on activity type
+      String progressField = '';
+      if (type == "letter") {
+        progressField = 'letters';
+      } else if (type == "number") {
+        progressField = 'numbers';
+      } else if (type == "word") {
+        progressField = 'words';
+      } else {
+        print("⚠️ نوع غير معروف: $type");
+        return false;
+      }
 
-    if (doc.exists && doc.data() != null) {
-      final data = doc.data() as Map<String, dynamic>;
-      return data['link'];
-    } else {
-      print("❌ لا يوجد ملصق لهذا الرقم: $answer");
-      return null;
+      // Fetch child document reference
+      DocumentReference childRef = _firestore
+          .collection("Parent")
+          .doc(parentId)
+          .collection("Children")
+          .doc(childId);
+
+      // Fetch child data
+      DocumentSnapshot childDoc = await childRef.get();
+
+      if (childDoc.exists) {
+        // Retrieve stored answers for the specific activity type
+        List<dynamic> answers = childDoc.get("progress.$progressField") ?? [];
+
+        // Check if the answer already exists
+        return answers.contains(answer);
+      }
+      return false;
+    } catch (e) {
+      print("❌ خطأ أثناء التحقق من الإجابة: $e");
+      return false;
     }
-  } catch (e) {
-    print("❌ خطأ في getNumberStickerByAnswer: $e");
-    return null;
   }
-}
-String _convertArabicToEnglish(String input) {
-  const arabicToEnglish = {
-    '٠': '0',
-    '١': '1',
-    '٢': '2',
-    '٣': '3',
-    '٤': '4',
-    '٥': '5',
-    '٦': '6',
-    '٧': '7',
-    '٨': '8',
-    '٩': '9',
-  };
 
-  return input.split('').map((char) => arabicToEnglish[char] ?? char).join();
-}
+ // Update child's progress by saving a correct answer
+  Future<void> updateProgressWithAnswer(String parentId, String childId, String type, String answer) async {
+    try {
+      // Determine the progress field based on activity type
+      String progressField = '';
+      if (type == "letter") {
+        progressField = 'letters';
+      } else if (type == "number") {
+        progressField = 'numbers';
+      } else if (type == "word") {
+        progressField = 'words';
+      } else {
+        print("⚠️ نوع غير معروف: $type");
+        return;
+      }
 
+      // Fetch child document reference
+      DocumentReference childRef = _firestore
+          .collection("Parent")
+          .doc(parentId)
+          .collection("Children")
+          .doc(childId);
+
+      // Update the specific progress array with the new answer
+      await childRef.update({
+        "progress.$progressField": FieldValue.arrayUnion([answer]), // إضافة الإجابة إلى المصفوفة
+      });
+
+      print("🎉 تم تحديث حالة التقدم مع الإجابة بنجاح!");
+    } catch (e) {
+      print("❌ خطأ أثناء تحديث حالة التقدم: $e");
+    }
+  }
+
+// Update word progress for a child and check if a word category sticker should be awarded
 Future<String?> updateWordProgressAndCheckSticker({
   required String parentId,
   required String childId,
@@ -431,70 +475,27 @@ Future<String?> updateWordProgressAndCheckSticker({
     data["stickersProgress"]["wordsProgress"] ?? {},
   );
 
-  // ✅ إذا الطفل جاوب نفس الكلمة قبل، لا نحسبها ولا نعرض ملصق
+   // Skip if the child already learned this word
   if (learnedWords.contains(word)) return null;
 
-  // ✅ نحفظ الكلمة الجديدة
+  // Save the new learned word
   learnedWords.add(word);
   int currentCount = wordsProgress[category] ?? 0;
   wordsProgress[category] = currentCount + 1;
 
-  // ✅ نحدث بيانات الطفل
+  // Update child's word progress
   await childRef.update({
     "progress.words": learnedWords,
     "stickersProgress.wordsProgress": wordsProgress,
   });
 
-  // ✅ إذا وصل للعدد المطلوب للفئة → يرجع رابط الملصق
+  // If the required number of words for the category is reached, return the sticker link
   final requiredCount = wordCategoryThreshold[category] ?? 99;
   if (wordsProgress[category] == requiredCount) {
     return await _getStickerForWordCategory(category);
   }
 
   return null;
-}
-
-Future<String?> _getStickerForWordCategory(String category) async {
-  const Map<String, String> wordCategoryToStickerId = {
-    'shapes': '1',
-    'colors': '2',
-    'animals': '3',
-    'food': '4',
-  };
-
-  final id = wordCategoryToStickerId[category];
-  if (id == null) return null;
-
-  final doc = await _firestore.collection("stickersWords").doc(id).get();
-  if (!doc.exists) return null;
-
-  final data = doc.data() as Map<String, dynamic>;
-  return data["link"];
-}
-
-Future<void> addWordCategoryStickerToChild({
-  required String parentId,
-  required String childId,
-  required String category,
-  required String link,
-}) async {
-  final childRef = _firestore
-      .collection("Parent")
-      .doc(parentId)
-      .collection("Children")
-      .doc(childId);
-
-  await childRef.update({
-    "stickers": FieldValue.arrayUnion([
-      {
-        "id": category,
-        "link": link,
-      }
-    ]),
-    "stickersProgress.wordsProgress.$category": FieldValue.increment(0), // موجودة أصلًا لكن نضمن
-  });
-
-  print("🎉 تمت إضافة ملصق فئة $category للطفل!");
 }
 
 }

@@ -3,7 +3,7 @@ class ActivityModel {
   final List<String> options;
   final String correctAnswer;
   final String? audioUrl;
-  final String? imageUrl; // ✅ تمت إضافة دعم الصورة
+  final String? imageUrl; 
   final double progress;
 
   ActivityModel({
@@ -11,18 +11,18 @@ class ActivityModel {
     required this.options,
     required this.correctAnswer,
     this.audioUrl,
-    this.imageUrl, // ✅ إضافة الصورة كمتغير قابل للاختبار
+    this.imageUrl, 
     required this.progress,
   });
 
-  // تحويل بيانات Firestore إلى ActivityModel
+  // Factory method to create ActivityModel from Firestore document data
   factory ActivityModel.fromFirestore(Map<String, dynamic> data) {
     return ActivityModel(
       question: data['question'] ?? '',
       options: List<String>.from(data['options'] ?? []),
       correctAnswer: data['correctAnswer'] ?? '',
       audioUrl: data['audioUrl'],
-      imageUrl: data['imageUrl'], // ✅ جلب الصورة من Firestore إذا كانت موجودة
+      imageUrl: data['imageUrl'], 
       progress: (data['progress'] ?? 0.0).toDouble(),
     );
   }

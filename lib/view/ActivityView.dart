@@ -8,7 +8,7 @@ import 'ArabicNumberView.dart';
 import 'ArabicWordsView.dart';
 import '../constants/word_categories.dart';
 
-
+/// Converts an English category key into its Arabic equivalent for display.
 String categoryNameToArabic(String key) {
   switch (key) {
     case 'shapes':
@@ -56,11 +56,12 @@ class _ActivityViewState extends State<ActivityView> {
   }
 
   @override
+  /// Disposes audio resources when the activity view is closed.
   void dispose() {
     _audioPlayer.dispose();
     super.dispose();
   }
-
+/// Loads the activity data from Firestore based on the provided value and type.
   Future<void> loadActivity() async {
     var activity = await _controller.fetchActivity(widget.value, widget.type);
     if (mounted) {
@@ -71,11 +72,13 @@ class _ActivityViewState extends State<ActivityView> {
     }
   }
 
+/// Uses text-to-speech (TTS) to speak a provided Arabic message.
   Future<void> _speakMessage(String message) async {
     await flutterTts.setLanguage("ar-SA");
     await flutterTts.speak(message);
   }
 
+/// Displays a dialog showing whether the answer was correct or incorrect, and navigates based on the result.
 void _showAnswerDialog(bool isCorrect, [String? earnedStickerUrl]) async {
   String message = isCorrect ? "إجابة صحيحة! أكمل التعلم." : "إجابة خاطئة! حاول مرة أخرى.";
   Color textColor = isCorrect ? Colors.green : Colors.red;
@@ -155,14 +158,13 @@ void _showAnswerDialog(bool isCorrect, [String? earnedStickerUrl]) async {
   );
 }
 
-
+/// Checks if the selected answer is correct, updates progress, and shows appropriate feedback.
   void _checkAnswer(String selectedAnswer) async {
     bool isCorrect = selectedAnswer == activityData?.correctAnswer;
     String? earnedStickerUrl;
     if (isCorrect) {
       bool hasAnswered = await _controller.hasAnsweredCorrectly(widget.parentId, widget.childId, widget.type, selectedAnswer);
       if (hasAnswered) {
-      // ✅ الطفل جاوب من قبل
       _showRepeatedAnswerDialog(); // ديلوق مخصص
       return;
     }
@@ -228,6 +230,8 @@ else if (widget.type == "letter") {
 
     _showAnswerDialog(isCorrect,earnedStickerUrl);
   }
+
+/// Shows a special dialog when the child has already answered this activity before.
 void _showRepeatedAnswerDialog() {
   Widget nextPage;
   switch (widget.type) {
@@ -281,6 +285,7 @@ void _showRepeatedAnswerDialog() {
   );
 }
 
+/// Builds the UI of the activity page, displaying the question, options, and media.
   @override
   Widget build(BuildContext context) {
     int repeatCount = int.tryParse(widget.value) ?? 1;
@@ -401,6 +406,7 @@ void _showRepeatedAnswerDialog() {
     );
   }
 
+/// Returns a specific background color based on the activity type (letter, number, or word).
   Color _getBackgroundColor() {
     switch (widget.type) {
       case "letter":
@@ -413,9 +419,11 @@ void _showRepeatedAnswerDialog() {
         return const Color(0xffD1E3F1);
     }
   }
+ 
+  /// Displays a motivational dialog encouraging the child to complete a category for a sticker reward.
   void _showProgressDialog(String categoryName)async {
 
-  await flutterTts.setLanguage("ar-SA"); // <-- يضبط اللغة للنطق العربي
+  await flutterTts.setLanguage("ar-SA"); // Set language to Arabic for TTS
   await flutterTts.speak("ممتاز! أكمل باقي الأسئلة لمجموعة $categoryName لتحصل على ملصق");
 
   showDialog(
@@ -444,10 +452,10 @@ void _showRepeatedAnswerDialog() {
         actions: [
           TextButton(
             onPressed: () {
-    Navigator.of(context).pop(); // يقفل الديلوق
-    Navigator.of(context).pop(); // يقفل الصفحة الحالية
-    Navigator.of(context).pop(); // يقفل الصفحة اللي قبلها
-     Navigator.of(context).pop(); // يقفل الصفحة اللي قبلها
+    Navigator.of(context).pop(); 
+    Navigator.of(context).pop(); 
+    Navigator.of(context).pop(); 
+     Navigator.of(context).pop(); 
   },
             style: TextButton.styleFrom(
               backgroundColor: Colors.green,
