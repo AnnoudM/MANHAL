@@ -35,7 +35,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
     _controller!.initializeVideo(() => setState(() {}), context);
   }
 
-  /// ✅ عرض رسالة نجاح عند إنهاء مرحلة والانتقال للمستوى التالي
+  /// Displays a success message when completing a stage and moving to the next level.
   void _showCompletionDialog() {
     showDialog(
       context: context,
@@ -63,7 +63,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  Navigator.of(context).pop(); // يغلق الديالوق
+                  Navigator.of(context).pop(); 
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green.shade400,
@@ -108,7 +108,8 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
                 IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
                   onPressed: () async {
-                    await _controller?.saveLastPosition(); // ✅ حفظ الموضع عند الرجوع
+                    await _controller?.saveLastPosition(); // Save the last video position when going back.
+
                     _controller?.videoController?.pause();
                     Navigator.pop(context);
                   },
@@ -140,7 +141,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
                     : const CircularProgressIndicator(),
                 const SizedBox(height: 20),
 
-                // ✅ زر "انتهى"
+                // "Done" button
                 GestureDetector(
                   onTap: () {
   ScaffoldMessenger.of(context).showSnackBar(
@@ -181,7 +182,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
 
   @override
   void dispose() async {
-    await _controller?.saveLastPosition(); // ✅ حفظ الموضع عند الإغلاق
+    await _controller?.saveLastPosition(); // Save the last position when closing
     _controller?.dispose();
     super.dispose();
   }

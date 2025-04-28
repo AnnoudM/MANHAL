@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-
+// Controller for managing ethical educational videos and related actions.
 class EthicalVideoController {
   final String parentId;
   final String childId;
@@ -29,17 +29,17 @@ class EthicalVideoController {
     this.onLevelComplete,
   });
 
-  /// ✅ تحميل الفيديو والتحكم به
+  /// Initializes the video player and listens for video completion.
   void initializeVideo(VoidCallback updateUI, BuildContext context) async {
     videoController = VideoPlayerController.network(ethicalValue.videoUrl)
       ..initialize().then((_) async {
-        int? lastPosition = await loadLastPosition(); // ⬅️ استرجاع الموضع الخاص بكل طفل
+        int? lastPosition = await loadLastPosition(); // Retrieve child's last saved position for the video
        if (lastPosition != null) {
   final videoDuration = videoController!.value.duration.inMilliseconds;
   if (lastPosition < videoDuration - 1000) {
     videoController!.seekTo(Duration(milliseconds: lastPosition));
   } else {
-    videoController!.seekTo(Duration.zero); // يبدأ من البداية
+    videoController!.seekTo(Duration.zero); // Start from the beginning if position is invalid
   }
 }
 
@@ -52,7 +52,7 @@ class EthicalVideoController {
       videoCompleted = true;
       print("🎥 الفيديو انتهى، يتم تحديث مستوى الطفل وت...");
       _updateChildLevelIfNeeded(updateUI);
-      awardEthicalStickerOnceWithDialog(context); // ✅ فعّل المكافأة هنا
+      awardEthicalStickerOnceWithDialog(context); 
     }
         }
       });
@@ -64,27 +64,27 @@ class EthicalVideoController {
     );
 
     _fetchChildLevel(updateUI);
-     fetchChildStickers(updateUI); // ✅ متابعة الملصقات الخاصة بالطفل
+     fetchChildStickers(updateUI); 
   }
 
-  /// ✅ حفظ آخر موضع توقف عند الخروج لكل طفل بشكل منفصل
+  /// Saves the last playback position for the child and specific video.
   Future<void> saveLastPosition() async {
     final prefs = await SharedPreferences.getInstance();
     if (videoController != null) {
       await prefs.setInt(
-        'lastPosition_${childId}_${ethicalValue.videoUrl}', // ⬅️ مفتاح فريد لكل طفل وفيديو
+        'lastPosition_${childId}_${ethicalValue.videoUrl}', // unique key for each child and video
         videoController!.value.position.inMilliseconds,
       );
     }
   }
 
-  /// ✅ تحميل آخر موضع تم التوقف عنده لكل طفل بشكل منفصل
+  /// Loads the last saved playback position for the child and video.
   Future<int?> loadLastPosition() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt('lastPosition_${childId}_${ethicalValue.videoUrl}');
   }
 
-  /// ✅ جلب مستوى الطفل الحالي
+  /// Fetches the child's current ethical learning level from Firestore.
   void _fetchChildLevel(VoidCallback updateUI) async {
     _ethicalController.fetchChildLevel(parentId, childId).listen((level) {
       childCurrentLevel = level ?? 1;
@@ -92,7 +92,7 @@ class EthicalVideoController {
     });
   }
 
-  /// ✅ تحديث مستوى الطفل إذا لزم الأمر
+  /// Updates the child's learning level if necessary after completing the video.
   void _updateChildLevelIfNeeded(VoidCallback updateUI) {
     int nextLevel = ethicalValue.level + 1;
     if (childCurrentLevel != null && nextLevel > childCurrentLevel!) {
@@ -106,23 +106,24 @@ class EthicalVideoController {
     }
   }
 
-  /// ✅ لون زر "انتهى"
+  /// Returns the color of the "Done" button based on video completion.
   Color getDoneButtonColor() {
     return (videoCompleted || (childCurrentLevel != null && childCurrentLevel! > ethicalValue.level))
         ? Colors.green.shade400
         : Colors.grey.shade400;
   }
 
-  /// ✅ تنظيف الكائنات عند الانتهاء
+  /// Disposes video controllers and saves the last playback position.
   void dispose() {
-    saveLastPosition(); // ⬅️ حفظ الموضع عند الإغلاق
+    saveLastPosition(); // Save the last position when closing
     videoController?.dispose();
     chewieController?.dispose();
   }
 
+ /// Awards the child a sticker for completing the video, only once.
 Future<void> awardEthicalStickerOnceWithDialog(BuildContext context) async {
   final firestore = FirebaseFirestore.instance;
-  final stickerId = ethicalValue.level.toString(); // كل فيديو له ستكر بنفس رقم المستوى
+  final stickerId = ethicalValue.level.toString(); //Each video has a sticker corresponding to its level
   final childRef = firestore.collection("Parent").doc(parentId).collection("Children").doc(childId);
   final childDoc = await childRef.get();
 
@@ -133,7 +134,7 @@ Future<void> awardEthicalStickerOnceWithDialog(BuildContext context) async {
   List<String> stickerIds = stickers.map((s) => s['id'].toString()).toList();
 
   if (stickerIds.contains(stickerId)) {
-    _showAlreadyWatchedDialog(context); // ✅ تم مشاهدة هذا الفيديو سابقًا
+    _showAlreadyWatchedDialog(context); 
     return;
   }
 
@@ -150,13 +151,14 @@ Future<void> awardEthicalStickerOnceWithDialog(BuildContext context) async {
     "stickers": FieldValue.arrayUnion([newSticker]),
   });
 
-  // ✅ بعد الحفظ نعرض نفس الستكر في الديالوق
+  //After saving, display the awarded sticker in the dialog
   await _showStickerDialog(context, stickerLink);
 
-  // ✅ بعدها نحدث المستوى
-  _updateChildLevelIfNeeded(() {}); // نمرر دالة فاضية لو ما تحتاج تحديث UI مباشر
+  // Then update the child's level
+  _updateChildLevelIfNeeded(() {}); //Pass an empty function if no direct UI update is needed
 }
 
+/// Shows a dialog displaying the awarded sticker.
 Future<void> _showStickerDialog(BuildContext context, String link) async {
 
 await flutterTts.speak("أحسنت! لقد شاهدت الفيديو التعليمي بالكامل.");
@@ -179,8 +181,8 @@ await flutterTts.speak("أحسنت! لقد شاهدت الفيديو التعل�
         Center(
            child: ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop(); // يغلق الديالوق
-              Navigator.of(context).pop(); // يرجع للصفحة السابقة
+              Navigator.of(context).pop(); 
+              Navigator.of(context).pop(); 
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green.shade400,
@@ -205,6 +207,7 @@ await flutterTts.speak("أحسنت! لقد شاهدت الفيديو التعل�
   );
 }
 
+/// Shows a dialog informing the child that the video was already watched.
 void _showAlreadyWatchedDialog(BuildContext context) async {
 
 await flutterTts.speak("لقد شاهدت هذا الفيديو من قبل. جرّب فيديو آخر!"); 
@@ -232,9 +235,7 @@ await flutterTts.speak("لقد شاهدت هذا الفيديو من قبل. ج�
   );
 }
 
-
-
-/// ✅ متابعة الملصقات الخاصة بالطفل وتحديثها في الوقت الفعلي
+/// Listens to real-time updates of the child's stickers and refreshes the UI.
 void fetchChildStickers(VoidCallback updateUI) {
   FirebaseFirestore.instance
       .collection('Parent')
@@ -248,12 +249,11 @@ void fetchChildStickers(VoidCallback updateUI) {
       if (data != null && data.containsKey('stickers')) {
         List<dynamic> stickersList = data['stickers'] ?? [];
         print("🎉 تم تحديث الملصقات للطفل: $stickersList");
-        updateUI(); // ✅ تحديث الواجهة تلقائيًا عند تغيير الملصقات
+        updateUI(); // Automatically update the UI when stickers change
       }
     }
   });
 }
-
 
 }
 
