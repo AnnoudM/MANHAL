@@ -45,22 +45,27 @@ class SignUpController {
           .collection('Parent')
           .doc(parentId)
           .collection('Children')
-            .add({
-      ...child.toMap(), // ✅ نأخذ جميع البيانات من child
-      'level': 1, // ✅ نضيف level = 1 هنا حتى لو لم يكن في child.toMap()
-      'stickers': [],
-      'progress':{
-        'letters':<String>[],
-        'numbers':<String>[],
-        'words':<String>[],
-        'EthicalValue':<String>[],
-      },
-      'stickersProgress': {
-      'numbers': 0,
-      'letters': 0,
-      'videos': 0,
-      }
-    }); 
+          .add({
+        ...child.toMap(), // ✅ نأخذ جميع البيانات من child
+        'level': 1, // ✅ نضيف level = 1 هنا حتى لو لم يكن في child.toMap()
+        'stickers': [],
+        'lockedContent': {
+          'letters': <String>[],
+          'numbers': <String>[],
+          'words': <String>[],
+        },
+        'progress': {
+          'letters': <String>[],
+          'numbers': <String>[],
+          'words': <String>[],
+          'EthicalValue': <String>[],
+        },
+        'stickersProgress': {
+          'numbers': 0,
+          'letters': 0,
+          'videos': 0,
+        }
+      });
     } catch (e) {
       print('Error adding child: $e');
     }
@@ -85,9 +90,11 @@ class SignUpController {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-             backgroundColor: Color(0xFFF8F8F8), 
-            title: Text('تم تأكيد البريد الإلكتروني', style: TextStyle(fontFamily: 'alfont')),
-            content: Text('تم تأكيد بريدك الإلكتروني بنجاح.', style: TextStyle(fontFamily: 'alfont')),
+            backgroundColor: Color(0xFFF8F8F8),
+            title: Text('تم تأكيد البريد الإلكتروني',
+                style: TextStyle(fontFamily: 'alfont')),
+            content: Text('تم تأكيد بريدك الإلكتروني بنجاح.',
+                style: TextStyle(fontFamily: 'alfont')),
             actions: [
               TextButton(
                 onPressed: () {
@@ -110,9 +117,11 @@ class SignUpController {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-             backgroundColor: Color(0xFFF8F8F8), 
-            title: Text('تأكيد البريد الإلكتروني', style: TextStyle(fontFamily: 'alfont')),
-            content: Text('الرجاء تأكيد بريدك الإلكتروني عبر الرابط المرسل.', style: TextStyle(fontFamily: 'alfont')),
+            backgroundColor: Color(0xFFF8F8F8),
+            title: Text('تأكيد البريد الإلكتروني',
+                style: TextStyle(fontFamily: 'alfont')),
+            content: Text('الرجاء تأكيد بريدك الإلكتروني عبر الرابط المرسل.',
+                style: TextStyle(fontFamily: 'alfont')),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -128,43 +137,46 @@ class SignUpController {
   // Proceed to Child Info page
   void proceedToChildInfo(BuildContext context, String parentId) {
     String childId = FirebaseFirestore.instance.collection('Children').doc().id;
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ChildInfoView(
-        parentData: _tempParentData,
-        parentId: parentId, // تمرير معرف الوالد
-        childId: childId, 
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChildInfoView(
+          parentData: _tempParentData,
+          parentId: parentId, // تمرير معرف الوالد
+          childId: childId,
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   // Register parent and child, and send email verification
-  Future<void> registerParentAndChild(BuildContext context, Child child, SignUpModel parentData) async {
+  Future<void> registerParentAndChild(
+      BuildContext context, Child child, SignUpModel parentData) async {
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: parentData.email,
         password: parentData.password,
       );
 
       String parentId = userCredential.user!.uid;
-await saveParentData(parentId, parentData);
-await addChild(parentId, child);
-await sendEmailVerification();
+      await saveParentData(parentId, parentData);
+      await addChild(parentId, child);
+      await sendEmailVerification();
 
 // استدعاء الصفحة بعد التسجيل
-proceedToChildInfo(context, parentId);
-
+      proceedToChildInfo(context, parentId);
 
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-             backgroundColor: Color(0xFFF8F8F8), 
-            title: Text('تم إرسال رابط التحقق', style: TextStyle(fontFamily: 'alfont')),
-            content: Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.', style: TextStyle(fontFamily: 'alfont')),
+            backgroundColor: Color(0xFFF8F8F8),
+            title: Text('تم إرسال رابط التحقق',
+                style: TextStyle(fontFamily: 'alfont')),
+            content: Text(
+                'تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.',
+                style: TextStyle(fontFamily: 'alfont')),
             actions: [
               TextButton(
                 onPressed: () {
@@ -184,8 +196,10 @@ proceedToChildInfo(context, parentId);
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString(), style: TextStyle(fontFamily: 'alfont'))),
+        SnackBar(
+            content:
+                Text(e.toString(), style: TextStyle(fontFamily: 'alfont'))),
       );
     }
-  } 
+  }
 }
