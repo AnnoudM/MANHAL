@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('✅ Successful parent login navigates to ChildListView',
+  testWidgets('Successful parent login',
       (WidgetTester tester) async {
     await app.startApp();
 
@@ -30,7 +30,7 @@ void main() {
     expect(find.text('أطفالي'), findsOneWidget);
   });
 
-  testWidgets('❌ Invalid email shows error message',
+  testWidgets('Invalid email shows error message',
       (WidgetTester tester) async {
         await FirebaseAuth.instance.signOut();
     await app.startApp();
@@ -54,7 +54,7 @@ void main() {
     expect(find.text('البريد الالكتروني أو كلمة المرور غير صحيحة'), findsOneWidget);
   });
 
-  testWidgets('❌ Empty email shows required email error',
+  testWidgets('Empty email shows required email error',
       (WidgetTester tester) async {
         await FirebaseAuth.instance.signOut();
     await app.startApp();
@@ -77,7 +77,7 @@ void main() {
     expect(find.text('يرجى إدخال البريد الإلكتروني'), findsOneWidget);
   });
 
-  testWidgets('❌ Empty password shows required password error',
+  testWidgets('Empty password shows required password error',
       (WidgetTester tester) async {
       await FirebaseAuth.instance.signOut();
       await app.startApp();
@@ -98,7 +98,7 @@ void main() {
     expect(find.text('يرجى إدخال كلمة المرور'), findsOneWidget);
   });
 
-  testWidgets('❌ Unverified email shows verification prompt',
+  testWidgets('Unverified email shows unverified email error',
       (WidgetTester tester) async {
         await FirebaseAuth.instance.signOut();
     await app.startApp();
