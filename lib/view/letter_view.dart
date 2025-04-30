@@ -7,15 +7,14 @@ import 'ActivityView.dart';
 
 class ArabicLetterPage extends StatefulWidget {
   final String letter;
-  final String parentId;  // ✅ إضافة معرف الوالد
-  final String childId;   // ✅ إضافة معرف الطفل
-  
+  final String parentId; // ✅ إضافة معرف الوالد
+  final String childId; // ✅ إضافة معرف الطفل
 
-    const ArabicLetterPage({
+  const ArabicLetterPage({
     Key? key,
     required this.letter,
-    required this.parentId,  // ✅ تمرير معرف الوالد
-    required this.childId,   // ✅ تمرير معرف الطفل
+    required this.parentId, // ✅ تمرير معرف الوالد
+    required this.childId, // ✅ تمرير معرف الطفل
   }) : super(key: key);
 
   @override
@@ -51,7 +50,7 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
       });
     } catch (e) {
       setState(() {
-        letterData = null; 
+        letterData = null;
         isLoading = false;
       });
       print("Error loading data: $e");
@@ -281,8 +280,8 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
             context,
             MaterialPageRoute(
               builder: (context) => ActivityView(
-                parentId: widget.parentId,  // ✅ تمرير معرف الوالد
-                childId: widget.childId,    // ✅ تمرير معرف الطفل
+                parentId: widget.parentId,
+                childId: widget.childId,
                 value: widget.letter,
                 type: "letter",
               ),
@@ -296,7 +295,6 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
         ),
         child: Row(
           children: const [
-            Icon(Icons.arrow_back, size: 34, color: Color(0xFF3F414E)),
             Expanded(
               child: Center(
                 child: Text("التالي",
@@ -306,6 +304,7 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
                         fontFamily: "Blabeloo")),
               ),
             ),
+            Icon(Icons.arrow_forward, size: 34, color: Color(0xFF3F414E)),
           ],
         ),
       ),

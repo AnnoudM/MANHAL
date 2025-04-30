@@ -101,99 +101,115 @@ class _WordsListPageState extends State<WordsListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          "لنتعلم بعض  ${widget.category} !",
-          style: const TextStyle(
-              fontSize: 24, fontFamily: 'Blabeloo', color: Color(0xFF3F414E)),
-          textAlign: TextAlign.center,
-        ),
-        centerTitle: true,
-        leading: Align(
-          alignment: Alignment.centerLeft,
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF3F414E)),
-            onPressed: () => Navigator.pop(context),
+    return Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/BackGroundManhal.jpg'),
+              fit: BoxFit.cover,
+            ),
           ),
         ),
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : words.isEmpty
-              ? const Center(child: Text("❌ لا توجد بيانات متاحة"))
-              : ListView.builder(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-                  itemCount: words.length,
-                  itemBuilder: (context, index) {
-                    final word = words[index];
-                    final isLocked = lockedWords.contains(word.word);
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text(
+              "لنتعلم بعض  ${widget.category} !",
+              style: const TextStyle(
+                fontSize: 24,
+                fontFamily: 'Blabeloo',
+                color: Color(0xFF3F414E),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            centerTitle: true,
+            leading: Align(
+              alignment: Alignment.centerLeft,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF3F414E)),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+          body: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : words.isEmpty
+                  ? const Center(child: Text("❌ لا توجد بيانات متاحة"))
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 20, horizontal: 15),
+                      itemCount: words.length,
+                      itemBuilder: (context, index) {
+                        final word = words[index];
+                        final isLocked = lockedWords.contains(word.word);
 
-                    return GestureDetector(
-                      onTap: () {
-                        if (!isLocked) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => WordDetailsPage(
-                                word: word.word,
-                                category: widget.category,
-                                parentId: widget.parentId,
-                                childId: widget.childId,
-                              ),
-                            ),
-                          );
-                        } else {
-                          _showLockedPopup(context);
-                        }
-                      },
-                      child: Container(
-                        width: 280,
-                        height: 100,
-                        margin: const EdgeInsets.only(bottom: 15),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3C7),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                word.word,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontFamily: 'Blabeloo',
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF3F414E),
+                        return GestureDetector(
+                          onTap: () {
+                            if (!isLocked) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => WordDetailsPage(
+                                    word: word.word,
+                                    category: widget.category,
+                                    parentId: widget.parentId,
+                                    childId: widget.childId,
+                                  ),
                                 ),
-                              ),
+                              );
+                            } else {
+                              _showLockedPopup(context);
+                            }
+                          },
+                          child: Container(
+                            width: 280,
+                            height: 100,
+                            margin: const EdgeInsets.only(bottom: 15),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3C7),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            const SizedBox(width: 20),
-                            if (isLocked)
-                              Image.asset(
-                                "assets/images/Lock.png",
-                                width: 30,
-                                height: 30,
-                              ),
-                            if (!isLocked && word.imageUrl.isNotEmpty)
-                              Image.network(
-                                word.imageUrl,
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.cover,
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    word.word,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 28,
+                                      fontFamily: 'Blabeloo',
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF3F414E),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 20),
+                                if (isLocked)
+                                  Image.asset(
+                                    "assets/images/Lock.png",
+                                    width: 30,
+                                    height: 30,
+                                  ),
+                                if (!isLocked && word.imageUrl.isNotEmpty)
+                                  Image.network(
+                                    word.imageUrl,
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+        ),
+      ],
     );
   }
 }

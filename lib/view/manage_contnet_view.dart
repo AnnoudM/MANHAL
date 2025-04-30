@@ -20,8 +20,8 @@ class ManageContentView extends StatelessWidget {
         "color": Colors.lightBlue[100],
         "textColor": const Color(0xFF638297),
         "iconText": "أ ب ج",
-        "fontSize": 20.0, // تقليل حجم الخط للنصوص
-        "iconSize": 40.0, // تقليل حجم الأيقونات
+        "fontSize": 20.0,
+        "iconSize": 40.0,
       },
       {
         "id": "numbers",
@@ -41,45 +41,63 @@ class ManageContentView extends StatelessWidget {
         "fontSize": 20.0,
         "iconSize": 50.0,
       },
-
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text("إدارة المحتوى")),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+      extendBodyBehindAppBar: true, 
+      backgroundColor: Colors.transparent, 
+      appBar: AppBar(
+        title: const Text("إدارة المحتوى"),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/BackGroundManhal.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            final category = categories[index];
-            return _buildMenuItem(
-              title: category["title"]!,
-              color: category["color"]!,
-              textColor: category["textColor"]!,
-              iconText: category["iconText"],
-              iconPath: category["iconPath"],
-              fontSize: category["fontSize"] ?? 20.0,
-              iconSize: category["iconSize"] ?? 40.0,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ManageSpecificContentView(
-                      parentId: parentId,
-                      childId: childId,
-                      category: category["id"]!,
-                    ),
-                  ),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                final category = categories[index];
+                return _buildMenuItem(
+                  title: category["title"]!,
+                  color: category["color"]!,
+                  textColor: category["textColor"]!,
+                  iconText: category["iconText"],
+                  iconPath: category["iconPath"],
+                  fontSize: category["fontSize"] ?? 20.0,
+                  iconSize: category["iconSize"] ?? 40.0,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ManageSpecificContentView(
+                          parentId: parentId,
+                          childId: childId,
+                          category: category["id"]!,
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -90,8 +108,8 @@ class ManageContentView extends StatelessWidget {
     required Color textColor,
     String? iconText,
     String? iconPath,
-    double fontSize = 20, // تقليل الحجم الافتراضي للنص
-    double iconSize = 40, // تقليل الحجم الافتراضي للأيقونة
+    double fontSize = 20,
+    double iconSize = 40,
     required VoidCallback onTap,
   }) {
     return GestureDetector(

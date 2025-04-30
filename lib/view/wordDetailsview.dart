@@ -6,15 +6,14 @@ import 'package:manhal/view/ActivityView.dart';
 class WordDetailsPage extends StatefulWidget {
   final String word;
   final String category;
-  final String parentId;  // ✅ إضافة معرف الوالد
-  final String childId;   // ✅ إضافة معرف الطفل
-
+  final String parentId;
+  final String childId;
   const WordDetailsPage({
     super.key,
     required this.word,
     required this.category,
-    required this.parentId,  // ✅ تمرير معرف الوالد
-    required this.childId,   // ✅ تمرير معرف الطفل
+    required this.parentId,
+    required this.childId,
   });
 
   @override
@@ -162,15 +161,14 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
                   onPressed: () {
-                    // ✅ التنقل إلى صفحة ActivityView وتمرير الكلمة كقيمة والنوع "word"
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => ActivityView(
                           value: widget.word,
                           type: "word",
-                          parentId: widget.parentId,  // ✅ تمرير معرف الوالد
-                          childId: widget.childId,    // ✅ تمرير معرف الطفل
+                          parentId: widget.parentId,
+                          childId: widget.childId,
                         ),
                       ),
                     );
@@ -182,11 +180,6 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
                   ),
                   child: Row(
                     children: const [
-                      Icon(
-                        Icons.arrow_back,
-                        size: 34,
-                        color: Color(0xFF3F414E),
-                      ),
                       Expanded(
                         child: Center(
                           child: Text(
@@ -197,6 +190,11 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
                                 fontFamily: "Blabeloo"),
                           ),
                         ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward,
+                        size: 34,
+                        color: Color(0xFF3F414E),
                       ),
                     ],
                   ),
