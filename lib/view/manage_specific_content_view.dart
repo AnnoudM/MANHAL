@@ -51,7 +51,7 @@ class _ManageSpecificContentViewState extends State<ManageSpecificContentView> {
         contentList.sort((b, a) {
           int numA = _arabicToEnglishNumber(a.name);
           int numB = _arabicToEnglishNumber(b.name);
-          return numB.compareTo(numA); 
+          return numB.compareTo(numA);
         });
       }
     }
@@ -117,30 +117,29 @@ class _ManageSpecificContentViewState extends State<ManageSpecificContentView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true, 
-      backgroundColor: Colors.transparent, 
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(
           selectedCategory == null
               ? _getCategoryTitle(widget.category)
               : selectedCategory!,
+          style: TextStyle(fontFamily: 'alfont', fontSize: 28),
         ),
         centerTitle: true,
-        backgroundColor: Colors.transparent, 
-        elevation: 0, 
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Stack(
         children: [
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage(
-                    'assets/images/BackGroundManhal.jpg'),
+                image: AssetImage('assets/images/BackGroundManhal.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
           ),
-
           isLoading
               ? const Center(child: CircularProgressIndicator())
               : GridView.builder(

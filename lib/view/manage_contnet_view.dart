@@ -44,10 +44,13 @@ class ManageContentView extends StatelessWidget {
     ];
 
     return Scaffold(
-      extendBodyBehindAppBar: true, 
-      backgroundColor: Colors.transparent, 
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text("إدارة المحتوى"),
+        title: const Text(
+          "إدارة المحتوى",
+                  style: TextStyle(fontFamily: 'alfont', fontSize: 28),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
