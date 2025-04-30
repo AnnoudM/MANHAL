@@ -196,58 +196,84 @@ class PasscodeView extends StatelessWidget {
     );
   }
 
-  Widget _buildNumberPad(PasscodeController controller, BuildContext context) {
-    List<String> numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", ""];
+Widget _buildNumberPad(PasscodeController controller, BuildContext context) {
+  List<String> numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", ""];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 1.5,
-      ),
-      itemCount: numbers.length,
-      itemBuilder: (context, index) {
-        String number = numbers[index];
-
-        if (number.isEmpty) {
-          return const SizedBox();
-        }
-
-        return GestureDetector(
-          onTap: () async {
-            if (controller.enteredPasscode.length < 4) {
-              controller.updateEnteredPasscode(number);
-
-              if (controller.enteredPasscode.length == 4) {
-                bool success = await controller.submitPasscode(parentId);
-                if (success) {
-                  Navigator.pushReplacementNamed(context, "/settings", arguments: {
-  'selectedChildId': selectedChildId.isNotEmpty ? selectedChildId : null,
-  'currentParentId': parentId,
-});
-
-                }
-              }
-            }
-          },
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(2, 2))
-              ],
-            ),
-            child: Center(
-              child: Text(
-                number,
-                style: const TextStyle(fontSize: 24, fontFamily: 'alfont', color: Colors.black),
-              ),
+  return GridView.builder(
+  shrinkWrap: true,
+  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+    crossAxisCount: 3,
+    childAspectRatio: 1.5,
+  ),
+  itemCount: numbers.length,  // تأكد من أن العدد يتناسب مع عدد العناصر المتاحة
+  itemBuilder: (context, index) {
+    if (index == 9) {
+      // زر الحذف
+      return GestureDetector(
+        onTap: () {
+          controller.deleteLastDigit();  // حذف آخر حرف من الرقم السري المدخل
+        },
+        child: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(2, 2))
+            ],
+          ),
+          child: const Center(
+            child: Icon(
+              Icons.backspace,  // تغيير الأيقونة إلى backspace
+              color: Colors.black,  // اللون الأسود مثل باقي الأزرار
+              size: 30,
             ),
           ),
-        );
+        ),
+      );
+    }
+
+    String number = numbers[index];
+    if (number.isEmpty) {
+      return const SizedBox();  // وضع مكان فارغ في الشبكة
+    }
+
+    return GestureDetector(
+      onTap: () async {
+        if (controller.enteredPasscode.length < 4) {
+          controller.updateEnteredPasscode(number);
+
+          if (controller.enteredPasscode.length == 4) {
+            bool success = await controller.submitPasscode(parentId);
+            if (success) {
+              Navigator.pushReplacementNamed(context, "/settings", arguments: {
+                'selectedChildId': selectedChildId.isNotEmpty ? selectedChildId : null,
+                'currentParentId': parentId,
+              });
+            }
+          }
+        }
       },
+      child: Container(
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(2, 2))
+          ],
+        ),
+        child: Center(
+          child: Text(
+            number,
+            style: const TextStyle(fontSize: 24, fontFamily: 'alfont', color: Colors.black),
+          ),
+        ),
+      ),
     );
-  }
+  },
+);
+
+}
+
 }

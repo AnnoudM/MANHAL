@@ -168,68 +168,82 @@ Widget build(BuildContext context) {
   }
 
   void _showEditDialog(String title, String initialValue, Function(String) onSave, {required bool isEmail}) {
-    TextEditingController textController = TextEditingController(text: initialValue);
-    final _formKey = GlobalKey<FormState>();
+  TextEditingController textController = TextEditingController(text: initialValue);
+  final _formKey = GlobalKey<FormState>();
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Color(0xFFF8F8F8),
-          title: Text(title, style: TextStyle(fontFamily: 'alfont')),
-          content: Form(
-            key: _formKey,
-            child: TextFormField(
-              controller: textController,
-              textDirection: isEmail ? TextDirection.ltr : TextDirection.rtl,
-              keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                  isEmail ? RegExp(r'[a-zA-Z0-9@._-]') : RegExp(r'[\u0600-\u06FF\s]'),
-                ),
-              ],
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return isEmail ? 'الرجاء إدخال البريد الإلكتروني' : 'الرجاء إدخال الاسم';
-                } else if (isEmail &&
-                    !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$")
-                        .hasMatch(value)) {
-                  return 'الرجاء إدخال بريد إلكتروني صالح';
-                }
-                return null;
-              },
-              decoration: InputDecoration(
-                hintText: isEmail ? 'أدخل البريد الإلكتروني الجديد' : 'أدخل الاسم الجديد باللغة العربية',
-                hintStyle: const TextStyle(fontFamily: 'alfont'),
-                filled: true,
-                fillColor: const Color(0xFFFFF5CC),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: Color(0xFFF8F8F8),
+        title: Text(title, style: TextStyle(fontFamily: 'alfont')),
+        content: Form(
+          key: _formKey,
+          child: TextFormField(
+            controller: textController,
+            textDirection: isEmail ? TextDirection.ltr : TextDirection.rtl,
+            keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                isEmail ? RegExp(r'[a-zA-Z0-9@._-]') : RegExp(r'[\u0600-\u06FF\s]'),
               ),
-              style: const TextStyle(fontFamily: 'alfont'),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
-            ),
-            TextButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  onSave(textController.text.trim());
-                  Navigator.pop(context);
+            ],
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return isEmail ? 'الرجاء إدخال البريد الإلكتروني' : 'الرجاء إدخال الاسم';
+              } else if (isEmail &&
+                  !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$")
+                      .hasMatch(value)) {
+                return 'الرجاء إدخال بريد إلكتروني صالح';
+              }
+              // التحقق من الأرقام العربية في الاسم
+              if (!isEmail) {
+                final arabicNameRegex = RegExp(r'^[\u0600-\u06FF\s]+$');
+                final hasNumbers = RegExp(r'[0-9\u0660-\u0669]').hasMatch(value); // تحقق من الأرقام
+                if (hasNumbers) {
+                  return 'الاسم لا يمكن أن يحتوي على أرقام';
                 }
-              },
-              child: Text('حفظ', style: TextStyle(fontFamily: 'alfont')),
+                if (!arabicNameRegex.hasMatch(value)) {
+                  return 'الرجاء إدخال الاسم بالحروف العربية فقط';
+                }
+                if (value.trim().isEmpty) {
+                  return 'الاسم لا يمكن أن يكون فارغًا أو يحتوي على مسافات فقط';
+                }
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              hintText: isEmail ? 'أدخل البريد الإلكتروني الجديد' : 'أدخل الاسم الجديد باللغة العربية',
+              hintStyle: const TextStyle(fontFamily: 'alfont'),
+              filled: true,
+              fillColor: const Color(0xFFFFF5CC),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
             ),
-          ],
-        );
-      },
-    );
-  }
+            style: const TextStyle(fontFamily: 'alfont'),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
+          ),
+          TextButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                onSave(textController.text.trim());
+                Navigator.pop(context);
+              }
+            },
+            child: Text('حفظ', style: TextStyle(fontFamily: 'alfont')),
+          ),
+        ],
+      );
+    },
+  );
+}
 }
