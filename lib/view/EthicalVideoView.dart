@@ -30,57 +30,8 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
       parentId: widget.parentId,
       childId: widget.childId,
       ethicalValue: widget.ethicalValue,
-      //onLevelComplete: _showCompletionDialog,
     );
     _controller!.initializeVideo(() => setState(() {}), context);
-  }
-
-  /// Displays a success message when completing a stage and moving to the next level.
-  void _showCompletionDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset("assets/images/happyChick.png", width: 100),
-              const SizedBox(height: 10),
-              Text(
-                "🎉 أحسنت! لقد أتممت مرحلة \"${widget.ethicalValue.name}\" وانتقلت إلى المستوى التالي.",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'BLabeloo',
-                ),
-              ),
-              const SizedBox(height: 15),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop(); 
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade400,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text("حسناً",
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: 'BLabeloo'),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -97,7 +48,6 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
               ),
             ),
           ),
-
           Positioned(
             top: 40,
             left: 10,
@@ -108,8 +58,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
                 IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
                   onPressed: () async {
-                    await _controller?.saveLastPosition(); // Save the last video position when going back.
-
+                    await _controller?.saveLastPosition();
                     _controller?.videoController?.pause();
                     Navigator.pop(context);
                   },
@@ -118,62 +67,27 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
                   child: Text(
                     widget.ethicalValue.name,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 22,
+                    style: const TextStyle(
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'BLabeloo',
                       color: Colors.black,
-                    ),),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 40),
               ],
             ),
           ),
-
           Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _controller != null && _controller!.videoController!.value.isInitialized
-                    ? AspectRatio(
-                        aspectRatio: _controller!.videoController!.value.aspectRatio,
-                        child: Chewie(controller: _controller!.chewieController!),
-                      )
-                    : const CircularProgressIndicator(),
-                const SizedBox(height: 20),
-
-                // "Done" button
-                GestureDetector(
-                  onTap: () {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text("يتم منح المكافأة تلقائيًا بعد انتهاء الفيديو."),
-      backgroundColor: Colors.blueGrey,
-    ),
-  );
-},
-
-                  child: Container(
-                    width: 80,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: _controller!.getDoneButtonColor(),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        "انتهى",
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'BLabeloo',
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: _controller != null &&
+                    _controller!.videoController != null &&
+                    _controller!.videoController!.value.isInitialized
+                ? AspectRatio(
+                    aspectRatio: _controller!.videoController!.value.aspectRatio,
+                    child: Chewie(controller: _controller!.chewieController!),
+                  )
+                : const CircularProgressIndicator(),
           ),
         ],
       ),
@@ -182,7 +96,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
 
   @override
   void dispose() async {
-    await _controller?.saveLastPosition(); // Save the last position when closing
+    await _controller?.saveLastPosition();
     _controller?.dispose();
     super.dispose();
   }

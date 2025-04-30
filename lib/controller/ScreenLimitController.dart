@@ -76,4 +76,29 @@ class ScreenLimitController {
       print("❌ خطأ في حذف الحد الزمني: $e");
     }
   }
+
+  String calculateDuration(String start, String end) {
+  final startParts = start.split(":").map(int.parse).toList();
+  final endParts = end.split(":").map(int.parse).toList();
+
+  final startMinutes = startParts[0] * 60 + startParts[1];
+  final endMinutes = endParts[0] * 60 + endParts[1];
+
+  int durationMinutes;
+  if (endMinutes >= startMinutes) {
+    durationMinutes = endMinutes - startMinutes;
+  } else {
+    durationMinutes = (24 * 60 - startMinutes) + endMinutes;
+  }
+
+  final hours = durationMinutes ~/ 60;
+  final minutes = durationMinutes % 60;
+
+  if (minutes == 0) {
+    return "$hours ساعة";
+  } else {
+    return "$hours ساعة و $minutes دقيقة";
+  }
+}
+
 }
