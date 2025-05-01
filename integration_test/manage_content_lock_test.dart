@@ -17,7 +17,7 @@ Future<void> login(WidgetTester tester) async {
   await tester.pumpAndSettle();
 
   await tester.enterText(find.byType(TextFormField).at(0), 'alanoud.ibrahim5@gmail.com');
-  await tester.enterText(find.byType(TextFormField).at(1), '12345A');
+  await tester.enterText(find.byType(TextFormField).at(1), 'A12345');
 
   final continueButton = find.text('تسجيل');
   expect(continueButton, findsOneWidget);

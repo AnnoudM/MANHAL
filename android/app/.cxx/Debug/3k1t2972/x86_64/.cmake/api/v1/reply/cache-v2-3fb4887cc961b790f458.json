@@ -527,7 +527,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "CMAKE_DLLTOOL-NOTFOUND"
+			"value" : "C:/Strawberry/c/bin/dlltool.exe"
 		},
 		{
 			"name" : "CMAKE_ERROR_DEPRECATED",

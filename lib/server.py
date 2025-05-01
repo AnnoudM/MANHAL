@@ -11,12 +11,12 @@ import cv2
 import numpy as np
 
 # إعداد Google Vision credentials
-CREDENTIAL_PATH = "manhal-457713-e973ff2f40a0.json"
+CREDENTIAL_PATH = "manhal-457713-e4c3a6985958.json"
 credentials = service_account.Credentials.from_service_account_file(CREDENTIAL_PATH)
 client = vision.ImageAnnotatorClient(credentials=credentials)
 
 # إعداد Flask
-app = Flask(name)
+app = Flask(__name__)
 CORS(app)
 
 # إعداد Tesseract
@@ -87,5 +87,5 @@ def recognize_text():
     tesseract_text = recognize_with_tesseract(improved_path)
     return jsonify({"text": tesseract_text})
 
-if name == 'main':
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
