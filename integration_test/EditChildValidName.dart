@@ -21,27 +21,25 @@ Future<void> login(WidgetTester tester) async {
   await tester.pumpAndSettle(const Duration(seconds: 5));
 
   final fahadChild = find.text('نورة');
-expect(fahadChild, findsOneWidget, reason: '');
-await tester.tap(fahadChild);
-  await tester.pump(); 
+  expect(fahadChild, findsOneWidget);
+  await tester.tap(fahadChild);
   await tester.pumpAndSettle(const Duration(seconds: 10)); 
 
   final settingsButton = find.byIcon(Icons.settings);
-  await tester.pumpAndSettle(const Duration(seconds: 3));
-  expect(settingsButton, findsOneWidget, reason: '');
+  expect(settingsButton, findsOneWidget);
 }
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Delete child successfully', (tester) async {
-    await login(tester);
+  testWidgets('Edit child name successfully', (tester) async {
+    await login(tester); 
     await tester.pumpAndSettle(const Duration(seconds: 10));
 
     final settingsButton = find.byIcon(Icons.settings);
     expect(settingsButton, findsOneWidget);
     await tester.tap(settingsButton);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 3));
 
     for (var digit in ['1', '1', '1', '1']) {
       await tester.tap(find.text(digit));
@@ -52,20 +50,26 @@ void main() {
     final childInfoTile = find.text('معلومات الطفل');
     expect(childInfoTile, findsOneWidget);
     await tester.tap(childInfoTile);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 5));
 
-    final deleteButton = find.text('حذف الطفل');
-    expect(deleteButton, findsOneWidget);
-    await tester.tap(deleteButton);
-    await tester.pumpAndSettle();
+    final nameTile = find.widgetWithIcon(ListTile, Icons.edit).at(0);
+    expect(nameTile, findsOneWidget);
+    await tester.tap(nameTile);
+    await tester.pumpAndSettle(const Duration(seconds: 5));
 
-    final confirmDeleteButton = find.text('حذف');
-    expect(confirmDeleteButton, findsOneWidget);
-    await tester.tap(confirmDeleteButton);
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    final nameField = find.byType(TextFormField);
+    expect(nameField, findsOneWidget);
+    await tester.enterText(nameField, 'نورة');
+    await tester.pump();
 
-expect(find.byType(SnackBar), findsOneWidget);
-expect(find.text('تم حذف الطفل بنجاح'), findsOneWidget);
+    final saveButton = find.text('حفظ');
+    expect(saveButton, findsOneWidget);
+    await tester.tap(saveButton);
+    await tester.pumpAndSettle(const Duration(seconds: 5));
 
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.text('تم التعديل بنجاح'), findsOneWidget);
   });
+
+  
 }

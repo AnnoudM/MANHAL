@@ -20,23 +20,17 @@ Future<void> login(WidgetTester tester) async {
   await tester.tap(continueButton);
   await tester.pumpAndSettle(const Duration(seconds: 5));
 
-  final fahadChild = find.text('نورة');
-expect(fahadChild, findsOneWidget, reason: '');
-await tester.tap(fahadChild);
-  await tester.pump(); 
-  await tester.pumpAndSettle(const Duration(seconds: 10)); 
-
-  final settingsButton = find.byIcon(Icons.settings);
-  await tester.pumpAndSettle(const Duration(seconds: 3));
-  expect(settingsButton, findsOneWidget, reason: '');
+  final childTile = find.text('نورة');
+  expect(childTile, findsOneWidget);
+  await tester.tap(childTile);
+  await tester.pumpAndSettle(const Duration(seconds: 10));
 }
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Delete child successfully', (tester) async {
+  testWidgets('Edit child name with empty input', (tester) async {
     await login(tester);
-    await tester.pumpAndSettle(const Duration(seconds: 10));
 
     final settingsButton = find.byIcon(Icons.settings);
     expect(settingsButton, findsOneWidget);
@@ -54,18 +48,20 @@ void main() {
     await tester.tap(childInfoTile);
     await tester.pumpAndSettle();
 
-    final deleteButton = find.text('حذف الطفل');
-    expect(deleteButton, findsOneWidget);
-    await tester.tap(deleteButton);
+    final nameTile = find.widgetWithIcon(ListTile, Icons.edit).at(0);
+    expect(nameTile, findsOneWidget);
+    await tester.tap(nameTile);
     await tester.pumpAndSettle();
 
-    final confirmDeleteButton = find.text('حذف');
-    expect(confirmDeleteButton, findsOneWidget);
-    await tester.tap(confirmDeleteButton);
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    final nameField = find.byType(TextFormField);
+    expect(nameField, findsOneWidget);
+    await tester.enterText(nameField, '');
+    await tester.pumpAndSettle();
 
-expect(find.byType(SnackBar), findsOneWidget);
-expect(find.text('تم حذف الطفل بنجاح'), findsOneWidget);
+    final saveButton = find.text('حفظ');
+    await tester.tap(saveButton);
+    await tester.pumpAndSettle();
 
+    expect(find.text('هذا الحقل مطلوب'), findsOneWidget);
   });
 }

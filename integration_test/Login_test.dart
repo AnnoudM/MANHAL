@@ -21,7 +21,7 @@ void main() {
     await tester.enterText(emailField, 'alanoud.ibrahim5@gmail.com');
 
     final passwordField = find.widgetWithText(TextFormField, 'كلمة المرور');
-    await tester.enterText(passwordField, '12345A');
+    await tester.enterText(passwordField, 'A12345');
 
     final loginButton = find.text('تسجيل');
     await tester.tap(loginButton);
@@ -45,7 +45,7 @@ void main() {
     await tester.enterText(emailField, 'alanoud5@gmail.com');
 
     final passwordField = find.widgetWithText(TextFormField, 'كلمة المرور');
-    await tester.enterText(passwordField, '12345A');
+    await tester.enterText(passwordField, 'A12345');
 
     final loginButton = find.text('تسجيل');
     await tester.tap(loginButton);
@@ -68,7 +68,7 @@ void main() {
     await tester.pumpUntilFound(emailField);
 
     final passwordField = find.widgetWithText(TextFormField, 'كلمة المرور');
-    await tester.enterText(passwordField, '12345A');
+    await tester.enterText(passwordField, 'A12345');
 
     final loginButton = find.text('تسجيل');
     await tester.tap(loginButton);

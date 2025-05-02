@@ -34,38 +34,18 @@ await tester.tap(fahadChild);
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Delete child successfully', (tester) async {
+  testWidgets('Scan clear object successfully', (tester) async {
     await login(tester);
     await tester.pumpAndSettle(const Duration(seconds: 10));
 
-    final settingsButton = find.byIcon(Icons.settings);
-    expect(settingsButton, findsOneWidget);
-    await tester.tap(settingsButton);
-    await tester.pumpAndSettle();
+    final scanButton = find.text('مسح الصورة');
+    expect(scanButton, findsOneWidget, reason: 'زر المسح غير موجود في الهوم بيج');
+    await tester.tap(scanButton);
+    await tester.pumpAndSettle(const Duration(seconds: 15));
 
-    for (var digit in ['1', '1', '1', '1']) {
-      await tester.tap(find.text(digit));
-      await tester.pump(const Duration(milliseconds: 300));
-    }
-    await tester.pumpAndSettle();
+  await tester.tap(find.byIcon(Icons.camera_alt_outlined));
+  await tester.pumpAndSettle(Duration(seconds: 20)); 
 
-    final childInfoTile = find.text('معلومات الطفل');
-    expect(childInfoTile, findsOneWidget);
-    await tester.tap(childInfoTile);
-    await tester.pumpAndSettle();
-
-    final deleteButton = find.text('حذف الطفل');
-    expect(deleteButton, findsOneWidget);
-    await tester.tap(deleteButton);
-    await tester.pumpAndSettle();
-
-    final confirmDeleteButton = find.text('حذف');
-    expect(confirmDeleteButton, findsOneWidget);
-    await tester.tap(confirmDeleteButton);
-    await tester.pumpAndSettle(const Duration(seconds: 2));
-
-expect(find.byType(SnackBar), findsOneWidget);
-expect(find.text('تم حذف الطفل بنجاح'), findsOneWidget);
-
+  expect(find.text('السلام عليكم اسمي نورة'), findsOneWidget);
   });
 }
