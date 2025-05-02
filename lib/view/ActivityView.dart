@@ -7,6 +7,8 @@ import 'ArabicLettersView.dart';
 import 'ArabicNumberView.dart';
 import 'ArabicWordsView.dart';
 import '../constants/word_categories.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 /// Converts an English category key into its Arabic equivalent for display.
 String categoryNameToArabic(String key) {
@@ -80,7 +82,10 @@ class _ActivityViewState extends State<ActivityView> {
 
 /// Displays a dialog showing whether the answer was correct or incorrect, and navigates based on the result.
 void _showAnswerDialog(bool isCorrect, [String? earnedStickerUrl]) async {
-  String message = isCorrect ? "إجابة صحيحة! أكمل التعلم." : "إجابة خاطئة! حاول مرة أخرى.";
+  String message = isCorrect ? "إجابةٌ صَحِيحَةٌ! أَكْمِلِ التَّعَلُّمَ" : "إجابةٌ خَاطِئَةٌ! حَاوِلْ مَرَّةً أُخْرَى.";
+  String visualText = isCorrect
+    ? "إجابة صحيحة! أكمل التعلم."
+    : "إجابة خاطئة! حاول مرة أخرى.";
   Color textColor = isCorrect ? Colors.green : Colors.red;
   String buttonText = "حسنًا";
 
@@ -136,7 +141,7 @@ void _showAnswerDialog(bool isCorrect, [String? earnedStickerUrl]) async {
                 : Image.asset(stickerPath, width: 100, height: 100),
             const SizedBox(height: 16),
             Text(
-              message,
+              visualText,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18),
             ),
@@ -165,7 +170,43 @@ void _showAnswerDialog(bool isCorrect, [String? earnedStickerUrl]) async {
     if (isCorrect) {
       bool hasAnswered = await _controller.hasAnsweredCorrectly(widget.parentId, widget.childId, widget.type, selectedAnswer);
       if (hasAnswered) {
-      _showRepeatedAnswerDialog(); // ديلوق مخصص
+            if (widget.type == "word") {
+        final doc = await FirebaseFirestore.instance
+            .collection("Parent")
+            .doc(widget.parentId)
+            .collection("Children")
+            .doc(widget.childId)
+            .get();
+
+        final data = doc.data();
+        final allWords = data?['progress']?['words'] ?? [];
+        final category = wordToCategory[selectedAnswer] ?? "";
+        final countInCategory = allWords.where((w) => wordToCategory[w] == category).length;
+        final required = wordCategoryThreshold[category] ?? 999;
+
+        if (countInCategory >= required) {
+          final docId = {
+            'shapes': '1',
+            'colors': '2',
+            'animals': '3',
+            'food': '4',
+          }[category];
+
+          final stickerDoc = await FirebaseFirestore.instance
+              .collection('stickersWords')
+              .doc(docId)
+              .get();
+
+          final url = stickerDoc.data()?['link'];
+          if (url != null) {
+            _showAnswerDialog(true, url); // 🎉 عرض دايلوق الستكر حتى لو كانت الإجابة مكررة
+            return;
+          }
+        }
+      }
+
+      // ❌ إجابة مكررة عادية → نعرض الديلوق التقليدي
+      _showRepeatedAnswerDialog();
       return;
     }
       if (!hasAnswered) {
@@ -232,7 +273,10 @@ else if (widget.type == "letter") {
   }
 
 /// Shows a special dialog when the child has already answered this activity before.
-void _showRepeatedAnswerDialog() {
+Future<void> _showRepeatedAnswerDialog() async {
+  await flutterTts.setLanguage("ar-SA");
+  await flutterTts.speak("لَقَدْ أَجَبْتَ عَلَى هٰذَا السُّؤَالِ مِنْ قَبْلِ، جَرِّبْ سُؤَالًا جَدِيدًا!");
+
   Widget nextPage;
   switch (widget.type) {
     case "letter":
@@ -424,7 +468,7 @@ void _showRepeatedAnswerDialog() {
   void _showProgressDialog(String categoryName)async {
 
   await flutterTts.setLanguage("ar-SA"); // Set language to Arabic for TTS
-  await flutterTts.speak("ممتاز! أكمل باقي الأسئلة لمجموعة $categoryName لتحصل على ملصق");
+  await flutterTts.speak("مُمْتَازٌ! أَكْمِلْ بَاقِيَ الأَسْئِلَةِ لِمَجْمُوعَةِ $categoryName لِتَحْصُلَ عَلَى مُلْصَقٍ.");
 
   showDialog(
     context: context,
@@ -442,7 +486,7 @@ void _showRepeatedAnswerDialog() {
           children: [
             const SizedBox(height: 16),
             Text(
-              "ممتاز! أكمل باقي الأسئلة لمجموعة \"$categoryName\" لتحصل على ملصق 🎁",
+              "ممتاز! أكمل باقي الأسئلة لمجموعة \"$categoryName\" لتحصل على ملصق ",
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18),
             ),
