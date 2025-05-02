@@ -133,12 +133,13 @@ Future<void> awardEthicalStickerOnceWithDialog(BuildContext context) async {
   List<dynamic> stickers = data['stickers'] ?? [];
   List<String> stickerIds = stickers.map((s) => s['id'].toString()).toList();
 
+  final stickerDoc = await firestore.collection("stickersVideos").doc(stickerId).get();
   if (stickerIds.contains(stickerId)) {
-    _showAlreadyWatchedDialog(context); 
+    await _showStickerDialog(context, stickerDoc['link']);
     return;
   }
 
-  final stickerDoc = await firestore.collection("stickersVideos").doc(stickerId).get();
+
   if (!stickerDoc.exists) {
     print("❌ لا يوجد ستكر مرتبط بـ level $stickerId");
     return;
@@ -161,7 +162,7 @@ Future<void> awardEthicalStickerOnceWithDialog(BuildContext context) async {
 /// Shows a dialog displaying the awarded sticker.
 Future<void> _showStickerDialog(BuildContext context, String link) async {
 
-await flutterTts.speak("أحسنت! لقد شاهدت الفيديو التعليمي بالكامل.");
+await flutterTts.speak("أَحْسَنْتَ! لَقَدْ شَاهَدْتَ الفِيدْيُو التَّعْلِيمِيَّ بِالكَامِلِ");
   return showDialog(
     context: context,
     barrierDismissible: false,
@@ -174,7 +175,7 @@ await flutterTts.speak("أحسنت! لقد شاهدت الفيديو التعل�
         children: [
           Image.network(link, width: 100, height: 100),
           const SizedBox(height: 10),
-          const Text(" لقد شاهدت الفيديو التعليمي بالكامل، أكمل التعلم.", textAlign: TextAlign.center),
+          const Text("لقد شاهدت الفيديو التعليمي بالكامل.", textAlign: TextAlign.center),
         ],
       ),
       actions: [
@@ -206,11 +207,11 @@ await flutterTts.speak("أحسنت! لقد شاهدت الفيديو التعل�
     ),
   );
 }
-
+/*
 /// Shows a dialog informing the child that the video was already watched.
 void _showAlreadyWatchedDialog(BuildContext context) async {
 
-await flutterTts.speak("لقد شاهدت هذا الفيديو من قبل. جرّب فيديو آخر!"); 
+await flutterTts.speak("لَقَدْ شَاهَدْتَ هٰذَا الفِيدْيُو مِنْ قَبْلِ. جَرِّبْ فِيدْيُو آخَرَ!"); 
 
   showDialog(
     context: context,
@@ -234,7 +235,7 @@ await flutterTts.speak("لقد شاهدت هذا الفيديو من قبل. ج�
     ),
   );
 }
-
+*/
 /// Listens to real-time updates of the child's stickers and refreshes the UI.
 void fetchChildStickers(VoidCallback updateUI) {
   FirebaseFirestore.instance
