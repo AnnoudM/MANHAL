@@ -24,7 +24,7 @@ Future<void> login(WidgetTester tester) async {
   await tester.tap(continueButton);
   await tester.pumpAndSettle(const Duration(seconds: 5));
 
-  final fahadChild = find.text('فهد');
+  final fahadChild = find.text('نورة');
 expect(fahadChild, findsOneWidget, reason: '');
 await tester.tap(fahadChild);
   await tester.pump(); 
@@ -72,6 +72,7 @@ void main() {
       (widget.image as AssetImage).assetName == 'assets/images/Lock.png');
 
     expect(lockIcon, findsWidgets); 
+    await FirebaseAuth.instance.signOut();
   });
 }
 

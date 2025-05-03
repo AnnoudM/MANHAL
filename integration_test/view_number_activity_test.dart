@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:manhal/main.dart' as app;
+import 'package:firebase_auth/firebase_auth.dart';
 
 Future<void> login(WidgetTester tester) async {
   app.main();
@@ -47,6 +48,7 @@ void main() {
     expect(nextButton, findsOneWidget);
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
+    await FirebaseAuth.instance.signOut();
 
     print('View number activity test passed!');
   });

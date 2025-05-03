@@ -29,7 +29,7 @@ void main() {
     await tester.tap(continueButton);
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('يجب أن تتكون كلمة المرور من 6 خانات على الأقل'),
+    expect(find.textContaining('يجب أن تتكون كلمة المرور من 8 خانات على الأقل'),
         findsOneWidget);
 
     print('Weak password test passed!');

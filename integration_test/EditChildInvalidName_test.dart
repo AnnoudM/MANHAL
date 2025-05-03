@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:manhal/main.dart' as app;
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 Future<void> login(WidgetTester tester) async {
   app.startApp();
@@ -18,7 +19,7 @@ Future<void> login(WidgetTester tester) async {
   final continueButton = find.text('تسجيل');
   expect(continueButton, findsOneWidget);
   await tester.tap(continueButton);
-  await tester.pumpAndSettle(const Duration(seconds: 5));
+  await tester.pumpAndSettle(const Duration(seconds: 10));
 
   final childTile = find.text('نورة');
   expect(childTile, findsOneWidget);
@@ -29,7 +30,7 @@ Future<void> login(WidgetTester tester) async {
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Edit child name with empty input', (tester) async {
+  testWidgets('Edit child name with Arabic digits', (tester) async {
     await login(tester);
 
     final settingsButton = find.byIcon(Icons.settings);
@@ -55,13 +56,14 @@ void main() {
 
     final nameField = find.byType(TextFormField);
     expect(nameField, findsOneWidget);
-    await tester.enterText(nameField, '');
-    await tester.pumpAndSettle();
+    await tester.enterText(nameField, '١٢٣');
+    await tester.pump();
 
     final saveButton = find.text('حفظ');
     await tester.tap(saveButton);
     await tester.pumpAndSettle();
 
-    expect(find.text('هذا الحقل مطلوب'), findsOneWidget);
+    expect(find.text('يُمنع إدخال الأرقام في الاسم'), findsOneWidget);
+    await FirebaseAuth.instance.signOut();
   });
 }

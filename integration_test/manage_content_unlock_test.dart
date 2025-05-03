@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:manhal/main.dart' as app;
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 
 Future<void> login(WidgetTester tester) async {
@@ -21,7 +23,7 @@ Future<void> login(WidgetTester tester) async {
   await tester.tap(continueButton);
   await tester.pumpAndSettle(const Duration(seconds: 5));
 
-  final fahadChild = find.text('فهد');
+  final fahadChild = find.text('نورة');
 expect(fahadChild, findsOneWidget, reason: '');
 await tester.tap(fahadChild);
   await tester.pump(); 
@@ -68,5 +70,6 @@ void main() {
       (widget.image as AssetImage).assetName == 'assets/images/Lock.png');
 
     expect(lockIcon, findsNothing); 
+    await FirebaseAuth.instance.signOut();
   });
 }

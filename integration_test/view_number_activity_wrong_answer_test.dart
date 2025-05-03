@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:manhal/main.dart' as app;
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 Future<void> login(WidgetTester tester) async {
   app.main();
@@ -55,6 +57,7 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 3));  
 
     expect(find.textContaining('إجابة خاطئة! حاول مرة أخرى.'), findsOneWidget);
+    await FirebaseAuth.instance.signOut();
 
     print('View number activity test with wrong answer passed!');
   });
