@@ -22,12 +22,37 @@ class _ChildInfoViewState extends State<ChildInfoView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   String? _selectedGender;
-  String? _selectedAge;  // استخدام قيمة النص للعمر بدلاً من int
+  String? _selectedAge;
   String? _selectedPhoto;
 
   final SignUpController _controller = SignUpController();
 
-  final List<String> _ageOptions = ['3', '4', '5', '6', '7', '8'];
+  final List<Map<String, String>> _ageOptions = [
+    {'display': '٣', 'value': '3'},
+    {'display': '٤', 'value': '4'},
+    {'display': '٥', 'value': '5'},
+    {'display': '٦', 'value': '6'},
+    {'display': '٧', 'value': '7'},
+    {'display': '٨', 'value': '8'},
+  ];
+
+  String _convertToArabicNumber(String input) {
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    for (int i = 0; i < english.length; i++) {
+      input = input.replaceAll(english[i], arabic[i]);
+    }
+    return input;
+  }
+
+  String _arabicToEnglishNumber(String input) {
+    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    for (int i = 0; i < arabic.length; i++) {
+      input = input.replaceAll(arabic[i], english[i]);
+    }
+    return input;
+  }
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
@@ -38,43 +63,34 @@ class _ChildInfoViewState extends State<ChildInfoView> {
         return;
       }
 
-      // ✅ إنشاء معرف للطفل
       String childId = FirebaseFirestore.instance.collection('Children').doc().id;
 
-      // ✅ إنشاء كائن الطفل
       Child child = Child(
         id: widget.childId,
         name: _nameController.text.trim(),
         gender: _selectedGender!,
-        age: int.parse(_selectedAge!), // تحويل العمر من نص إلى رقم
+        age: int.parse(_arabicToEnglishNumber(_selectedAge!)),
         photoUrl: _selectedPhoto,
         parentId: widget.parentId,
       );
 
-      // ✅ تسجيل الطفل وحفظ بيانات الوالد
       await _controller.registerParentAndChild(context, child, widget.parentData!);
 
-      // ✅ بعد نجاح التسجيل، عرض نافذة التنبيه
       if (mounted) {
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              backgroundColor: Color(0xFFF8F8F8),
-              title: Text('تم إرسال رابط التحقق', style: TextStyle(fontFamily: 'alfont')),
-              content: Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.', style: TextStyle(fontFamily: 'alfont')),
+              backgroundColor: const Color(0xFFF8F8F8),
+              title: const Text('تم إرسال رابط التحقق', style: TextStyle(fontFamily: 'alfont')),
+              content: const Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.', style: TextStyle(fontFamily: 'alfont')),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => InitialPage(),
-                      ),
-                    );
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => InitialPage()));
                   },
-                  child: Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
+                  child: const Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
                 ),
               ],
             );
@@ -84,62 +100,44 @@ class _ChildInfoViewState extends State<ChildInfoView> {
     }
   }
 
-  // حقل النص
   _buildTextField({
-  required String hintText,
-  required TextEditingController controller,
-  TextInputType keyboardType = TextInputType.text,
-  String? Function(String?)? validator,
-  void Function(String)? onChanged,
-  List<TextInputFormatter>? inputFormatters,
-}) {
-  return TextFormField(
-    controller: controller,
-    keyboardType: keyboardType,
-    validator: (value) {
-      if (value!.isEmpty) {
-        return 'هذا الحقل مطلوب';
-      }
-
-      // التحقق من الأرقام العربية
-      final arabicNameRegex = RegExp(r'^[\u0600-\u06FF\s]+$');
-      final hasNumbers = RegExp(r'[0-9\u0660-\u0669]').hasMatch(value); // تحقق من الأرقام
-      if (hasNumbers) {
-        return 'الاسم لا يمكن أن يحتوي على أرقام';
-      }
-
-      // التحقق من وجود الحروف العربية فقط
-      if (!arabicNameRegex.hasMatch(value)) {
-        return 'الرجاء إدخال الاسم بالحروف العربية فقط';
-      }
-
-      // التحقق من وجود مسافات فقط
-      if (value.trim().isEmpty) {
-        return 'الاسم لا يمكن أن يكون فارغًا أو يحتوي على مسافات فقط';
-      }
-
-      return null;
-    },
-    onChanged: onChanged,
-    inputFormatters: inputFormatters,
-    decoration: InputDecoration(
-      hintText: hintText,
-      hintStyle: const TextStyle(fontFamily: 'alfont'),
-      filled: true,
-      fillColor: const Color(0xFFFFF5CC),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+    required String hintText,
+    required TextEditingController controller,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+    void Function(String)? onChanged,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      validator: (value) {
+        if (value!.isEmpty) return 'هذا الحقل مطلوب';
+        final arabicNameRegex = RegExp(r'^[\u0600-\u06FF\s]+$');
+        final hasNumbers = RegExp(r'[0-9\u0660-\u0669]').hasMatch(value);
+        if (hasNumbers) return 'الاسم لا يمكن أن يحتوي على أرقام';
+        if (!arabicNameRegex.hasMatch(value)) return 'الرجاء إدخال الاسم بالحروف العربية فقط';
+        if (value.trim().isEmpty) return 'الاسم لا يمكن أن يكون فارغًا أو يحتوي على مسافات فقط';
+        return null;
+      },
+      onChanged: onChanged,
+      inputFormatters: inputFormatters,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(fontFamily: 'alfont'),
+        filled: true,
+        fillColor: const Color(0xFFFFF5CC),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
-    ),
-    style: const TextStyle(fontFamily: 'alfont'),
-  );
-}
+      style: const TextStyle(fontFamily: 'alfont'),
+    );
+  }
 
-
-  // حقل اختيار منسدلة
   Widget _buildDropdownField({
     required String hintText,
     required List<String> items,
@@ -149,12 +147,15 @@ class _ChildInfoViewState extends State<ChildInfoView> {
   }) {
     return DropdownButtonFormField<String>(
       value: value,
-      items: items.map((item) => DropdownMenuItem(
-        value: item,
-        child: Text(item,
-          style: const TextStyle(fontFamily: 'alfont', color: Colors.black),
-        ),
-      )).toList(),
+      items: items.map((item) {
+        return DropdownMenuItem<String>(
+          value: item,
+          child: Text(
+            hintText == 'العمر' ? _convertToArabicNumber(item) : item,
+            style: const TextStyle(fontFamily: 'alfont', color: Colors.black),
+          ),
+        );
+      }).toList(),
       onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hintText,
@@ -173,7 +174,6 @@ class _ChildInfoViewState extends State<ChildInfoView> {
     );
   }
 
-  // زر التسجيل
   Widget _buildButton({required String text, required VoidCallback onPressed}) {
     return SizedBox(
       width: double.infinity,
@@ -220,9 +220,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
               right: 20,
               child: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
-                onPressed: () {
-                  Navigator.pop(context, widget.parentData);
-                },
+                onPressed: () => Navigator.pop(context, widget.parentData),
               ),
             ),
             Center(
@@ -232,8 +230,6 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                   child: Form(
                     key: _formKey,
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const SizedBox(height: 50),
                         const Text(
@@ -265,10 +261,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                                 : const AssetImage('assets/images/default_avatar.jpg'),
                             child: const Align(
                               alignment: Alignment.bottomRight,
-                              child: Icon(
-                                Icons.edit,
-                                color: Colors.black,
-                              ),
+                              child: Icon(Icons.edit, color: Colors.black),
                             ),
                           ),
                         ),
@@ -292,7 +285,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                         const SizedBox(height: 15),
                         _buildDropdownField(
                           hintText: 'العمر',
-                          items: _ageOptions,
+                          items: _ageOptions.map((e) => e['value']!).toList(),
                           value: _selectedAge,
                           onChanged: (value) => setState(() => _selectedAge = value),
                           validator: (value) => value == null ? 'هذا الحقل مطلوب' : null,

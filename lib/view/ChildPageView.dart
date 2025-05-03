@@ -21,9 +21,17 @@ class _ChildPageViewState extends State<ChildPageView> {
   late TextEditingController _nameController;
   late TextEditingController _ageController;
   late String? _selectedPhoto;
-  late Child _child; // ✅ المتغير الجديد لتخزين بيانات الطفل
+  late Child _child;
 
-  // دالة تعديل الاسم
+  String _convertToArabicNumber(String input) {
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    for (int i = 0; i < english.length; i++) {
+      input = input.replaceAll(english[i], arabic[i]);
+    }
+    return input;
+  }
+
   void _showEditDialog(String title, String initialValue, Function(String) onSave) {
     TextEditingController textController = TextEditingController(text: initialValue);
     final _formKey = GlobalKey<FormState>();
@@ -40,15 +48,12 @@ class _ChildPageViewState extends State<ChildPageView> {
               controller: textController,
               validator: (value) {
                 if (value!.isEmpty) return 'هذا الحقل مطلوب';
-                // تحقق من أن الاسم يحتوي فقط على الأحرف العربية
                 if (title.contains('الاسم') && !RegExp(r'^[\u0600-\u06FF\s]+$').hasMatch(value)) {
                   return 'يُسمح فقط بالأحرف العربية';
                 }
-                // لا نسمح بأن يكون الاسم مسافات فقط
                 if (value.trim().isEmpty) {
                   return 'الاسم لا يمكن أن يحتوي على مسافات فقط';
                 }
-                // منع الأرقام من اسم الطفل سواء كانت إنجليزية أو عربية
                 if (RegExp(r'[0-9\u0660-\u0669]').hasMatch(value)) {
                   return 'يُمنع إدخال الأرقام في الاسم';
                 }
@@ -81,22 +86,17 @@ class _ChildPageViewState extends State<ChildPageView> {
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
                   String newValue = textController.text.trim();
-
-                  // تحديث القيم المحلية
                   if (title.contains('الاسم')) {
                     setState(() {
                       _child = _child.copyWith(name: newValue);
                     });
                   }
-
-                  // تحديث Firebase
                   try {
                     await _controller.updateChildInfo(_child, (updatedChild) {
                       setState(() {
                         _child = updatedChild;
                       });
                     });
-
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('تم التعديل بنجاح', style: TextStyle(fontFamily: 'alfont')),
@@ -111,7 +111,6 @@ class _ChildPageViewState extends State<ChildPageView> {
                       ),
                     );
                   }
-
                   Navigator.pop(context);
                 }
               },
@@ -126,168 +125,64 @@ class _ChildPageViewState extends State<ChildPageView> {
   @override
   void initState() {
     super.initState();
-    _child = widget.child; // ✅ استخدم نسخة محلية قابلة للتعديل
+    _child = widget.child;
     _nameController = TextEditingController(text: _child.name);
     _ageController = TextEditingController(text: _child.age.toString());
     _selectedPhoto = _child.photoUrl;
   }
 
-  // دالة تعديل العمر كدروب داون
   void _showAgeEditDialog() {
-  List<String> ageOptions = ['3', '4', '5', '6', '7', '8']; // قائمة الأعمار
-
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        backgroundColor: const Color(0xFFF8F8F8),
-        title: const Text('تعديل العمر', style: TextStyle(fontFamily: 'alfont')),
-        content: DropdownButtonFormField<String>(
-          value: _child.age.toString(), // القيمة الحالية للعمر
-          items: ageOptions.map((age) {
-            return DropdownMenuItem<String>(
-              value: age,
-              child: Text(age, style: const TextStyle(fontFamily: 'alfont', color: Colors.black)),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() {
-              // تحديث العمر في _child بشكل محلي
-              _child = _child.copyWith(age: int.parse(value!));
-            });
-          },
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: const Color(0xFFFFF5CC),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), // إغلاق الديالوق عند الإلغاء
-            child: const Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
-          ),
-          TextButton(
-            onPressed: () async {
-              // إغلاق الديالوق عند الضغط على حفظ
-              Navigator.pop(context);
-
-              // عرض السناك بار فورًا
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم التعديل بنجاح', style: TextStyle(fontFamily: 'alfont')),
-                  backgroundColor: Colors.green,
-                ),
-              );
-
-              // تحديث Firebase بعد ذلك
-              await _controller.updateChildInfo(_child, (updatedChild) {
-                setState(() {
-                  _child = updatedChild;
-                });
-              });
-            },
-            child: const Text('حفظ', style: TextStyle(fontFamily: 'alfont')),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-  Future<void> _fetchLatestChildData() async {
-    debugPrint("🔄 جلب أحدث بيانات الطفل من Firebase...");
-    Child? latestChild = await _controller.getChildInfo(_child.parentId, _child.id);
-
-    if (latestChild != null) {
-      debugPrint("✅ تم جلب البيانات الجديدة: ${latestChild.name}, ${latestChild.age}");
-      setState(() {
-        _child = latestChild;
-        _nameController.text = _child.name;
-        _ageController.text = _child.age.toString();
-        _selectedPhoto = _child.photoUrl;
-      });
-    } else {
-      debugPrint("⚠️ لم يتم العثور على بيانات الطفل المحدثة.");
-    }
-  }
-
-  void _updateChildInfo() async {
-    if (_formKey.currentState!.validate()) {
-      String newName = _nameController.text.trim();
-      int newAge = int.tryParse(_ageController.text.trim()) ?? _child.age;
-
-      // Create updated child object with all fields
-      Child updatedChild = _child.copyWith(
-        name: newName,
-        age: newAge,
-        photoUrl: _selectedPhoto,
-      );
-
-      // Update local state
-      setState(() {
-        _child = updatedChild;
-      });
-
-      // Call controller to update Firebase
-      await _controller.updateChildInfo(updatedChild, (updatedChildFromDB) {
-        debugPrint("✅ البيانات تم تحديثها بنجاح!");
-
-        setState(() {
-          _child = updatedChildFromDB;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم تعديل المعلومات بنجاح', style: TextStyle(fontFamily: 'alfont')),
-            backgroundColor: Colors.green,
-          ),
-        );
-      });
-    }
-  }
-
-  void _deleteChild() {
+    List<String> ageOptions = ['3', '4', '5', '6', '7', '8'];
     showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFFF8F8F8),
-          title: const Text('تأكيد الحذف', style: TextStyle(fontFamily: 'alfont')),
-          content: const Text('هل أنت متأكد من حذف هذا الطفل؟', style: TextStyle(fontFamily: 'alfont')),
+          title: const Text('تعديل العمر', style: TextStyle(fontFamily: 'alfont')),
+          content: DropdownButtonFormField<String>(
+            value: _child.age.toString(),
+            items: ageOptions.map((age) {
+              return DropdownMenuItem<String>(
+                value: age,
+                child: Text(_convertToArabicNumber(age), style: const TextStyle(fontFamily: 'alfont')),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _child = _child.copyWith(age: int.parse(value!));
+              });
+            },
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFFFFF5CC),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            ),
+          ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
+              onPressed: () => Navigator.pop(context),
               child: const Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
             ),
             TextButton(
               onPressed: () async {
-                // أولاً، أغلق dialog الحذف
-                Navigator.pop(dialogContext);
-
-                // ثم قم بحذف الطفل
-                await _controller.deleteChild(widget.child.parentId, widget.child.id);
-
-                // انتقل إلى صفحة ChildListView مع إزالة كل الصفحات السابقة
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ChildListView()),
-                  (route) => false, // هذا سيزيل كل الصفحات السابقة
-                );
-
-                // إظهار رسالة النجاح
+                Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('تم حذف الطفل بنجاح', style: TextStyle(fontFamily: 'alfont')),
+                    content: Text('تم التعديل بنجاح', style: TextStyle(fontFamily: 'alfont')),
                     backgroundColor: Colors.green,
                   ),
                 );
+                await _controller.updateChildInfo(_child, (updatedChild) {
+                  setState(() {
+                    _child = updatedChild;
+                  });
+                });
               },
-              child: const Text('حذف', style: TextStyle(fontFamily: 'alfont', color: Colors.red)),
+              child: const Text('حفظ', style: TextStyle(fontFamily: 'alfont')),
             ),
           ],
         );
@@ -303,7 +198,6 @@ class _ChildPageViewState extends State<ChildPageView> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
-            /// ✅ **إضافة الخلفية الصحيحة بحيث تتناسب مع باقي الصفحات**
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
@@ -312,10 +206,8 @@ class _ChildPageViewState extends State<ChildPageView> {
                 ),
               ),
             ),
-
-            /// ✅ **العنوان وزر الرجوع (بدون AppBar)**
             Positioned(
-              top: 50, // مسافة من الأعلى لضبط مكان العنوان مثل الـ AppBar السابق
+              top: 50,
               left: 0,
               right: 0,
               child: Padding(
@@ -327,7 +219,7 @@ class _ChildPageViewState extends State<ChildPageView> {
                       icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    const SizedBox(width: 50), // مسافة صغيرة بين السهم والعنوان
+                    const SizedBox(width: 50),
                     const Text(
                       'معلومات الطفل',
                       style: TextStyle(
@@ -341,14 +233,11 @@ class _ChildPageViewState extends State<ChildPageView> {
                 ),
               ),
             ),
-
-            /// ✅ **المحتوى الأساسي للصفحة**
             Padding(
-              padding: const EdgeInsets.only(top: 130, left: 20, right: 20), // تأخير المحتوى ليكون أسفل العنوان الجديد
+              padding: const EdgeInsets.only(top: 130, left: 20, right: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  /// ✅ صورة الطفل مع إمكانية التعديل
                   Center(
                     child: GestureDetector(
                       onTap: () async {
@@ -361,15 +250,12 @@ class _ChildPageViewState extends State<ChildPageView> {
                             _selectedPhoto = selectedPhoto;
                             _child = _child.copyWith(photoUrl: selectedPhoto);
                           });
-
-                          // تحديث Firebase
                           try {
                             await _controller.updateChildInfo(_child, (updatedChild) {
                               setState(() {
                                 _child = updatedChild;
                               });
                             });
-
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('تم تحديث الصورة بنجاح', style: TextStyle(fontFamily: 'alfont')),
@@ -396,36 +282,24 @@ class _ChildPageViewState extends State<ChildPageView> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
-                  /// ✅ الحقول القابلة للتعديل
                   _buildEditableField(
                     'الاسم',
                     _child.name,
-                    () => _showEditDialog(
-                      'تعديل الاسم',
-                      _child.name,
-                      (newName) {
-                        setState(() {
-                          _child = _child.copyWith(name: newName);
-                        });
-                        _updateChildInfo();
-                      },
-                    ),
+                    () => _showEditDialog('تعديل الاسم', _child.name, (newName) {
+                      setState(() {
+                        _child = _child.copyWith(name: newName);
+                      });
+                      _updateChildInfo();
+                    }),
                   ),
-
                   _buildEditableField(
                     'العمر',
-                    _child.age.toString(),
+                    _convertToArabicNumber(_child.age.toString()),
                     () => _showAgeEditDialog(),
                   ),
-
                   _buildStaticField('الجنس', widget.child.gender),
-
                   const Spacer(),
-
-                  /// ✅ زر حذف الطفل
                   _buildActionButton(context, 'حذف الطفل', Colors.redAccent, _deleteChild),
                 ],
               ),
@@ -433,6 +307,59 @@ class _ChildPageViewState extends State<ChildPageView> {
           ],
         ),
       ),
+    );
+  }
+
+  void _updateChildInfo() async {
+    if (_formKey.currentState?.validate() ?? true) {
+      await _controller.updateChildInfo(_child, (updatedChildFromDB) {
+        setState(() {
+          _child = updatedChildFromDB;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم تعديل المعلومات بنجاح', style: TextStyle(fontFamily: 'alfont')),
+            backgroundColor: Colors.green,
+          ),
+        );
+      });
+    }
+  }
+
+  void _deleteChild() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFF8F8F8),
+          title: const Text('تأكيد الحذف', style: TextStyle(fontFamily: 'alfont')),
+          content: const Text('هل أنت متأكد من حذف هذا الطفل؟', style: TextStyle(fontFamily: 'alfont')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                await _controller.deleteChild(widget.child.parentId, widget.child.id);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ChildListView()),
+                  (route) => false,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('تم حذف الطفل بنجاح', style: TextStyle(fontFamily: 'alfont')),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              child: const Text('حذف', style: TextStyle(fontFamily: 'alfont', color: Colors.red)),
+            ),
+          ],
+        );
+      },
     );
   }
 

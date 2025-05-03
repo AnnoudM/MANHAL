@@ -32,6 +32,15 @@ class _ChildProfileViewState extends State<ChildProfileView> {
     _controller = ChildProfileController(childID: widget.childID);
   }
 
+  String _convertToArabicNumber(String input) {
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    for (int i = 0; i < english.length; i++) {
+      input = input.replaceAll(english[i], arabic[i]);
+    }
+    return input;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,7 +56,7 @@ class _ChildProfileViewState extends State<ChildProfileView> {
             ),
           ),
 
-          // زر الرجوع في أعلى اليمين
+          // زر الرجوع
           Positioned(
             top: 40,
             right: 20,
@@ -58,14 +67,14 @@ class _ChildProfileViewState extends State<ChildProfileView> {
                 size: 30,
               ),
               onPressed: () {
-                Navigator.pop(context); // العودة إلى الصفحة السابقة
+                Navigator.pop(context);
               },
             ),
           ),
 
           // المحتوى
           StreamBuilder<DocumentSnapshot>(
-            stream: _controller.childStream(), // 🔹 متابعة أي تغييرات على الطفل
+            stream: _controller.childStream(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -78,35 +87,38 @@ class _ChildProfileViewState extends State<ChildProfileView> {
               String updatedPhotoUrl =
                   childData['photoUrl'] ?? 'assets/images/default_avatar.jpg';
 
+              String age = childData['age'] != null
+                  ? _convertToArabicNumber(childData['age'].toString())
+                  : 'غير محدد';
+
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Stack(
-                    alignment: Alignment.topRight, // تغيير محاذاة الأيقونة للأعلى قليلاً
+                    alignment: Alignment.topRight,
                     children: [
                       CircleAvatar(
                         backgroundImage: AssetImage(updatedPhotoUrl),
                         radius: 70,
                       ),
                       Positioned(
-                        bottom: -10, // 🔹 رفع الأيقونة قليلاً للأعلى
-                        right: -10, // 🔹 إبعادها قليلاً عن الصورة
+                        bottom: -10,
+                        right: -10,
                         child: IconButton(
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => SelectImageView(
-                                  childID: widget.childID,
-                                ),
+                                builder: (context) =>
+                                    SelectImageView(childID: widget.childID),
                               ),
                             );
                           },
                           icon: Image.asset(
-    'assets/images/editAvatar.png',
-    width: 50, // Set the width and height as needed
-    height: 50,
-  ),
+                            'assets/images/editAvatar.png',
+                            width: 50,
+                            height: 50,
+                          ),
                           iconSize: 30,
                         ),
                       ),
@@ -122,7 +134,8 @@ class _ChildProfileViewState extends State<ChildProfileView> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Row(mainAxisAlignment: MainAxisAlignment.center,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Column(
                         children: [
@@ -135,7 +148,7 @@ class _ChildProfileViewState extends State<ChildProfileView> {
                             ),
                           ),
                           Text(
-                            "${childData['age'] ?? 'غير محدد'}",
+                            age,
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
