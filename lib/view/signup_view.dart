@@ -111,29 +111,29 @@ class _SignUpViewState extends State<SignUpView> {
                             });
                           },
                           validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'يرجى إدخال كلمة المرور';
-                            }
-                            if (value.length < 8) {
-                              return 'يجب أن تتكون كلمة المرور من 8 خانات على الأقل';
-                            }
+  if (value == null || value.isEmpty) {
+    return 'يرجى إدخال كلمة المرور';
+  }
+  if (value.length < 8) {
+    return 'يجب أن تتكون كلمة المرور من 8 خانات على الأقل';
+  }
 
-                            bool hasLetter = value.contains(RegExp(r'[a-zA-Z]'));
-                            bool hasNumber = value.contains(RegExp(r'[0-9]'));
-                            bool hasSymbol = value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+  bool hasLetter = value.contains(RegExp(r'[a-zA-Z]'));
+  bool hasNumber = value.contains(RegExp(r'[0-9]'));
+  bool hasSymbol = value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
 
-                            if (!(hasLetter && hasNumber) && !(hasLetter && hasSymbol) && !(hasNumber && hasSymbol)) {
-                              return 'كلمة المرور لا تطابق الشروط المطلوبة!';
-                            }
+  if (!(hasLetter && hasNumber && hasSymbol)) {
+    return 'يجب أن تحتوي كلمة المرور على حرف واحد على الأقل، ورقم، ورمز';
+  }
 
-                            return null;
-                          },
+  return null;
+},
                         ),
                         const SizedBox(height: 5),
                         const Align(
                           alignment: Alignment.centerRight,
                           child: Text(
-                            'يجب أن تحتوي كلمة المرور على 8 خانات على الأقل وتتضمن أحرف وأرقام.',
+                            'يجب أن تحتوي كلمة المرور على 8 خانات على الأقل وتتضمن أحرف وأرقام ورموز.',
                             style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'alfont'),
                             textAlign: TextAlign.right,
                           ),
