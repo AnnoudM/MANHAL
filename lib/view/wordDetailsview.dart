@@ -178,26 +178,35 @@ class _WordDetailsPageState extends State<WordDetailsPage> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Row(
-                    children: const [
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            "التالي",
-                            style: TextStyle(
-                                fontSize: 40,
-                                color: Color(0xFF3F414E),
-                                fontFamily: "Blabeloo"),
-                          ),
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward,
-                        size: 34,
-                        color: Color(0xFF3F414E),
-                      ),
-                    ],
-                  ),
+                  child: Stack(
+  children: [
+    Align(
+      alignment: Alignment.center,
+      child: Text(
+        "التالي",
+        style: TextStyle(
+          fontSize: 40,
+          color: Color(0xFF3F414E),
+          fontFamily: "Blabeloo",
+        ),
+      ),
+    ),
+    Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: EdgeInsets.only(left: 12),
+        child: Transform.rotate(
+          angle: 3.1416,
+          child: Icon(
+            Icons.arrow_back_ios,
+            size: 34,
+            color: Color(0xFF3F414E),
+          ),
+        ),
+      ),
+    ),
+  ],
+),
                 ),
               ),
             ),

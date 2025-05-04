@@ -293,20 +293,35 @@ class _ArabicLetterPageState extends State<ArabicLetterPage> {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: Row(
-          children: const [
-            Expanded(
-              child: Center(
-                child: Text("التالي",
-                    style: TextStyle(
-                        fontSize: 40,
-                        color: Color(0xFF3F414E),
-                        fontFamily: "Blabeloo")),
+        child: Stack(
+        children: [
+          Center(
+            child: Text(
+              "التالي",
+              style: TextStyle(
+                fontSize: 40,
+                color: Color(0xFF3F414E),
+                fontFamily: "Blabeloo",
               ),
             ),
-            Icon(Icons.arrow_forward, size: 34, color: Color(0xFF3F414E)),
-          ],
-        ),
+          ),
+          Positioned(
+            left: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: Transform.rotate(
+                angle: 3.1416,  // يقلب السهم لليسار
+                child: Icon(
+                  Icons.arrow_back_ios,
+                  size: 30,
+                  color: Color(0xFF3F414E),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
       ),
     );
   }

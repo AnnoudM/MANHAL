@@ -168,28 +168,43 @@ child: Center(
                               );
                             },
                             child: Container(
-                              width: double.infinity,
-                              margin: EdgeInsets.symmetric(horizontal: 20),
-                              padding: EdgeInsets.symmetric(vertical: 15),
-                              decoration: BoxDecoration(
-                                color: Color(0xFFF9EAFB),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.arrow_back, color: Colors.black),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    "التالي",
-                                    style: TextStyle(
-                                        fontSize: 40,
-                                        color: Colors.black,
-                                        fontFamily: 'Blabeloo'),
-                                  ),
-                                ],
-                              ),
-                            ),
+  width: double.infinity,
+  margin: EdgeInsets.symmetric(horizontal: 20),
+  padding: EdgeInsets.symmetric(vertical: 15),
+  decoration: BoxDecoration(
+    color: Color(0xFFF9EAFB),
+    borderRadius: BorderRadius.circular(20),
+  ),
+child: Stack(
+  children: [
+    Center(
+      child: Text(
+        "التالي",
+        style: TextStyle(
+          fontSize: 40,
+          color: Colors.black,
+          fontFamily: 'Blabeloo',
+        ),
+      ),
+    ),
+    Positioned(
+      left: 12,    // المسافة من اليسار
+      top: 0,
+      bottom: 0,   // يضمن أنه يمتد بكامل ارتفاع الزر
+      child: Center(
+        child: Transform.rotate(
+          angle: 3.1416,  // يقلب السهم
+          child: Icon(
+            Icons.arrow_back_ios,
+            color: Colors.black,
+            size: 30,
+          ),
+        ),
+      ),
+    ),
+  ],
+),
+),
                           ),
                         ),
                       ],
