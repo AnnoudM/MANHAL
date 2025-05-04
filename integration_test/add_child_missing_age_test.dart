@@ -32,9 +32,11 @@ void main() {
     expect(addChildButton, findsOneWidget);
     await tester.tap(addChildButton);
     await tester.pumpAndSettle();
+
     final editPhotoIcon = find.byIcon(Icons.edit);
     await tester.tap(editPhotoIcon);
     await tester.pumpAndSettle();
+
     final avatar = find.byType(GestureDetector).at(8);
     await tester.tap(avatar);
     await tester.pumpAndSettle();
@@ -45,17 +47,18 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).at(0), 'لولو');
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.tap(find.byType(DropdownButtonFormField<String>).at(0));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('أنثى').last);
+    await tester.tap(find.text('أنثى').first);
     await tester.pumpAndSettle();
+
 
     final confirmButton = find.text('إضافة');
     expect(confirmButton, findsOneWidget);
     await tester.tap(confirmButton);
     await tester.pumpAndSettle();
 
-    expect(find.text('يرجى إدخال عمر صحيح'), findsOneWidget);
+    expect(find.text('هذا الحقل مطلوب'), findsWidgets);
 
     print('Add child test - missing age passed!');
   });

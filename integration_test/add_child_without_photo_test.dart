@@ -12,7 +12,8 @@ Future<void> login(WidgetTester tester) async {
   await tester.tap(loginButton);
   await tester.pumpAndSettle();
 
-  await tester.enterText(find.byType(TextFormField).at(0), 'Raghadkhalid.sa@outlook.com');
+  await tester.enterText(
+      find.byType(TextFormField).at(0), 'Raghadkhalid.sa@outlook.com');
   await tester.enterText(find.byType(TextFormField).at(1), 'A12345\$');
 
   final continueButton = find.text('تسجيل');
@@ -24,7 +25,7 @@ Future<void> login(WidgetTester tester) async {
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Add child with valid data but without photo', (tester) async {
+  testWidgets('Create Account - valid information', (tester) async {
     await login(tester);
 
     final addChildButton = find.text('طفل جديد');
@@ -32,12 +33,17 @@ void main() {
     await tester.tap(addChildButton);
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextFormField).at(0), 'لولو'); 
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.enterText(find.byType(TextFormField).at(0), 'لولو');
+
+    await tester.tap(find.byType(DropdownButton<String>).at(0));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('أنثى').last);
+    await tester.tap(find.text('أنثى').first);
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextFormField).at(1), '5');
+
+    await tester.tap(find.byType(DropdownButton<String>).at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('٥').first);
+    await tester.pumpAndSettle();
 
     final confirmButton = find.text('إضافة');
     expect(confirmButton, findsOneWidget);
@@ -45,6 +51,6 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 5));
 
     expect(find.textContaining('تمت إضافة الطفل بنجاح'), findsOneWidget);
-    print('Add child without photo test passed!');
+    print('Create Account - valid information test passed!');
   });
 }
