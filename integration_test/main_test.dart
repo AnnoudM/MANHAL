@@ -45,7 +45,7 @@ void main() {
     edit_child_invalid.main();
     edit_child_valid.main();
 
-    lock_content.main(); // اتاكد قبل التست ان الحرف مب مقفل اوريدي
+    lock_content.main(); 
     unlock_content.main(); 
 
     empty_email.main();
@@ -54,24 +54,23 @@ void main() {
     invalid_email.main();
     mismatch_passwords.main();
     weak_password.main();
-   // create_account.main();
+    create_account.main();
 
     number_activity.main();
     number_wrong.main();
     number_correct.main();
-    delete_child.main(); // اتاكد ان التشايلد اللي حاطته موجود اصلا
+    delete_child.main();  
 
-    scan_clear.main();
+    scan_clear.main(); 
     scan_unclear.main();
 
-   /* add_child_empty_name.main();
+    add_child_empty_name.main();
     add_child_gender.main();
     add_child_age.main();
     add_child_valid.main();
-    add_child_no_photo.main(); */
+    add_child_no_photo.main(); 
 
-   // ethical.main();
-
+    ethical.main();
 
   });
 }

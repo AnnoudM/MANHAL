@@ -22,7 +22,7 @@ Future<void> login(WidgetTester tester) async {
   await tester.tap(continueButton);
   await tester.pumpAndSettle(const Duration(seconds: 5));
 
-  final fahadChild = find.text('سارة');
+  final fahadChild = find.text('محمد');
 expect(fahadChild, findsOneWidget, reason: '');
 await tester.tap(fahadChild);
   await tester.pump(); 

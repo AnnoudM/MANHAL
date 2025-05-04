@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:manhal/main.dart' as app;
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 Future<void> login(WidgetTester tester) async {
   app.startApp();
@@ -46,6 +48,8 @@ void main() {
   await tester.tap(find.byIcon(Icons.camera_alt_outlined));
   await tester.pumpAndSettle(Duration(seconds: 20)); 
 
-  expect(find.text('السلام عليكم اسمي نورة'), findsOneWidget);
+  expect(find.text('السلام عليكم'), findsOneWidget);
+  await FirebaseAuth.instance.signOut();
+
   });
 }

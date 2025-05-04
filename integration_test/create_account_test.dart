@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:manhal/main.dart' as app;
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 Future<void> login(WidgetTester tester) async {
   app.main();
@@ -66,6 +68,8 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 5));
 
     expect(find.textContaining('تمت إضافة الطفل بنجاح'), findsOneWidget);
+    await FirebaseAuth.instance.signOut();
+
     print('Add child with photo test passed!');
   });
 }
