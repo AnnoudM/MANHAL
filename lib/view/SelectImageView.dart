@@ -3,25 +3,25 @@ import '../controller/SelectImageController.dart';
 import '../model/SelectImageModel.dart';
 
 class SelectImageView extends StatefulWidget {
-  final String? childID; // معرف الطفل اختياري
+  final String? childID;
 
- const SelectImageView({super.key, this.childID});
+  const SelectImageView({super.key, this.childID});
 
-   @override
+  @override
   _SelectImageViewState createState() => _SelectImageViewState();
 }
 
 class _SelectImageViewState extends State<SelectImageView> {
   final SelectImageController _controller = SelectImageController();
   final SelectImageModel _model = SelectImageModel();
-  String? selectedImage; // الصورة المختارة
+  String? selectedImage;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // الخلفية
+          // background image
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -30,7 +30,7 @@ class _SelectImageViewState extends State<SelectImageView> {
               ),
             ),
           ),
-          // زر الرجوع
+          // back button
           Positioned(
             top: 40,
             right: 20,
@@ -57,6 +57,7 @@ class _SelectImageViewState extends State<SelectImageView> {
                 ),
               ),
               const SizedBox(height: 20),
+              // grid of images
               Expanded(
                 child: Center(
                   child: GridView.builder(
@@ -71,7 +72,7 @@ class _SelectImageViewState extends State<SelectImageView> {
                       return GestureDetector(
                         onTap: () {
                           setState(() {
-                            selectedImage = _model.images[index]; // تحديد الصورة المختارة
+                            selectedImage = _model.images[index];
                           });
                         },
                         child: Container(
@@ -94,6 +95,7 @@ class _SelectImageViewState extends State<SelectImageView> {
                   ),
                 ),
               ),
+              // save button
               Padding(
                 padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
                 child: SizedBox(
@@ -107,24 +109,21 @@ class _SelectImageViewState extends State<SelectImageView> {
                       ),
                     ),
                     onPressed: () {
-  if (selectedImage != null) {
-    if (widget.childID != null) {
-      // تحديث صورة الطفل في قاعدة البيانات
-      _controller.updateChildImage(context, widget.childID!, selectedImage!);
-    } else {
-      // الحالة عند تسجيل الطفل، احفظ الصورة بشكل مؤقت أو مررها للخطوة التالية
-      Navigator.pop(context, selectedImage);
-    }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("❌ الرجاء اختيار صورة!"),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-},
-
+                      if (selectedImage != null) {
+                        if (widget.childID != null) {
+                          _controller.updateChildImage(context, widget.childID!, selectedImage!);
+                        } else {
+                          Navigator.pop(context, selectedImage);
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("❌ الرجاء اختيار صورة!"),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
                     child: const Text(
                       "حفظ",
                       style: TextStyle(

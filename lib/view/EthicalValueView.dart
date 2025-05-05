@@ -8,9 +8,11 @@ class EthicalValueView extends StatefulWidget {
   final String parentId;
   final String childId;
 
-  const EthicalValueView(
-      {Key? key, required this.parentId, required this.childId})
-      : super(key: key);
+  const EthicalValueView({
+    Key? key,
+    required this.parentId,
+    required this.childId,
+  }) : super(key: key);
 
   @override
   _EthicalValueViewState createState() => _EthicalValueViewState();
@@ -26,7 +28,7 @@ class _EthicalValueViewState extends State<EthicalValueView>
   void initState() {
     super.initState();
 
-    // ✅ إعداد أنيميشن القفز للكتكوت
+    // setup jump animation for the chick
     _jumpController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -43,14 +45,13 @@ class _EthicalValueViewState extends State<EthicalValueView>
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         alignment: Alignment.center,
         children: [
-          // 🔹 الخلفية
+          // background
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -60,9 +61,9 @@ class _EthicalValueViewState extends State<EthicalValueView>
             ),
           ),
 
-          // 🔹 زر الرجوع والعنوان العلوي
+          // back button + title
           Positioned(
-            top: 40, // ✅ تعديل المسافة العلوية
+            top: 40,
             left: 10,
             right: 10,
             child: Column(
@@ -85,31 +86,30 @@ class _EthicalValueViewState extends State<EthicalValueView>
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(width: 40), // ✅ محاذاة للوسط
+                    const SizedBox(width: 40),
                   ],
                 ),
-                const SizedBox(height: 10), // ✅ مسافة بين العنوان والمحتوى
+                const SizedBox(height: 10),
               ],
             ),
           ),
 
-          // 🔹 الكأس
+          // trophy image
           Positioned(
-            top: 80, // ✅ تعديل المسافة بعد العنوان
+            top: 80,
             left: MediaQuery.of(context).size.width / 2 - 50,
             child: Image.asset("assets/images/trophy.png", width: 90),
           ),
 
-          // 🔹 المسار
+          // path
           Positioned(
-            top: 180, // ✅ تعديل المسافة بعد الكأس
+            top: 180,
             left: MediaQuery.of(context).size.width * 0.08,
             width: MediaQuery.of(context).size.width * 0.5,
-            child:
-                Image.asset("assets/images/Pathway.png", fit: BoxFit.contain),
+            child: Image.asset("assets/images/Pathway.png", fit: BoxFit.contain),
           ),
 
-          // 🔹 استرجاع مستوى الطفل والقيم الأخلاقية
+          // fetch child level + ethical values
           StreamBuilder<int?>(
             stream: _ethicalController.fetchChildLevel(
                 widget.parentId, widget.childId),
@@ -120,25 +120,20 @@ class _EthicalValueViewState extends State<EthicalValueView>
 
               return StreamBuilder<List<EthicalValueModel>>(
                 stream: _ethicalController.fetchAllEthicalValues(
-                    widget.parentId,
-                    widget
-                        .childId), // raghad:new code - تمرير الـ parentId والـ childId
+                    widget.parentId, widget.childId),
                 builder: (context, valuesSnapshot) {
                   if (!valuesSnapshot.hasData)
                     return const Center(child: CircularProgressIndicator());
                   List<EthicalValueModel> ethicalValues =
                       valuesSnapshot.data ?? [];
+
                   return Stack(
                     children: [
-                      // ✅ وضع القيم الأخلاقية على المسار
+                      // place each ethical value on the path
                       ...ethicalValues.map((ethicalValue) {
                         bool isUnlocked = ethicalValue.level <= childLevel;
-                      
-
-                        double positionTop =
-                            _getPositionForLevel(ethicalValue.level) + 85;
-                        double positionLeft =
-                            _getLeftPositionForLevel(ethicalValue.level) - 20;
+                        double positionTop = _getPositionForLevel(ethicalValue.level) + 85;
+                        double positionLeft = _getLeftPositionForLevel(ethicalValue.level) - 20;
 
                         return Positioned(
                           top: positionTop,
@@ -191,7 +186,7 @@ class _EthicalValueViewState extends State<EthicalValueView>
                                   ),
                                 ),
 
-                                // ✅ إضافة القفل فقط للقيم المغلقة
+                                // show lock icon if the value is locked
                                 if (!isUnlocked) 
                                   const Positioned(
                                     bottom: 8,
@@ -205,7 +200,7 @@ class _EthicalValueViewState extends State<EthicalValueView>
                         );
                       }).toList(),
 
-                      // ✅ وضع الكتكوت المتحرك حسب مستوى الطفل
+                      // animated chick based on current level
                       AnimatedBuilder(
                         animation: _jumpController,
                         builder: (context, child) {
@@ -213,8 +208,7 @@ class _EthicalValueViewState extends State<EthicalValueView>
                             top: _getPositionForLevel(childLevel) +
                                 _jumpAnimation.value +
                                 90,
-                            left: _getLeftPositionForLevel(childLevel) -
-                                90, // ✅ جعله أكثر إلى اليسار
+                            left: _getLeftPositionForLevel(childLevel) - 90,
                             child: Image.asset(
                               childLevel >= 7
                                   ? "assets/images/happyChick.png"
@@ -248,7 +242,7 @@ class _EthicalValueViewState extends State<EthicalValueView>
       case 5:
         return 185;
       case 6:
-      case 7: // ✅ مستوى 7 نفس موقع مستوى 6
+      case 7:
         return 100;
       default:
         return 600;
@@ -268,7 +262,7 @@ class _EthicalValueViewState extends State<EthicalValueView>
       case 5:
         return 120;
       case 6:
-      case 7: // ✅ مستوى 7 نفس موقع مستوى 6
+      case 7:
         return 210;
       default:
         return 140;

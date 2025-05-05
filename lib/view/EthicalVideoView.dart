@@ -40,6 +40,7 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
       body: Stack(
         alignment: Alignment.center,
         children: [
+          // background image
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -48,6 +49,8 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
               ),
             ),
           ),
+
+          // top bar with back button and title
           Positioned(
             top: 40,
             left: 10,
@@ -79,6 +82,8 @@ class _EthicalVideoViewState extends State<EthicalVideoView> {
               ],
             ),
           ),
+
+          // video player or loader
           Center(
             child: _controller != null &&
                     _controller!.videoController != null &&

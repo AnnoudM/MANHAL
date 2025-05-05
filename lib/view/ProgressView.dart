@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/ProgressController.dart';
+
 class ProgressView extends StatelessWidget {
   final String parentId;
   final String childId;
@@ -8,7 +9,7 @@ class ProgressView extends StatelessWidget {
   const ProgressView({Key? key, required this.parentId, required this.childId})
       : super(key: key);
 
-  // تحويل اسم الفئة إلى العربية
+  // convert category key to Arabic label
   String getArabicCategoryName(String englishName) {
     switch (englishName) {
       case 'letters':
@@ -24,7 +25,7 @@ class ProgressView extends StatelessWidget {
     }
   }
 
-  // تحويل الأرقام إلى الأرقام العربية
+  // convert digits to Arabic numerals
   String convertToArabicNumbers(int number) {
     String englishNumbers = number.toString();
     Map<String, String> arabicNumbers = {
@@ -49,18 +50,18 @@ class ProgressView extends StatelessWidget {
       child: Scaffold(
         body: Stack(
           children: [
-            // الخلفية الشاملة للـ AppBar وللمحتوى
+            // background image behind app bar and content
             Positioned.fill(
               child: Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage("assets/images/BackGroundManhal.jpg"),
-                    fit: BoxFit.cover, // تغطية الشاشة بالكامل
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
             ),
-            // الأب بار
+            // transparent app bar
             Positioned(
               top: 0,
               left: 0,
@@ -71,17 +72,17 @@ class ProgressView extends StatelessWidget {
                   style: TextStyle(fontFamily: 'alfont', fontSize: 28),
                 ),
                 centerTitle: true,
-                backgroundColor: Colors.transparent, // الأب بار شفاف
-                elevation: 0, // إزالة الظل من الأب بار
+                backgroundColor: Colors.transparent,
+                elevation: 0,
               ),
             ),
-            // المحتوى
+            // main content
             Positioned.fill(
-              top: 80, // تأكيد ترك مساحة للأب بار
+              top: 80,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center, // جعل المحتوى في منتصف الصفحة
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Padding(
                       padding: EdgeInsets.only(bottom: 16.0),
@@ -112,8 +113,8 @@ class ProgressView extends StatelessWidget {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12.0),
                                   ),
-                                  color: Colors.white, // المستطيلات بيضاء
-                                  elevation: 3, // إضافة ظل خفيف
+                                  color: Colors.white,
+                                  elevation: 3,
                                   child: Padding(
                                     padding: const EdgeInsets.all(16.0),
                                     child: Column(

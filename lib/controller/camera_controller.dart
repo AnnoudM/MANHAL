@@ -4,7 +4,7 @@ class CameraService {
   CameraController? _controller;
   List<CameraDescription>? _cameras;
 
-  // Initialize camera when app starts
+  // setup camera on app start
   Future<void> initializeCamera() async {
     _cameras = await availableCameras();
     _controller = CameraController(
@@ -15,7 +15,7 @@ class CameraService {
     await _controller!.initialize();
   }
 
-  // Capture an image and return its path
+  // take a photo and return the path
   Future<String?> captureImage() async {
     if (_controller == null || !_controller!.value.isInitialized) {
       return null;
@@ -24,12 +24,12 @@ class CameraService {
     return image.path;
   }
 
-  // Dispose camera when not needed
+  // clean up the camera
   void disposeCamera() {
     _controller?.dispose();
   }
 
-  // Return current controller (used for preview)
+  // get camera controller for preview
   CameraController? getController() {
     return _controller;
   }

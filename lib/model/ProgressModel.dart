@@ -14,7 +14,7 @@ class ProgressModel {
   static Future<List<ProgressModel>> fetchProgress(String parentId, String childId) async {
     List<ProgressModel> progressList = [];
 
-    // ✅ جلب بيانات الطفل
+    // get child's data
     DocumentSnapshot childDoc = await FirebaseFirestore.instance
         .collection('Parent')
         .doc(parentId)
@@ -22,13 +22,13 @@ class ProgressModel {
         .doc(childId)
         .get();
 
-    // ✅ التأكد من وجود progress قبل استخدامه
+    // make sure "progress" exists
     Map<String, dynamic> progressMap = {};
     if (childDoc.exists && childDoc.data() != null) {
       progressMap = (childDoc.data() as Map<String, dynamic>)['progress'] ?? {};
     }
 
-    // ✅ جلب جميع الفئات (الحروف، الأرقام، الكلمات)
+    // get all categories (letters, numbers, words)
     QuerySnapshot categorySnapshot = await FirebaseFirestore.instance.collection('Category').get();
 
     for (var doc in categorySnapshot.docs) {
@@ -36,7 +36,7 @@ class ProgressModel {
       int totalCount = 0;
 
       if (categoryName == 'numbers') {
-        // ✅ حساب العدد الكلي للأرقام
+        // count all number items
         QuerySnapshot contentSnapshot = await FirebaseFirestore.instance
             .collection('Category')
             .doc(doc.id)
@@ -44,7 +44,7 @@ class ProgressModel {
             .get();
         totalCount = contentSnapshot.size;
       } else if (categoryName == 'words') {
-        // ✅ حساب العدد الكلي للكلمات (داخل التصنيفات الفرعية)
+        // count total word examples inside subcategories
         QuerySnapshot contentSnapshot = await FirebaseFirestore.instance
             .collection('Category')
             .doc(doc.id)
@@ -58,7 +58,7 @@ class ProgressModel {
           }
         }
       } else {
-        // ✅ الحساب لبقية الفئات مثل الحروف
+        // count for other categories like letters
         QuerySnapshot contentSnapshot = await FirebaseFirestore.instance
             .collection('Category')
             .doc(doc.id)
@@ -67,12 +67,12 @@ class ProgressModel {
         totalCount = contentSnapshot.size;
       }
 
-      // ✅ استخراج التقدم بناءً على المصفوفة
+      // extract progress count from list
       int progressCount = 0;
       if (progressMap.containsKey(categoryName)) {
         var progressData = progressMap[categoryName];
         if (progressData is List) {
-          progressCount = progressData.length; // ✅ احسب عدد العناصر داخل المصفوفة
+          progressCount = progressData.length;
         }
       }
 
@@ -83,7 +83,7 @@ class ProgressModel {
       ));
     }
 
-    // ✅ حساب تقدم القيم الأخلاقية (Ethical Values)
+    // handle progress for Ethical Values
     QuerySnapshot ethicalSnapshot = await FirebaseFirestore.instance.collection('EthicalValue').get();
     int ethicalTotalCount = ethicalSnapshot.docs.length;
     int ethicalProgressCount = 0;

@@ -4,7 +4,7 @@ import '../model/EthicalValueModel.dart';
 class EthicalValueController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // 🔹 استرجاع جميع القيم الأخلاقية للطفل مع القيم المغلقة من الوالد
+  // fetch all ethical values for the child along with the locked ones from parent
   Stream<List<EthicalValueModel>> fetchAllEthicalValues(
       String parentId, String childId) {
     return _firestore
@@ -14,7 +14,8 @@ class EthicalValueController {
         .doc(childId)
         .snapshots()
         .asyncMap((childSnapshot) async {
-      // 🔹 Raghad: new code - جلب القيم المقفلة من الوالد
+
+      // get locked ethical values from parent
       List<String> lockedItems = List<String>.from(
           childSnapshot.data()?['lockedContent']?['ethicalValues'] ?? []);
 
@@ -23,12 +24,12 @@ class EthicalValueController {
 
       return ethicalSnapshot.docs.map((doc) {
         return EthicalValueModel.fromFirestore(
-            doc, lockedItems); // تمرير القيم المغلقة للمودل
+            doc, lockedItems); // pass locked values to model
       }).toList();
     });
-  } // 🔹 Raghad: new code end
+  }
 
-  // 🔹 جلب مستوى الطفل من Firestore
+  // get child's level from Firestore
   Stream<int?> fetchChildLevel(String parentId, String childId) {
     return _firestore
         .collection('Parent')
@@ -39,7 +40,7 @@ class EthicalValueController {
         .map((snapshot) => snapshot.data()?['level']);
   }
 
-  // 🔹 تحديث مستوى الطفل بعد إكمال الفيديو
+  // update child's level after completing a video
   Future<void> updateChildLevel(
       String parentId, String childId, int newLevel, String name) async {
     try {
@@ -48,14 +49,14 @@ class EthicalValueController {
           .doc(parentId)
           .collection('Children')
           .doc(childId)
-          .update({'level': newLevel,
-           'progress.EthicalValue': FieldValue.arrayUnion([name]), // زيادة قيمة EthicalValue بمقدار 1});
+          .update({
+            'level': newLevel,
+            'progress.EthicalValue': FieldValue.arrayUnion([name]), // add value name to progress
           });
-          
 
-      print("✅ تم تحديث مستوى الطفل إلى $newLevel");
+      print(" Child level updated to $newLevel");
     } catch (e) {
-      print("❌ خطأ في تحديث مستوى الطفل: $e");
+      print(" Error updating child level: $e");
     }
   }
 }

@@ -32,6 +32,7 @@ class _ScreenLimitViewState extends State<ScreenLimitView> {
     _loadUsageLimit();
   }
 
+  // fetch usage time from Firestore
   void _loadUsageLimit() async {
     var usageLimit = await _controller.getUsageLimit(widget.parentId, widget.childId);
     if (usageLimit != null) {
@@ -43,99 +44,99 @@ class _ScreenLimitViewState extends State<ScreenLimitView> {
     }
   }
 
+  // confirm and save new time range
   void _saveLimit() {
-  if (selectedStartTime == null || selectedEndTime == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("يجب اختيار وقت البداية والنهاية", style: TextStyle(fontFamily: "alfont")),
-        backgroundColor: Colors.red,
+    if (selectedStartTime == null || selectedEndTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("يجب اختيار وقت البداية والنهاية", style: TextStyle(fontFamily: "alfont")),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    String startTime24 = ScreenLimitModel.formatTimeToStorage(selectedStartTime!);
+    String endTime24 = ScreenLimitModel.formatTimeToStorage(selectedEndTime!);
+
+    if (startTime24 == endTime24) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("إلغاء الحد الزمني", style: TextStyle(fontFamily: "alfont")),
+          content: Text(
+            "لقد اخترت وقتًا يغطي 24 ساعة، لذلك لا يوجد حد زمني.\nهل أنت متأكد من أنك تريد إلغاء تجديد وقت الاستخدام؟",
+            style: TextStyle(fontFamily: "alfont"),
+            textAlign: TextAlign.right,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("إلغاء", style: TextStyle(fontFamily: "alfont")),
+            ),
+            TextButton(
+              onPressed: () {
+                _controller.deleteUsageLimit(widget.parentId, widget.childId);
+                setState(() {
+                  isLimitEnabled = false;
+                  selectedStartTime = null;
+                  selectedEndTime = null;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("تم إلغاء الحد الزمني بنجاح!", style: TextStyle(fontFamily: "alfont")),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+                Navigator.pop(context);
+              },
+              child: Text("تأكيد", style: TextStyle(fontFamily: "alfont")),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    String durationText = _controller.calculateDuration(startTime24, endTime24);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("تأكيد حفظ الحد الزمني", style: TextStyle(fontFamily: "alfont")),
+        content: Text(
+          "هل أنت متأكد أنك تريد تحديد وقت لطفلك من $selectedStartTime إلى $selectedEndTime؟ (والتي مدتها $durationText)",
+          style: TextStyle(fontFamily: "alfont"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("إلغاء", style: TextStyle(fontFamily: "alfont")),
+          ),
+          TextButton(
+            onPressed: () {
+              _controller.saveUsageLimit(
+                parentId: widget.parentId,
+                childId: widget.childId,
+                startTime: startTime24,
+                endTime: endTime24,
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("تم حفظ الحد الزمني بنجاح!", style: TextStyle(fontFamily: "alfont")),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              Navigator.pop(context);
+            },
+            child: Text("تأكيد", style: TextStyle(fontFamily: "alfont")),
+          ),
+        ],
       ),
     );
-    return;
   }
 
-  String startTime24 = ScreenLimitModel.formatTimeToStorage(selectedStartTime!);
-  String endTime24 = ScreenLimitModel.formatTimeToStorage(selectedEndTime!);
-
-  // 🚫 منع حفظ وقت 24 ساعة
-  if (startTime24 == endTime24) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text("إلغاء الحد الزمني", style: TextStyle(fontFamily: "alfont")),
-      content: Text(
-        "لقد اخترت وقتًا يغطي 24 ساعة، لذلك لا يوجد حد زمني.\nهل أنت متأكد من أنك تريد إلغاء تجديد وقت الاستخدام؟",
-        style: TextStyle(fontFamily: "alfont"),
-        textAlign: TextAlign.right,
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text("إلغاء", style: TextStyle(fontFamily: "alfont")),
-        ),
-        TextButton(
-          onPressed: () {
-            _controller.deleteUsageLimit(widget.parentId, widget.childId);
-            setState(() {
-              isLimitEnabled = false;
-              selectedStartTime = null;
-              selectedEndTime = null;
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("تم إلغاء الحد الزمني بنجاح!", style: TextStyle(fontFamily: "alfont")),
-                backgroundColor: Colors.green,
-              ),
-            );
-            Navigator.pop(context);
-          },
-          child: Text("تأكيد", style: TextStyle(fontFamily: "alfont")),
-        ),
-      ],
-    ),
-  );
-  return;
-}
-
-
-  String durationText = _controller.calculateDuration(startTime24, endTime24);
-
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text("تأكيد حفظ الحد الزمني", style: TextStyle(fontFamily: "alfont")),
-      content: Text(
-        "هل أنت متأكد أنك تريد تحديد وقت لطفلك من $selectedStartTime إلى $selectedEndTime؟ (والتي مدتها $durationText)",
-        style: TextStyle(fontFamily: "alfont"),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text("إلغاء", style: TextStyle(fontFamily: "alfont")),
-        ),
-        TextButton(
-          onPressed: () {
-            _controller.saveUsageLimit(
-              parentId: widget.parentId,
-              childId: widget.childId,
-              startTime: startTime24,
-              endTime: endTime24,
-            );
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("تم حفظ الحد الزمني بنجاح!", style: TextStyle(fontFamily: "alfont")),
-                backgroundColor: Colors.green,
-              ),
-            );
-            Navigator.pop(context);
-          },
-          child: Text("تأكيد", style: TextStyle(fontFamily: "alfont")),
-        ),
-      ],
-    ),
-  );
-}
-
+  // confirm and delete limit
   void _deleteLimit() {
     showDialog(
       context: context,
@@ -172,7 +173,7 @@ class _ScreenLimitViewState extends State<ScreenLimitView> {
     );
   }
 
-  /// ✅ عنصر منسق لقائمة منسدلة يعرض الوقت الآخر ويوسّط النصوص
+  // time dropdown input
   Widget _buildDropdown({
     required String? value,
     required String hintText,

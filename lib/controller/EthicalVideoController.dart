@@ -15,7 +15,6 @@ class EthicalVideoController {
   final EthicalValueController _ethicalController = EthicalValueController();
   final FlutterTts flutterTts = FlutterTts();
 
-
   VideoPlayerController? videoController;
   ChewieController? chewieController;
   bool videoCompleted = false;
@@ -33,27 +32,27 @@ class EthicalVideoController {
   void initializeVideo(VoidCallback updateUI, BuildContext context) async {
     videoController = VideoPlayerController.network(ethicalValue.videoUrl)
       ..initialize().then((_) async {
-        int? lastPosition = await loadLastPosition(); // Retrieve child's last saved position for the video
-       if (lastPosition != null) {
-  final videoDuration = videoController!.value.duration.inMilliseconds;
-  if (lastPosition < videoDuration - 1000) {
-    videoController!.seekTo(Duration(milliseconds: lastPosition));
-  } else {
-    videoController!.seekTo(Duration.zero); // Start from the beginning if position is invalid
-  }
-}
+        int? lastPosition = await loadLastPosition(); // get last saved position
+        if (lastPosition != null) {
+          final videoDuration = videoController!.value.duration.inMilliseconds;
+          if (lastPosition < videoDuration - 1000) {
+            videoController!.seekTo(Duration(milliseconds: lastPosition));
+          } else {
+            videoController!.seekTo(Duration.zero); // restart from beginning
+          }
+        }
 
         updateUI();
         videoController!.play();
       })
       ..addListener(() {
         if (videoController!.value.position >= videoController!.value.duration) {
-        if (!videoCompleted) {
-      videoCompleted = true;
-      print("🎥لفيديو انتهى، يتم تحديث مستوى الطفل ...");
-      _updateChildLevelIfNeeded(updateUI);
-      awardEthicalStickerOnceWithDialog(context); 
-    }
+          if (!videoCompleted) {
+            videoCompleted = true;
+            print("🎥 Video completed, updating child level...");
+            _updateChildLevelIfNeeded(updateUI);
+            awardEthicalStickerOnceWithDialog(context);
+          }
         }
       });
 
@@ -64,7 +63,7 @@ class EthicalVideoController {
     );
 
     _fetchChildLevel(updateUI);
-     fetchChildStickers(updateUI); 
+    fetchChildStickers(updateUI);
   }
 
   /// Saves the last playback position for the child and specific video.
@@ -72,7 +71,7 @@ class EthicalVideoController {
     final prefs = await SharedPreferences.getInstance();
     if (videoController != null) {
       await prefs.setInt(
-        'lastPosition_${childId}_${ethicalValue.videoUrl}', // unique key for each child and video
+        'lastPosition_${childId}_${ethicalValue.videoUrl}', // unique key per child/video
         videoController!.value.position.inMilliseconds,
       );
     }
@@ -99,7 +98,6 @@ class EthicalVideoController {
       _ethicalController.updateChildLevel(parentId, childId, nextLevel, ethicalValue.name);
       updateUI();
 
-      // ✅ استدعاء onLevelComplete عند انتهاء المستوى
       if (onLevelComplete != null) {
         onLevelComplete!();
       }
@@ -120,145 +118,110 @@ class EthicalVideoController {
     chewieController?.dispose();
   }
 
- /// Awards the child a sticker for completing the video, only once.
-Future<void> awardEthicalStickerOnceWithDialog(BuildContext context) async {
-  final firestore = FirebaseFirestore.instance;
-  final stickerId = ethicalValue.level.toString(); //Each video has a sticker corresponding to its level
-  final childRef = firestore.collection("Parent").doc(parentId).collection("Children").doc(childId);
-  final childDoc = await childRef.get();
+  /// Awards the child a sticker for completing the video, only once.
+  Future<void> awardEthicalStickerOnceWithDialog(BuildContext context) async {
+    final firestore = FirebaseFirestore.instance;
+    final stickerId = ethicalValue.level.toString(); //Each video has a sticker corresponding to its level
+    final childRef = firestore.collection("Parent").doc(parentId).collection("Children").doc(childId);
+    final childDoc = await childRef.get();
 
-  if (!childDoc.exists) return;
+    if (!childDoc.exists) return;
 
-  final data = childDoc.data() as Map<String, dynamic>;
-  List<dynamic> stickers = data['stickers'] ?? [];
-  List<String> stickerIds = stickers.map((s) => s['id'].toString()).toList();
+    final data = childDoc.data() as Map<String, dynamic>;
+    List<dynamic> stickers = data['stickers'] ?? [];
+    List<String> stickerIds = stickers.map((s) => s['id'].toString()).toList();
 
-  final stickerDoc = await firestore.collection("stickersVideos").doc(stickerId).get();
-  if (stickerIds.contains(stickerId)) {
-    await _showStickerDialog(context, stickerDoc['link']);
-    return;
+    final stickerDoc = await firestore.collection("stickersVideos").doc(stickerId).get();
+    if (stickerIds.contains(stickerId)) {
+      await _showStickerDialog(context, stickerDoc['link']);
+      return;
+    }
+
+    if (!stickerDoc.exists) {
+      print(" No sticker found for level $stickerId");
+      return;
+    }
+
+    final stickerLink = stickerDoc['link'];
+    final newSticker = {"id": stickerId, "link": stickerLink};
+
+    await childRef.update({
+      "stickers": FieldValue.arrayUnion([newSticker]),
+    });
+ //After saving, display the awarded sticker in the dialog
+    await _showStickerDialog(context, stickerLink);
+     // Then update the child's level
+    _updateChildLevelIfNeeded(() {});
   }
 
+  /// Shows a dialog displaying the awarded sticker.
+  Future<void> _showStickerDialog(BuildContext context, String link) async {
+    Future.delayed(Duration(milliseconds: 200), () {
+      flutterTts.speak("أَحْسَنْتَ! لَقَدْ شَاهَدْتَ الفِيدْيُو التَّعْلِيمِيَّ ");
+    });
 
-  if (!stickerDoc.exists) {
-    print("❌ لا يوجد ستكر مرتبط بـ level $stickerId");
-    return;
-  }
-
-  final stickerLink = stickerDoc['link'];
-  final newSticker = {"id": stickerId, "link": stickerLink};
-
-  await childRef.update({
-    "stickers": FieldValue.arrayUnion([newSticker]),
-  });
-
-  //After saving, display the awarded sticker in the dialog
-  await _showStickerDialog(context, stickerLink);
-
-  // Then update the child's level
-  _updateChildLevelIfNeeded(() {}); //Pass an empty function if no direct UI update is needed
-}
-
-/// Shows a dialog displaying the awarded sticker.
-Future<void> _showStickerDialog(BuildContext context, String link) async {
-Future.delayed(Duration(milliseconds: 200), () {
-    flutterTts.speak("أَحْسَنْتَ! لَقَدْ شَاهَدْتَ الفِيدْيُو التَّعْلِيمِيَّ ");
-  });
-
-  return showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      title: const Text("أحسنت!", textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.network(link, width: 100, height: 100),
-          const SizedBox(height: 10),
-          const Text("لقد شاهدت الفيديو التعليمي.", textAlign: TextAlign.center),
-        ],
-      ),
-      actions: [
-        Center(
-           child: ElevatedButton(
-           onPressed: () async {
-              await flutterTts.stop(); 
-              Navigator.of(context).pop(); 
-              Navigator.of(context).pop(); 
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green.shade400,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text("أحسنت!", textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.network(link, width: 100, height: 100),
+            const SizedBox(height: 10),
+            const Text("لقد شاهدت الفيديو التعليمي.", textAlign: TextAlign.center),
+          ],
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                await flutterTts.stop();
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green.shade400,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: const Text(
+                "حسناً",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'BLabeloo',
+                ),
               ),
             ),
-            child: const Text(
-              "حسناً",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'BLabeloo',
-  ),
-),
-
           ),
-        ),
-      ],
-    ),
-  );
-}
-/*
-/// Shows a dialog informing the child that the video was already watched.
-void _showAlreadyWatchedDialog(BuildContext context) async {
+        ],
+      ),
+    );
+  }
 
-await flutterTts.speak("لَقَدْ شَاهَدْتَ هٰذَا الفِيدْيُو مِنْ قَبْلِ. جَرِّبْ فِيدْيُو آخَرَ!"); 
-
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      title: const Text("تمت المشاهدة سابقًا", textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orange)),
-      content: const Text("لقد شاهدت هذا الفيديو من قبل. جرّب فيديو آخر!", textAlign: TextAlign.center),
-      actions: [
-        Center(
-          child: TextButton(
-            onPressed: () {
-  Navigator.of(context).pop(); // يغلق الديالوق
-  Navigator.of(context).pop(); // يرجع للخلف
-},
-
-            child: const Text("حسنًا", style: TextStyle(fontSize: 18)),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-*/
-/// Listens to real-time updates of the child's stickers and refreshes the UI.
-void fetchChildStickers(VoidCallback updateUI) {
-  FirebaseFirestore.instance
-      .collection('Parent')
-      .doc(parentId)
-      .collection('Children')
-      .doc(childId)
-      .snapshots()
-      .listen((snapshot) {
-    if (snapshot.exists) {
-      var data = snapshot.data();
-      if (data != null && data.containsKey('stickers')) {
-        List<dynamic> stickersList = data['stickers'] ?? [];
-        print("🎉 تم تحديث الملصقات للطفل: $stickersList");
-        updateUI(); // Automatically update the UI when stickers change
+  /// Listens to real-time updates of the child's stickers and refreshes the UI.
+  void fetchChildStickers(VoidCallback updateUI) {
+    FirebaseFirestore.instance
+        .collection('Parent')
+        .doc(parentId)
+        .collection('Children')
+        .doc(childId)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists) {
+        var data = snapshot.data();
+        if (data != null && data.containsKey('stickers')) {
+          List<dynamic> stickersList = data['stickers'] ?? [];
+          print("🎉 Child stickers updated: $stickersList");
+          updateUI();
+        }
       }
-    }
-  });
+    });
+  }
 }
-
-}
-
-

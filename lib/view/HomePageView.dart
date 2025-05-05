@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../view/ArabicWordsView.dart';
-// ✅ لاستعمال Timer
 
 class HomePageView extends StatelessWidget {
   final String userName;
@@ -10,9 +9,9 @@ class HomePageView extends StatelessWidget {
   final String childID;
   final VoidCallback onScanImageClick;
   final VoidCallback onProfileClick;
-  final VoidCallback onSettingsClick; // تم إضافة التنقل إلى صفحة الإعدادات
-  final VoidCallback onStickersClick; // تم إضافة التنقل إلى صفحة الـ Stickers
-  final Function(String) onItemClick; // التنقل إلى الصفحات
+  final VoidCallback onSettingsClick;
+  final VoidCallback onStickersClick;
+  final Function(String) onItemClick;
 
   const HomePageView({
     super.key,
@@ -33,7 +32,7 @@ class HomePageView extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // الخلفية
+          // background image
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -44,22 +43,22 @@ class HomePageView extends StatelessWidget {
           ),
           Column(
             children: [
-              // ✅ الصف العلوي يحتوي على أيقونة الإعدادات و أيقونة الستكرز
+              // top bar (stickers + settings)
               Padding(
                 padding: const EdgeInsets.only(top: 35, left: 20, right: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // 🔹 أيقونة الستكرز
+                    // stickers icon
                     GestureDetector(
                       onTap: onStickersClick,
                       child: Image.asset(
-                        'assets/images/stickers_icon.png', // استبدل بالمسار الصحيح
+                        'assets/images/stickers_icon.png',
                         width: 40,
                         height: 40,
                       ),
                     ),
-                    // 🔹 أيقونة الإعدادات
+                    // settings icon
                     GestureDetector(
                       onTap: onSettingsClick,
                       child: const Icon(Icons.settings,
@@ -70,13 +69,14 @@ class HomePageView extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // صورة الطفل
+              // child avatar
               CircleAvatar(
                 radius: 50,
                 backgroundImage: AssetImage(photoUrl),
               ),
               const SizedBox(height: 10),
 
+              // welcome message
               GestureDetector(
                 child: Text(
                   'مرحبًا $userName!',
@@ -90,7 +90,7 @@ class HomePageView extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              // زر "ملفي الشخصي"
+              // "My Profile" button
               ElevatedButton(
                 onPressed: onProfileClick,
                 style: ElevatedButton.styleFrom(
@@ -110,6 +110,7 @@ class HomePageView extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
+              // grid menu
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(left: 20.0, right: 20),
@@ -158,7 +159,7 @@ class HomePageView extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // زر "مسح الصورة"
+              // "Scan Image" button
               Padding(
                 padding:
                     const EdgeInsets.only(left: 20.0, right: 20, bottom: 30),

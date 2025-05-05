@@ -11,11 +11,11 @@ class EthicalValueModel {
     required this.videoUrl,
   });
 
-  // 🔹 إنشاء كائن من Firestore
+  // create model instance from Firestore document
   factory EthicalValueModel.fromFirestore(
       DocumentSnapshot doc, List<String> lockedItems) {
     final data = doc.data() as Map<String, dynamic>;
-    String ethicalId = doc.id; // معرف القيم الأخلاقية
+    String ethicalId = doc.id;
 
     return EthicalValueModel(
       name: data['name'] ?? '',

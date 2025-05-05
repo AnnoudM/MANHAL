@@ -10,8 +10,7 @@ class HomePageModel {
     required this.age,
     required this.photoUrl,
   });
-
-  // إنشاء كائن من بيانات Firestore بناءً على الطفل المختار
+  // Based on the selected child, create model from firestosre
   factory HomePageModel.fromFirebase(Map<String, dynamic> data) {
     return HomePageModel(
       userName: data['name'] ?? 'غير معروف',

@@ -12,7 +12,7 @@ class SelectImageController {
       if (user != null) {
         String parentId = user.uid;
 
-        // تحديث صورة الطفل في Firestore
+        // update child's image in Firestore
         await _firestore
             .collection('Parent')
             .doc(parentId)
@@ -20,13 +20,13 @@ class SelectImageController {
             .doc(childID)
             .update({'photoUrl': imagePath});
 
-        print("✅ تم تحديث صورة الطفل بنجاح!");
+        print(" Child image updated");
 
-        // 🔹 عرض SnackBar عند النجاح
+        // show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text(
-              "✅ تم تحديث الصورة بنجاح!",
+              " Image updated successfully!",
               style: TextStyle(color: Colors.black),
             ),
             backgroundColor: Colors.green[300],
@@ -34,19 +34,19 @@ class SelectImageController {
           ),
         );
 
-        // 🔹 إغلاق الصفحة بعد التحديث الناجح
+        // close the screen after a short delay
         Future.delayed(const Duration(seconds: 2), () {
           Navigator.pop(context);
         });
       }
     } catch (e) {
-      print("❌ خطأ في تحديث صورة الطفل: $e");
+      print(" Error updating child image: $e");
 
-      // 🔹 عرض SnackBar عند الفشل
+      // show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "❌ فشل في تحديث الصورة: $e",
+            " Failed to update image: $e",
             style: const TextStyle(color: Colors.white),
           ),
           backgroundColor: Colors.red[300],

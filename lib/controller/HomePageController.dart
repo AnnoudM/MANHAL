@@ -20,7 +20,7 @@ class HomePageController extends StatefulWidget {
   const HomePageController({
     Key? key,
     required this.parentId,
-    required this.childID, // ✅ تعديل هنا بدلًا من childID
+    required this.childID,
   }) : super(key: key);
 
   @override
@@ -29,16 +29,16 @@ class HomePageController extends StatefulWidget {
 
 class _HomePageControllerState extends State<HomePageController> {
   String? parentId;
-  String? selectedChildId; // ✅ تعريف متغير لحفظ معرف الطفل
+  String? selectedChildId;
 
   @override
   void initState() {
     super.initState();
     _fetchParentID();
-    _resetParentAreaOnHome(); // ✅ إعادة ضبط isParentArea
+    _resetParentAreaOnHome();
   }
 
-  // 🔹 جلب معرف الوالد
+  // get parent ID from FirebaseAuth and save selected child ID
   void _fetchParentID() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -47,31 +47,29 @@ class _HomePageControllerState extends State<HomePageController> {
         selectedChildId = widget.childID;
       });
 
-      print("✅ معرف الوالد: $parentId");
-      print("✅ معرف الطفل: $selectedChildId");
+      print("✅ Parent ID: $parentId");
+      print("✅ Child ID: $selectedChildId");
 
-      // ✅ حفظ معرف الطفل في SharedPreferences
       await _saveSelectedChildId(widget.childID);
     } else {
-      print("⚠️ لم يتم تسجيل الدخول.");
+      print("⚠️ Not logged in.");
     }
   }
 
-// ✅ إعادة ضبط isParentArea عند دخول الطفل للصفحة الرئيسية
+  // reset isParentArea flag when entering the home screen
   void _resetParentAreaOnHome() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool("isParentArea", false);
-    print("🏠 تم ضبط Parent Area = false عند الدخول إلى الصفحة الرئيسية");
+    print(" isParentArea set to false on home entry");
   }
 
-  /// ✅ حفظ selectedChildId في SharedPreferences
+  // save selected child ID to SharedPreferences
   Future<void> _saveSelectedChildId(String childId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedChildId', childId);
-    print("✅ تم حفظ معرف الطفل في SharedPreferences: $childId");
   }
 
-  /// ✅ استرجاع selectedChildId عند بدء التطبيق
+  // load selected child ID from SharedPreferences
   Future<String?> _getSelectedChildId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('selectedChildId');
@@ -100,7 +98,7 @@ class _HomePageControllerState extends State<HomePageController> {
         }
         if (!snapshot.hasData || !snapshot.data!.exists) {
           return const Scaffold(
-            body: Center(child: Text('⚠️ لا توجد بيانات لهذا الطفل')),
+            body: Center(child: Text(' No data for this child')),
           );
         }
         var childData = snapshot.data!.data() as Map<String, dynamic>;
@@ -111,7 +109,7 @@ class _HomePageControllerState extends State<HomePageController> {
           photoUrl: childData['photoUrl'] ?? 'assets/images/default_avatar.jpg',
           childID: widget.childID,
 
-          // 🔹 التنقل إلى صفحة "ملفي الشخصي"
+          // go to child profile
           onProfileClick: () {
             Navigator.push(
               context,
@@ -121,51 +119,49 @@ class _HomePageControllerState extends State<HomePageController> {
                   name: childData['name'] ?? 'غير معروف',
                   age: childData['age'] ?? 0,
                   gender: childData['gender'] ?? 'غير معروف',
-                  photoUrl: childData['photoUrl'] ??
-                      'assets/images/default_avatar.jpg',
+                  photoUrl: childData['photoUrl'] ?? 'assets/images/default_avatar.jpg',
                 ),
               ),
             );
           },
 
-          // 🔹 التنقل إلى صفحة "مسح الصورة"
+          // go to camera scanner view
           onScanImageClick: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => CameraView()),
             );
-          }, // 🔹 التنقل إلى صفحة الإعدادات
+          },
+
+          // go to settings (parent area)
           onSettingsClick: () async {
-            print(
-                '🔍 فتح SettingsView لمعرف الطفل: $selectedChildId، معرف الوالد: $parentId');
+            print(' Opening SettingsView for child: $selectedChildId, parent: $parentId');
             if (selectedChildId != null &&
                 selectedChildId!.isNotEmpty &&
                 parentId != null &&
                 parentId!.isNotEmpty) {
-              print(
-                  "🔹 التنقل إلى PasscodeView - selectedChildId: $selectedChildId");
+              print(" Navigating to PasscodeView with childId: $selectedChildId");
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => PasscodeView(
                     parentId: parentId!,
-                    selectedChildId:
-                        selectedChildId!, // ✅ تمرير معرف الطفل الصحيح
-                    currentParentId: parentId!, // ✅ تمرير معرف الوالد
+                    selectedChildId: selectedChildId!,
+                    currentParentId: parentId!,
                   ),
                 ),
               );
 
-// ✅ قبل الدخول إلى PasscodeView، تعطيل المراقبة
+              // disable monitoring when entering parent area
               SharedPreferences prefs = await SharedPreferences.getInstance();
               await prefs.setBool('isParentArea', true);
-              print("🛑 دخول إلى PasscodeView - تعطيل المراقبة");
+              print(" Parent area access enabled");
             } else {
-              print('❌ خطأ: معرف الطفل أو معرف الوالد غير صالح');
+              print(' Error: Invalid parent or child ID');
             }
           },
 
-          // 🔹 التنقل إلى صفحة الملصقات مع تمرير parentId و childId
+          // go to sticker page
           onStickersClick: () {
             if (parentId != null && selectedChildId != null) {
               Navigator.push(
@@ -176,12 +172,11 @@ class _HomePageControllerState extends State<HomePageController> {
                 ),
               );
             } else {
-              print(
-                  "❌ خطأ: لا يمكن فتح صفحة الملصقات، parentId أو childId غير متوفر.");
+              print(" Error: Can't open sticker page, IDs are missing.");
             }
           },
 
-          // 🔹 التنقل إلى الصفحات بناءً على العنصر الذي يتم الضغط عليه في GridView
+          // handle navigation based on tapped grid item
           onItemClick: (String item) {
             Widget targetPage;
             switch (item) {
@@ -192,20 +187,22 @@ class _HomePageControllerState extends State<HomePageController> {
                 );
                 break;
               case 'رحلة الأرقام':
-                targetPage =  ArabicNumberView(
+                targetPage = ArabicNumberView(
                   parentId: widget.parentId,
                   childId: widget.childID,
                 );
                 break;
               case 'رحلة الكلمات':
-        targetPage = ArabicWordsPage(
-          parentId: widget.parentId, // ✅ التأكد من تمرير معرف الوالد
-          childId: widget.childID,   // ✅ التأكد من تمرير معرف الطفل
-        );
+                targetPage = ArabicWordsPage(
+                  parentId: widget.parentId,
+                  childId: widget.childID,
+                );
                 break;
               case 'القيم الأخلاقية':
                 targetPage = EthicalValueView(
-                    childId: widget.childID, parentId: parentId ?? '');
+                  childId: widget.childID,
+                  parentId: parentId ?? '',
+                );
                 break;
               default:
                 return;
