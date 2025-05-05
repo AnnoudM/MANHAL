@@ -4,7 +4,7 @@ import '../model/ArabicLettersModel.dart';
 import '../view/letter_view.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../controller/ArabicLettersController.dart';
-import'../controller/HomePageController.dart';
+import '../controller/HomePageController.dart';
 
 class ArabicLettersView extends StatefulWidget {
   final String parentId;
@@ -93,7 +93,6 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
     await flutterTts.setVoice(
         {"name": "Microsoft Naayf - Arabic (Saudi)", "locale": "ar-SA"});
     await flutterTts.setPitch(0.6);
-    await flutterTts.setSpeechRate(1.0);
     await flutterTts.awaitSpeakCompletion(true);
     await flutterTts.speak(
         "هٰذَا الْحَرْفُ مُقْفَلٌ. لَا يُمْكِنُكَ ٱلدُّخُولُ إِلَيْهِ الآنَ  ");
@@ -129,20 +128,20 @@ class _ArabicLettersViewState extends State<ArabicLettersView> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               centerTitle: true,
-             leading: IconButton(
-  icon: const Icon(Icons.arrow_back, color: Colors.black87),
-  onPressed: () {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HomePageController(
-          parentId: widget.parentId,
-          childID: widget.childId,
-        ),
-      ),
-    );
-  },
-),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HomePageController(
+                        parentId: widget.parentId,
+                        childID: widget.childId,
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
