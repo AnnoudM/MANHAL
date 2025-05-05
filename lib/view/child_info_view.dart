@@ -13,7 +13,11 @@ class ChildInfoView extends StatefulWidget {
   final String parentId;
   final String childId;
 
-  const ChildInfoView({super.key, this.parentData, required this.parentId, required this.childId});
+  const ChildInfoView(
+      {super.key,
+      this.parentData,
+      required this.parentId,
+      required this.childId});
 
   @override
   _ChildInfoViewState createState() => _ChildInfoViewState();
@@ -25,6 +29,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
   String? _selectedGender;
   String? _selectedAge;
   String? _selectedPhoto;
+  String? _errorMessage;
 
   final SignUpController _controller = SignUpController();
 
@@ -60,15 +65,29 @@ class _ChildInfoViewState extends State<ChildInfoView> {
 
   // Called when user taps "تسجيل" button
   void _submit() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        _errorMessage = 'لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.';
+      });
+      return;
+    }
+    setState(() {
+      _errorMessage = null;
+    });
+
     if (_formKey.currentState!.validate()) {
       if (widget.parentData == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('بيانات الوالد غير متوفرة', style: TextStyle(fontFamily: 'alfont'))),
+          const SnackBar(
+              content: Text('بيانات الوالد غير متوفرة',
+                  style: TextStyle(fontFamily: 'alfont'))),
         );
         return;
       }
 
-      String childId = FirebaseFirestore.instance.collection('Children').doc().id;
+      String childId =
+          FirebaseFirestore.instance.collection('Children').doc().id;
 
       Child child = Child(
         id: widget.childId,
@@ -79,7 +98,8 @@ class _ChildInfoViewState extends State<ChildInfoView> {
         parentId: widget.parentId,
       );
 
-      await _controller.registerParentAndChild(context, child, widget.parentData!);
+      await _controller.registerParentAndChild(
+          context, child, widget.parentData!);
 
       if (mounted) {
         showDialog(
@@ -87,15 +107,20 @@ class _ChildInfoViewState extends State<ChildInfoView> {
           builder: (BuildContext context) {
             return AlertDialog(
               backgroundColor: const Color(0xFFF8F8F8),
-              title: const Text('تم إرسال رابط التحقق', style: TextStyle(fontFamily: 'alfont')),
-              content: const Text('تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.', style: TextStyle(fontFamily: 'alfont')),
+              title: const Text('تم إرسال رابط التحقق',
+                  style: TextStyle(fontFamily: 'alfont')),
+              content: const Text(
+                  'تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.',
+                  style: TextStyle(fontFamily: 'alfont')),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => InitialPage()));
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => InitialPage()));
                   },
-                  child: const Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
+                  child: const Text('حسناً',
+                      style: TextStyle(fontFamily: 'alfont')),
                 ),
               ],
             );
@@ -122,8 +147,10 @@ class _ChildInfoViewState extends State<ChildInfoView> {
         final arabicNameRegex = RegExp(r'^[\u0600-\u06FF\s]+$');
         final hasNumbers = RegExp(r'[0-9\u0660-\u0669]').hasMatch(value);
         if (hasNumbers) return 'الاسم لا يمكن أن يحتوي على أرقام';
-        if (!arabicNameRegex.hasMatch(value)) return 'الرجاء إدخال الاسم بالحروف العربية فقط';
-        if (value.trim().isEmpty) return 'الاسم لا يمكن أن يكون فارغًا أو يحتوي على مسافات فقط';
+        if (!arabicNameRegex.hasMatch(value))
+          return 'الرجاء إدخال الاسم بالحروف العربية فقط';
+        if (value.trim().isEmpty)
+          return 'الاسم لا يمكن أن يكون فارغًا أو يحتوي على مسافات فقط';
         return null;
       },
       onChanged: onChanged,
@@ -137,7 +164,8 @@ class _ChildInfoViewState extends State<ChildInfoView> {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
       ),
       style: const TextStyle(fontFamily: 'alfont'),
@@ -173,7 +201,8 @@ class _ChildInfoViewState extends State<ChildInfoView> {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
       ),
       style: const TextStyle(fontFamily: 'alfont'),
@@ -229,7 +258,8 @@ class _ChildInfoViewState extends State<ChildInfoView> {
               top: 50,
               right: 20,
               child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
+                icon:
+                    const Icon(Icons.arrow_back, color: Colors.black, size: 30),
                 onPressed: () => Navigator.pop(context, widget.parentData),
               ),
             ),
@@ -257,7 +287,9 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                           onTap: () async {
                             final selectedPhoto = await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const SelectImageView()),
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const SelectImageView()),
                             );
                             if (selectedPhoto != null) {
                               setState(() {
@@ -269,7 +301,8 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                             radius: 50,
                             backgroundImage: _selectedPhoto != null
                                 ? AssetImage(_selectedPhoto!)
-                                : const AssetImage('assets/images/default_avatar.jpg'),
+                                : const AssetImage(
+                                    'assets/images/default_avatar.jpg'),
                             child: const Align(
                               alignment: Alignment.bottomRight,
                               child: Icon(Icons.edit, color: Colors.black),
@@ -281,9 +314,11 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                         _buildTextField(
                           hintText: 'اسم الطفل باللغة العربية',
                           controller: _nameController,
-                          validator: (value) => value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+                          validator: (value) =>
+                              value!.isEmpty ? 'هذا الحقل مطلوب' : null,
                           inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[\u0600-\u06FF\s]')),
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'[\u0600-\u06FF\s]')),
                           ],
                         ),
                         const SizedBox(height: 15),
@@ -292,8 +327,10 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                           hintText: 'الجنس',
                           items: ['ذكر', 'أنثى'],
                           value: _selectedGender,
-                          onChanged: (value) => setState(() => _selectedGender = value),
-                          validator: (value) => value == null ? 'هذا الحقل مطلوب' : null,
+                          onChanged: (value) =>
+                              setState(() => _selectedGender = value),
+                          validator: (value) =>
+                              value == null ? 'هذا الحقل مطلوب' : null,
                         ),
                         const SizedBox(height: 15),
                         // Age dropdown
@@ -301,29 +338,30 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                           hintText: 'العمر',
                           items: _ageOptions.map((e) => e['value']!).toList(),
                           value: _selectedAge,
-                          onChanged: (value) => setState(() => _selectedAge = value),
-                          validator: (value) => value == null ? 'هذا الحقل مطلوب' : null,
+                          onChanged: (value) =>
+                              setState(() => _selectedAge = value),
+                          validator: (value) =>
+                              value == null ? 'هذا الحقل مطلوب' : null,
                         ),
+                        if (_errorMessage != null) ...[
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontFamily: 'alfont',
+                              ),
+                            ),
+                          ),
+                        ],
+
                         const SizedBox(height: 30),
                         // Submit button
                         _buildButton(
                           text: 'تسجيل',
-                          onPressed: () async {
-  final connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult == ConnectivityResult.none) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.',
-          style: TextStyle(fontFamily: 'alfont'),
-        ),
-      ),
-    );
-    return;
-  }
-
-  _submit();
-},
+                          onPressed: _submit,
                         ),
                       ],
                     ),
