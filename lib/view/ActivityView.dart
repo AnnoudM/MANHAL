@@ -120,7 +120,12 @@ void _showAnswerDialog(bool isCorrect, [String? earnedStickerUrl]) async {
           Navigator.pop(context);
         };
 
-  _speakMessage(message);
+  // _speakMessage(message);
+
+Future.delayed(const Duration(milliseconds: 300), () {
+  flutterTts.setLanguage("ar-SA");
+  flutterTts.speak(message);
+});
 
   showDialog(
     context: context,
@@ -150,7 +155,10 @@ void _showAnswerDialog(bool isCorrect, [String? earnedStickerUrl]) async {
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           TextButton(
-            onPressed: onPressed,
+            onPressed: () async {
+            await flutterTts.stop();
+            onPressed();
+            },
             style: TextButton.styleFrom(
               backgroundColor: Colors.green.shade400,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -274,8 +282,13 @@ else if (widget.type == "letter") {
 
 /// Shows a special dialog when the child has already answered this activity before.
 Future<void> _showRepeatedAnswerDialog() async {
-  await flutterTts.setLanguage("ar-SA");
-  await flutterTts.speak(" لَقَدْ أَجَبْتَ عَلَى هٰذَا السُّؤَالِ مِنْ قَبْلِ، جَرِّبْ سُؤَالًا جَدِيدًا! للحصول على ملصق");
+  //await flutterTts.setLanguage("ar-SA");
+ // await flutterTts.speak(" لَقَدْ أَجَبْتَ عَلَى هٰذَا السُّؤَالِ مِنْ قَبْلِ، جَرِّبْ سُؤَالًا جَدِيدًا! للحصول على ملصق");
+ Future.delayed(const Duration(milliseconds: 300), () {
+  flutterTts.setLanguage("ar-SA");
+  flutterTts.speak(" لَقَدْ أَجَبْتَ عَلَى هٰذَا السُّؤَالِ مِنْ قَبْلِ، جَرِّبْ سُؤَالًا جَدِيدًا! للحصول على ملصق");
+});
+
 
   Widget nextPage;
   switch (widget.type) {
@@ -311,11 +324,11 @@ Future<void> _showRepeatedAnswerDialog() async {
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => nextPage),
-              );
+            onPressed: () async {
+              await flutterTts.stop();
+              Navigator.of(context).pop(); 
+    Navigator.of(context).pop(); 
+    Navigator.of(context).pop(); 
             },
             style: TextButton.styleFrom(
               backgroundColor: Colors.orange,
@@ -467,13 +480,18 @@ Future<void> _showRepeatedAnswerDialog() async {
   /// Displays a motivational dialog encouraging the child to complete a category for a sticker reward.
   void _showProgressDialog(String categoryName)async {
 
-  await flutterTts.setLanguage("ar-SA"); // Set language to Arabic for TTS
-  await flutterTts.speak("مُمْتَازٌ! أَكْمِلْ بَاقِيَ الأَسْئِلَةِ لِمَجْمُوعَةِ $categoryName لِتَحْصُلَ عَلَى مُلْصَقٍ.");
+  //await flutterTts.setLanguage("ar-SA"); // Set language to Arabic for TTS
+  //await flutterTts.speak("مُمْتَازٌ! أَكْمِلْ بَاقِيَ الأَسْئِلَةِ لِمَجْمُوعَةِ $categoryName لِتَحْصُلَ عَلَى مُلْصَقٍ.");
 
   showDialog(
     context: context,
     barrierDismissible: false,
     builder: (context) {
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+      flutterTts.setLanguage("ar-SA");
+      flutterTts.speak("مُمْتَاز! أَكْمِلْ بَاقِيَ الأَسْئِلَةِ لِمَجْمُوعَةِ $categoryName لِتَحْصُلَ عَلَى مُلْصَقٍ.");
+    });
       return AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
@@ -495,11 +513,12 @@ Future<void> _showRepeatedAnswerDialog() async {
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              await flutterTts.stop();
     Navigator.of(context).pop(); 
     Navigator.of(context).pop(); 
     Navigator.of(context).pop(); 
-     Navigator.of(context).pop(); 
+      
   },
             style: TextButton.styleFrom(
               backgroundColor: Colors.green,
