@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart'; // تمت إضافته هنا
 import '../controller/Login_controller.dart';
 import '../view/ChildListView.dart';
 
@@ -32,8 +33,8 @@ class _LoginViewState extends State<LoginView> {
               ),
             ),
             Positioned(
-              top: 40, 
-              right: 20, 
+              top: 40,
+              right: 20,
               child: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black),
                 onPressed: () => Navigator.pop(context),
@@ -112,6 +113,14 @@ class _LoginViewState extends State<LoginView> {
                         _buildButton(
                           text: 'تسجيل',
                           onPressed: () async {
+                            final connectivityResult = await Connectivity().checkConnectivity();
+                            if (connectivityResult == ConnectivityResult.none) {
+                              setState(() {
+                                _errorMessage = 'لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.';
+                              });
+                              return;
+                            }
+
                             if (_formKey.currentState!.validate()) {
                               final result = await _controller.loginUser(
                                 email: _controller.emailController.text,
@@ -202,7 +211,7 @@ class _LoginViewState extends State<LoginView> {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(fontFamily: 'alfont'),
-        errorStyle: const TextStyle( // هنا تمت إضافة خط alfont لرسائل الخطأ
+        errorStyle: const TextStyle(
           fontFamily: 'alfont',
           color: Colors.red,
         ),
