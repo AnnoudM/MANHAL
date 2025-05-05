@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import '../controller/sticker_controller.dart';
 import '../model/sticker_model.dart';
 
+// A stateless widget that displays the child's earned stickers
+// Required identifiers for parent and child to fetch their sticker data
 class StickerPage extends StatelessWidget {
   final StickerController stickerController = StickerController();
-  final String parentId; // ✅ نحتاج معرف الوالد
-  final String childId; // ✅ نحتاج معرف الطفل
+  final String parentId; 
+  final String childId; 
 
   StickerPage({super.key, required this.parentId, required this.childId});
 
@@ -23,8 +25,9 @@ class StickerPage extends StatelessWidget {
           },
         ),
       ),
+      // Load stickers asynchronously from Firestore using FutureBuilder
       body: FutureBuilder<List<Sticker>>(
-        future: stickerController.getStickersForChild(parentId, childId), // ✅ إضافة parentId
+        future: stickerController.getStickersForChild(parentId, childId), 
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -38,7 +41,7 @@ class StickerPage extends StatelessWidget {
               ),
             );
           }
-
+          // If stickers are found, display them in a grid
           List<Sticker> stickers = snapshot.data!;
 
           return Padding(
@@ -65,7 +68,7 @@ class StickerPage extends StatelessWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: Image.network(stickers[index].link, fit: BoxFit.cover), // ✅ عرض صورة الملصق
+                    child: Image.network(stickers[index].link, fit: BoxFit.cover), 
                   ),
                 );
               },

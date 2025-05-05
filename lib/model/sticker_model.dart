@@ -4,7 +4,7 @@ class Sticker {
 
   Sticker({required this.id, required this.link});
 
-  // تحويل من Firestore
+  // Factory constructor to create a Sticker object from Firestore data
   factory Sticker.fromMap(Map<String, dynamic> data) {
     return Sticker(
       id: data['id'] ?? '',
@@ -12,7 +12,7 @@ class Sticker {
     );
   }
 
-  // تحويل إلى Firestore
+  // Convert the Sticker object to a map to store in Firestore
   Map<String, dynamic> toMap() {
     return {
       'id': id,
