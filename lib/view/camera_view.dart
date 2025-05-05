@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import '../controller/camera_controller.dart';
 import '../view/result_view.dart';
@@ -13,17 +14,31 @@ class CameraView extends StatefulWidget {
 
 class _CameraViewState extends State<CameraView> {
   final CameraService _cameraService = CameraService();
+  final FlutterTts flutterTts = FlutterTts();
   bool isProcessing = false;
+
+  final String displayText = "التقط الكلمة أو الجملة لنتعلمها معا";
+  final String spokenText = "اِلتقِطِ الكَلِمَةَ أَوِ الجُملَةَ لِنَتَعَلَّمَها مَعًا";
+  final String errorDisplayText = "الكلمة أو الجملة غير واضحة، التقط مرة أخرى!";
+final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ غَيرُ واضِحَة، اِلتقِط مَرَّةً أُخرى!";
+
 
   @override
   void initState() {
     super.initState();
     _initializeCamera();
+    _speak(spokenText);
   }
 
   Future<void> _initializeCamera() async {
     await _cameraService.initializeCamera();
     setState(() {});
+  }
+
+  Future<void> _speak(String text) async {
+    await flutterTts.setLanguage("ar-SA");
+    await flutterTts.setPitch(1.0);
+    await flutterTts.speak(text);
   }
 
   Future<void> _captureAndSendImage() async {
@@ -45,7 +60,6 @@ class _CameraViewState extends State<CameraView> {
           MaterialPageRoute(
             builder: (context) => ResultView(
               text: recognizedText,
-              onHome: () => Navigator.popUntil(context, ModalRoute.withName('/')),
               onRetake: () => Navigator.pop(context),
             ),
           ),
@@ -53,8 +67,9 @@ class _CameraViewState extends State<CameraView> {
       } else {
         print("🚫 لم يتم التعرف على نص.");
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("لم يتم العثور على نص، حاول مرة أخرى!")),
+          SnackBar(content: Text(errorDisplayText)),
         );
+        _speak(errorSpokenText);
       }
     } catch (e) {
       print("Error capturing image: $e");
@@ -71,7 +86,7 @@ class _CameraViewState extends State<CameraView> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.100.43:5000/recognize')
+        Uri.parse('http://192.168.100.43:5000/recognize'),
       );
       request.files.add(await http.MultipartFile.fromPath('image', imagePath));
 
@@ -82,10 +97,10 @@ class _CameraViewState extends State<CameraView> {
 
       if (response.statusCode == 200) {
         var jsonResponse = json.decode(responseBody);
-        print("✅ النص المستخرج: \${jsonResponse['text']}");
+        print("✅ النص المستخرج: ${jsonResponse['text']}");
         return jsonResponse['text'];
       } else {
-        print("⚠️ السيرفر رجع خطأ: \${response.statusCode}");
+        print("⚠️ السيرفر رجع خطأ: ${response.statusCode}");
         print("❗️ تفاصيل الخطأ: $responseBody");
       }
     } catch (e) {
@@ -98,6 +113,7 @@ class _CameraViewState extends State<CameraView> {
   @override
   void dispose() {
     _cameraService.disposeCamera();
+    flutterTts.stop();
     super.dispose();
   }
 
@@ -132,17 +148,16 @@ class _CameraViewState extends State<CameraView> {
                 padding: const EdgeInsets.only(top: 10, bottom: 10),
                 child: Center(
                   child: Text(
-                    "التقط لنتعلم!",
+                    displayText,
                     style: TextStyle(
                       fontFamily: "Blabeloo",
-                      fontSize: 26,
+                      fontSize: 20,
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
-                    ),
+                  ),
                 ),
               ),
-
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -155,7 +170,6 @@ class _CameraViewState extends State<CameraView> {
                   ),
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24.0),
                 child: GestureDetector(
