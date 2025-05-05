@@ -10,7 +10,7 @@ class SignUpController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // TextEditingControllers for the signup form
+  // Controllers for signup form fields
   TextEditingController nameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -18,27 +18,26 @@ class SignUpController {
 
   SignUpModel? _tempParentData;
 
-  // Save temporary parent data
+  // Temporarily store parent data
   Future<void> saveParentDataTemp(SignUpModel parent) async {
     _tempParentData = parent;
   }
 
-  // Check if email is registered
+  // Check if email already exists in Firestore
   Future<bool> isEmailRegistered(String email) async {
     final result = await _firestore
         .collection('Parent')
         .where('email', isEqualTo: email)
         .get();
-
     return result.docs.isNotEmpty;
   }
 
-  // Save parent data to Firestore
+  // Save parent info to Firestore
   Future<void> saveParentData(String uid, SignUpModel parent) async {
     await _firestore.collection('Parent').doc(uid).set(parent.toMap());
   }
 
-  // Add child data under parent in Firestore
+  // Add child under parent document
   Future<void> addChild(String parentId, Child child) async {
     try {
       await _firestore
@@ -46,8 +45,8 @@ class SignUpController {
           .doc(parentId)
           .collection('Children')
           .add({
-        ...child.toMap(), // ✅ نأخذ جميع البيانات من child
-        'level': 1, // ✅ نضيف level = 1 هنا حتى لو لم يكن في child.toMap()
+        ...child.toMap(),
+        'level': 1,
         'stickers': [],
         'lockedContent': {
           'letters': <String>[],
@@ -71,7 +70,7 @@ class SignUpController {
     }
   }
 
-  // Send email verification
+  // Send email verification link
   Future<void> sendEmailVerification() async {
     User? user = _auth.currentUser;
     if (user != null && !user.emailVerified) {
@@ -80,7 +79,7 @@ class SignUpController {
     }
   }
 
-  // Check email verification
+  // Check if email is verified
   Future<void> checkEmailVerification(BuildContext context) async {
     await _auth.currentUser?.reload();
     User? user = _auth.currentUser;
@@ -91,9 +90,9 @@ class SignUpController {
         builder: (BuildContext context) {
           return AlertDialog(
             backgroundColor: Color(0xFFF8F8F8),
-            title: Text('تم تأكيد البريد الإلكتروني',
+            title: Text('Email Verified',
                 style: TextStyle(fontFamily: 'alfont')),
-            content: Text('تم تأكيد بريدك الإلكتروني بنجاح.',
+            content: Text('Your email has been successfully verified.',
                 style: TextStyle(fontFamily: 'alfont')),
             actions: [
               TextButton(
@@ -106,7 +105,7 @@ class SignUpController {
                     ),
                   );
                 },
-                child: Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
+                child: Text('OK', style: TextStyle(fontFamily: 'alfont')),
               ),
             ],
           );
@@ -118,14 +117,14 @@ class SignUpController {
         builder: (BuildContext context) {
           return AlertDialog(
             backgroundColor: Color(0xFFF8F8F8),
-            title: Text('تأكيد البريد الإلكتروني',
+            title: Text('Email Verification',
                 style: TextStyle(fontFamily: 'alfont')),
-            content: Text('الرجاء تأكيد بريدك الإلكتروني عبر الرابط المرسل.',
+            content: Text('Please verify your email using the link sent to you.',
                 style: TextStyle(fontFamily: 'alfont')),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
+                child: Text('OK', style: TextStyle(fontFamily: 'alfont')),
               ),
             ],
           );
@@ -134,7 +133,7 @@ class SignUpController {
     }
   }
 
-  // Proceed to Child Info page
+  // Navigate to child info form
   void proceedToChildInfo(BuildContext context, String parentId) {
     String childId = FirebaseFirestore.instance.collection('Children').doc().id;
     Navigator.push(
@@ -142,14 +141,14 @@ class SignUpController {
       MaterialPageRoute(
         builder: (context) => ChildInfoView(
           parentData: _tempParentData,
-          parentId: parentId, // تمرير معرف الوالد
+          parentId: parentId,
           childId: childId,
         ),
       ),
     );
   }
 
-  // Register parent and child, and send email verification
+  // Register parent and child, then send verification
   Future<void> registerParentAndChild(
       BuildContext context, Child child, SignUpModel parentData) async {
     try {
@@ -164,7 +163,6 @@ class SignUpController {
       await addChild(parentId, child);
       await sendEmailVerification();
 
-// استدعاء الصفحة بعد التسجيل
       proceedToChildInfo(context, parentId);
 
       showDialog(
@@ -172,10 +170,10 @@ class SignUpController {
         builder: (BuildContext context) {
           return AlertDialog(
             backgroundColor: Color(0xFFF8F8F8),
-            title: Text('تم إرسال رابط التحقق',
+            title: Text('Verification Sent',
                 style: TextStyle(fontFamily: 'alfont')),
             content: Text(
-                'تم إرسال رابط التحقق إلى بريدك الإلكتروني. الرجاء التحقق من بريدك.',
+                'A verification link has been sent to your email. Please check your inbox.',
                 style: TextStyle(fontFamily: 'alfont')),
             actions: [
               TextButton(
@@ -188,7 +186,7 @@ class SignUpController {
                     ),
                   );
                 },
-                child: Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
+                child: Text('OK', style: TextStyle(fontFamily: 'alfont')),
               ),
             ],
           );

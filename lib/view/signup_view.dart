@@ -13,22 +13,22 @@ class SignUpView extends StatefulWidget {
 }
 
 class _SignUpViewState extends State<SignUpView> {
-  final controller = SignUpController();
-  final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  final controller = SignUpController(); // controller to access form data
+  final _formKey = GlobalKey<FormState>(); // form key for validation
+  bool _obscurePassword = true; // toggle password visibility
+  bool _obscureConfirmPassword = true; // toggle confirm password visibility
   String? _emailError;
   String? _passwordLengthError;
-
 
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: TextDirection.rtl, // for Arabic layout
       child: Scaffold(
         backgroundColor: Colors.white,
         body: Stack(
           children: [
+            // background image
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
@@ -37,6 +37,7 @@ class _SignUpViewState extends State<SignUpView> {
                 ),
               ),
             ),
+            // back button
             Positioned(
               top: 50,
               right: 20,
@@ -45,6 +46,7 @@ class _SignUpViewState extends State<SignUpView> {
                 onPressed: () => Navigator.pop(context),
               ),
             ),
+            // form content
             Center(
               child: SingleChildScrollView(
                 child: Padding(
@@ -66,6 +68,7 @@ class _SignUpViewState extends State<SignUpView> {
                           ),
                         ),
                         const SizedBox(height: 30),
+                        // name field (Arabic only)
                         _buildNameField(
                           hintText: 'الاسم باللغة العربية',
                           controller: controller.nameController,
@@ -77,6 +80,7 @@ class _SignUpViewState extends State<SignUpView> {
                           },
                         ),
                         const SizedBox(height: 15),
+                        // email field with validation
                         _buildTextField(
                           hintText: 'البريد الإلكتروني',
                           controller: controller.emailController,
@@ -103,53 +107,56 @@ class _SignUpViewState extends State<SignUpView> {
                           },
                         ),
                         const SizedBox(height: 15),
+                        // password field with custom rules
                         _buildPasswordField(
-  hintText: 'كلمة المرور',
-  controller: controller.passwordController,
-  obscureText: _obscurePassword,
-  toggleVisibility: () {
-    setState(() {
-      _obscurePassword = !_obscurePassword;
-    });
-  },
-  validator: (value) {
-    if (value == null || value.isEmpty) {
-      return 'يرجى إدخال كلمة المرور';
-    }
-    if (value.length < 8) {
-      return 'يجب أن تتكون كلمة المرور من 8 خانات على الأقل';
-    }
-    if (value.length > 15) {
-      return 'يجب ألا تزيد كلمة المرور عن 15 خانة';
-    }
-    bool hasLetter = value.contains(RegExp(r'[a-zA-Z]'));
-    bool hasNumber = value.contains(RegExp(r'[0-9]'));
-    bool hasSymbol = value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+                          hintText: 'كلمة المرور',
+                          controller: controller.passwordController,
+                          obscureText: _obscurePassword,
+                          toggleVisibility: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'يرجى إدخال كلمة المرور';
+                            }
+                            if (value.length < 8) {
+                              return 'يجب أن تتكون كلمة المرور من 8 خانات على الأقل';
+                            }
+                            if (value.length > 15) {
+                              return 'يجب ألا تزيد كلمة المرور عن 15 خانة';
+                            }
+                            bool hasLetter = value.contains(RegExp(r'[a-zA-Z]'));
+                            bool hasNumber = value.contains(RegExp(r'[0-9]'));
+                            bool hasSymbol = value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
 
-    if (!(hasLetter && hasNumber && hasSymbol)) {
-      return 'يجب أن تحتوي كلمة المرور على حرف واحد على الأقل، ورقم، ورمز';
-    }
-    return null;
-  },
-  onChanged: (value) {
-    setState(() {
-      _passwordLengthError = value.length > 15
-          ? 'يجب ألا تزيد كلمة المرور عن ١٥ خانة'
-          : null;
-    });
-  },
-  errorText: _passwordLengthError,
-),
+                            if (!(hasLetter && hasNumber && hasSymbol)) {
+                              return 'يجب أن تحتوي كلمة المرور على حرف واحد على الأقل، ورقم، ورمز';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            setState(() {
+                              _passwordLengthError = value.length > 15
+                                  ? 'يجب ألا تزيد كلمة المرور عن ١٥ خانة'
+                                  : null;
+                            });
+                          },
+                          errorText: _passwordLengthError,
+                        ),
                         const SizedBox(height: 5),
+                        // password instructions
                         const Align(
-  alignment: Alignment.centerRight,
-  child: Text(
-    'يجب أن تحتوي كلمة المرور على ٨-١٥ خانة وتشمل حرف، رقم، ورمز.',
-    style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'alfont'),
-    textAlign: TextAlign.right,
-  ),
-),
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            'يجب أن تحتوي كلمة المرور على ٨-١٥ خانة وتشمل حرف، رقم، ورمز.',
+                            style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'alfont'),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
                         const SizedBox(height: 15),
+                        // confirm password field
                         _buildPasswordField(
                           hintText: 'تأكيد كلمة المرور',
                           controller: controller.confirmPasswordController,
@@ -171,6 +178,7 @@ class _SignUpViewState extends State<SignUpView> {
                           },
                         ),
                         const SizedBox(height: 30),
+                        // continue button
                         _buildButton(
                           text: 'متابعة',
                           onPressed: () async {
@@ -180,6 +188,7 @@ class _SignUpViewState extends State<SignUpView> {
                               });
 
                               try {
+                                // check if email is already registered
                                 bool emailExists = await controller.isEmailRegistered(controller.emailController.text);
 
                                 if (emailExists) {
@@ -190,6 +199,7 @@ class _SignUpViewState extends State<SignUpView> {
                                   return;
                                 }
 
+                                // create sign up model and go to child info screen
                                 SignUpModel parentData = SignUpModel(
                                   name: controller.nameController.text,
                                   email: controller.emailController.text,
@@ -220,6 +230,7 @@ class _SignUpViewState extends State<SignUpView> {
                           },
                         ),
                         const SizedBox(height: 15),
+                        // already have account? login here
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -249,53 +260,37 @@ class _SignUpViewState extends State<SignUpView> {
     );
   }
 
- _buildNameField({
-  required String hintText,
-  required TextEditingController controller,
-  String? Function(String?)? validator,
-}) {
-  return TextFormField(
-    controller: controller,
-    validator: (value) {
-      if (value == null || value.isEmpty) {
-        return 'يرجى إدخال الاسم';
-      }
-      // التحقق إذا كان الاسم يحتوي فقط على مسافات أو أرقام
-      if (value.trim().isEmpty) {
-        return 'الاسم لا يمكن أن يكون فارغًا أو يحتوي على مسافات فقط';
-      }
-      // التحقق من أن الاسم يحتوي فقط على الحروف العربية (بدون أرقام)
-      final arabicNameRegex = RegExp(r'^[\u0600-\u06FF\s]+$');
-      // التحقق من وجود أرقام عربية (١٢٣٤) أو إنجليزية (1234)
-      final hasNumbers = RegExp(r'[0-9\u0660-\u0669]').hasMatch(value); // هذه تشمل الأرقام العربية (٠-٩)
-      if (hasNumbers) {
-        return 'الاسم لا يمكن أن يحتوي على أرقام';
-      }
-      if (!arabicNameRegex.hasMatch(value)) {
-        return 'الرجاء إدخال الاسم بالحروف العربية فقط';
-      }
-      return null;
-    },
-    textDirection: TextDirection.rtl,
-    keyboardType: TextInputType.text,
-    inputFormatters: [
-      FilteringTextInputFormatter.allow(RegExp(r'[\u0600-\u06FF\s]')), // السماح فقط بالحروف العربية والمسافات
-    ],
-    decoration: InputDecoration(
-      hintText: hintText,
-      hintStyle: const TextStyle(fontFamily: 'alfont'),
-      filled: true,
-      fillColor: const Color(0xFFFFF5CC),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+  // name field (Arabic only)
+  _buildNameField({
+    required String hintText,
+    required TextEditingController controller,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      validator: validator,
+      textDirection: TextDirection.rtl,
+      keyboardType: TextInputType.text,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[\u0600-\u06FF\s]')),
+      ],
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(fontFamily: 'alfont'),
+        filled: true,
+        fillColor: const Color(0xFFFFF5CC),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
-    ),
-    style: const TextStyle(fontFamily: 'alfont'),
-  );
-}
+      style: const TextStyle(fontFamily: 'alfont'),
+    );
+  }
+
+  // reusable text field (used for email)
   Widget _buildTextField({
     required String hintText,
     required TextEditingController controller,
@@ -324,45 +319,46 @@ class _SignUpViewState extends State<SignUpView> {
     );
   }
 
+  // reusable password field with visibility toggle
   Widget _buildPasswordField({
-  required String hintText,
-  required TextEditingController controller,
-  required bool obscureText,
-  required VoidCallback toggleVisibility,
-  String? Function(String?)? validator,
-  void Function(String)? onChanged,
-  String? errorText,
-}) {
-  return TextFormField(
-    controller: controller,
-    obscureText: obscureText,
-    validator: validator,
-    onChanged: onChanged,
-    maxLength: 15,
-    maxLengthEnforcement: MaxLengthEnforcement.none,
-    decoration: InputDecoration(
-      hintText: hintText,
-      hintStyle: const TextStyle(fontFamily: 'alfont'),
-      filled: true,
-      fillColor: const Color(0xFFFFF5CC),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+    required String hintText,
+    required TextEditingController controller,
+    required bool obscureText,
+    required VoidCallback toggleVisibility,
+    String? Function(String?)? validator,
+    void Function(String)? onChanged,
+    String? errorText,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      validator: validator,
+      onChanged: onChanged,
+      maxLength: 15,
+      maxLengthEnforcement: MaxLengthEnforcement.none,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(fontFamily: 'alfont'),
+        filled: true,
+        fillColor: const Color(0xFFFFF5CC),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        suffixIcon: IconButton(
+          icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility),
+          onPressed: toggleVisibility,
+        ),
+        errorText: errorText,
+        errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
+        counterText: '',
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      suffixIcon: IconButton(
-        icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility),
-        onPressed: toggleVisibility,
-      ),
-      errorText: errorText,
-      errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
-      counterText: '', // لإخفاء عداد الحروف
-    ),
-    style: const TextStyle(fontFamily: 'alfont'),
-  );
-}
+      style: const TextStyle(fontFamily: 'alfont'),
+    );
+  }
 
-
+  // custom button widget
   Widget _buildButton({required String text, required VoidCallback onPressed}) {
     return SizedBox(
       width: double.infinity,

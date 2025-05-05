@@ -4,14 +4,18 @@ class CameraService {
   CameraController? _controller;
   List<CameraDescription>? _cameras;
 
-  /// 🔹 تهيئة الكاميرا عند تشغيل التطبيق
+  // Initialize camera when app starts
   Future<void> initializeCamera() async {
     _cameras = await availableCameras();
-    _controller = CameraController(_cameras![0], ResolutionPreset.medium, enableAudio: false,);
+    _controller = CameraController(
+      _cameras![0],
+      ResolutionPreset.medium,
+      enableAudio: false,
+    );
     await _controller!.initialize();
   }
 
-  /// 🔹 التقاط صورة وإرجاع مسارها
+  // Capture an image and return its path
   Future<String?> captureImage() async {
     if (_controller == null || !_controller!.value.isInitialized) {
       return null;
@@ -20,12 +24,12 @@ class CameraService {
     return image.path;
   }
 
-  /// 🔹 إغلاق الكاميرا لتوفير الموارد
+  // Dispose camera when not needed
   void disposeCamera() {
     _controller?.dispose();
   }
 
-  /// 🔹 جلب الـ Controller الحالي (للاستخدام في CameraPreview)
+  // Return current controller (used for preview)
   CameraController? getController() {
     return _controller;
   }

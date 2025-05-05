@@ -1,4 +1,4 @@
 class ScannedObject {
-  final String text; // الكلمة المستخرجة
+  final String text; 
   ScannedObject({required this.text});
 }

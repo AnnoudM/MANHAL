@@ -15,7 +15,7 @@ class InitialPage extends StatelessWidget {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
-            // إضافة الخلفية هنا
+            // Background image
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
@@ -24,12 +24,14 @@ class InitialPage extends StatelessWidget {
                 ),
               ),
             ),
-            // المحتوى
+
+            // Logo, welcome text, and buttons
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // App logo
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Image.asset(
@@ -39,7 +41,10 @@ class InitialPage extends StatelessWidget {
                       fit: BoxFit.contain,
                     ),
                   ),
+
                   const SizedBox(height: 20),
+
+                  // Welcome message
                   Text(
                     model.welcomeText,
                     style: const TextStyle(
@@ -49,13 +54,19 @@ class InitialPage extends StatelessWidget {
                       fontFamily: 'alfont',
                     ),
                   ),
+
                   const SizedBox(height: 30),
+
+                  // Sign up button
                   _buildButton(
                     context: context,
                     text: model.signUpButtonText,
                     onPressed: () => controller.navigateToSignUp(context),
                   ),
+
                   const SizedBox(height: 15),
+
+                  // Login button
                   _buildButton(
                     context: context,
                     text: model.loginButtonText,
@@ -70,6 +81,7 @@ class InitialPage extends StatelessWidget {
     );
   }
 
+  // Reusable styled button
   Widget _buildButton({required BuildContext context, required String text, required VoidCallback onPressed}) {
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.7,

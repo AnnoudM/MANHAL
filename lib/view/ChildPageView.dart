@@ -23,6 +23,7 @@ class _ChildPageViewState extends State<ChildPageView> {
   late String? _selectedPhoto;
   late Child _child;
 
+  // Convert English digits to Arabic
   String _convertToArabicNumber(String input) {
     const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -32,6 +33,7 @@ class _ChildPageViewState extends State<ChildPageView> {
     return input;
   }
 
+  // Show dialog to edit name or age
   void _showEditDialog(String title, String initialValue, Function(String) onSave) {
     TextEditingController textController = TextEditingController(text: initialValue);
     final _formKey = GlobalKey<FormState>();
@@ -51,9 +53,7 @@ class _ChildPageViewState extends State<ChildPageView> {
                 if (title.contains('الاسم') && !RegExp(r'^[\u0600-\u06FF\s]+$').hasMatch(value)) {
                   return 'يُسمح فقط بالأحرف العربية';
                 }
-                if (value.trim().isEmpty) {
-                  return 'الاسم لا يمكن أن يحتوي على مسافات فقط';
-                }
+                if (value.trim().isEmpty) return 'الاسم لا يمكن أن يحتوي على مسافات فقط';
                 if (RegExp(r'[0-9\u0660-\u0669]').hasMatch(value)) {
                   return 'يُمنع إدخال الأرقام في الاسم';
                 }
@@ -131,6 +131,7 @@ class _ChildPageViewState extends State<ChildPageView> {
     _selectedPhoto = _child.photoUrl;
   }
 
+  // Show dropdown to select new age
   void _showAgeEditDialog() {
     List<String> ageOptions = ['3', '4', '5', '6', '7', '8'];
     showDialog(
@@ -198,6 +199,7 @@ class _ChildPageViewState extends State<ChildPageView> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
+            // Background image
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
@@ -206,6 +208,7 @@ class _ChildPageViewState extends State<ChildPageView> {
                 ),
               ),
             ),
+            // Page header
             Positioned(
               top: 50,
               left: 0,
@@ -233,11 +236,13 @@ class _ChildPageViewState extends State<ChildPageView> {
                 ),
               ),
             ),
+            // Child info form
             Padding(
               padding: const EdgeInsets.only(top: 130, left: 20, right: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Child image
                   Center(
                     child: GestureDetector(
                       onTap: () async {
@@ -283,21 +288,15 @@ class _ChildPageViewState extends State<ChildPageView> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _buildEditableField(
-                    'الاسم',
-                    _child.name,
-                    () => _showEditDialog('تعديل الاسم', _child.name, (newName) {
+                  _buildEditableField('الاسم', _child.name, () {
+                    _showEditDialog('تعديل الاسم', _child.name, (newName) {
                       setState(() {
                         _child = _child.copyWith(name: newName);
                       });
                       _updateChildInfo();
-                    }),
-                  ),
-                  _buildEditableField(
-                    'العمر',
-                    _convertToArabicNumber(_child.age.toString()),
-                    () => _showAgeEditDialog(),
-                  ),
+                    });
+                  }),
+                  _buildEditableField('العمر', _convertToArabicNumber(_child.age.toString()), _showAgeEditDialog),
                   _buildStaticField('الجنس', widget.child.gender),
                   const Spacer(),
                   _buildActionButton(context, 'حذف الطفل', Colors.redAccent, _deleteChild),
@@ -310,6 +309,7 @@ class _ChildPageViewState extends State<ChildPageView> {
     );
   }
 
+  // Save updated info to Firestore
   void _updateChildInfo() async {
     if (_formKey.currentState?.validate() ?? true) {
       await _controller.updateChildInfo(_child, (updatedChildFromDB) {
@@ -326,6 +326,7 @@ class _ChildPageViewState extends State<ChildPageView> {
     }
   }
 
+  // Show delete confirmation dialog
   void _deleteChild() {
     showDialog(
       context: context,
@@ -363,6 +364,7 @@ class _ChildPageViewState extends State<ChildPageView> {
     );
   }
 
+  // Editable row (name / age)
   Widget _buildEditableField(String label, String value, VoidCallback onTap) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -388,6 +390,7 @@ class _ChildPageViewState extends State<ChildPageView> {
     );
   }
 
+  // Non-editable row (gender)
   Widget _buildStaticField(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -411,6 +414,7 @@ class _ChildPageViewState extends State<ChildPageView> {
     );
   }
 
+  // Bottom action button
   Widget _buildActionButton(BuildContext context, String text, Color color, VoidCallback onPressed) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(

@@ -17,6 +17,6 @@ class ChildProfileController {
         .doc(user.uid)
         .collection('Children')
         .doc(childID)
-        .snapshots(); // 🔹 جلب البيانات كـ Stream لتحديث الصورة فورًا عند تغييرها
+        .snapshots(); 
   }
 }

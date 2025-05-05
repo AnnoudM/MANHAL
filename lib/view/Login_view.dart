@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:connectivity_plus/connectivity_plus.dart'; // تمت إضافته هنا
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../controller/Login_controller.dart';
 import '../view/ChildListView.dart';
 
@@ -24,6 +24,7 @@ class _LoginViewState extends State<LoginView> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
+            // Background image
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
@@ -32,6 +33,7 @@ class _LoginViewState extends State<LoginView> {
                 ),
               ),
             ),
+            // Back button
             Positioned(
               top: 40,
               right: 20,
@@ -40,6 +42,7 @@ class _LoginViewState extends State<LoginView> {
                 onPressed: () => Navigator.pop(context),
               ),
             ),
+            // Form content
             Center(
               child: SingleChildScrollView(
                 child: Padding(
@@ -61,6 +64,7 @@ class _LoginViewState extends State<LoginView> {
                           ),
                         ),
                         const SizedBox(height: 30),
+                        // Email field
                         _buildTextField(
                           hintText: 'البريد الالكتروني',
                           controller: _controller.emailController,
@@ -74,6 +78,7 @@ class _LoginViewState extends State<LoginView> {
                           },
                         ),
                         const SizedBox(height: 15),
+                        // Password field
                         _buildTextField(
                           hintText: 'كلمة المرور',
                           controller: _controller.passwordController,
@@ -96,6 +101,7 @@ class _LoginViewState extends State<LoginView> {
                             return null;
                           },
                         ),
+                        // Error message
                         if (_errorMessage != null) ...[
                           const SizedBox(height: 10),
                           Align(
@@ -110,6 +116,7 @@ class _LoginViewState extends State<LoginView> {
                           ),
                         ],
                         const SizedBox(height: 20),
+                        // Submit button
                         _buildButton(
                           text: 'تسجيل',
                           onPressed: () async {
@@ -142,6 +149,7 @@ class _LoginViewState extends State<LoginView> {
                           },
                         ),
                         const SizedBox(height: 15),
+                        // Sign up text
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -160,6 +168,7 @@ class _LoginViewState extends State<LoginView> {
                           ],
                         ),
                         const SizedBox(height: 10),
+                        // Forgot password button
                         TextButton(
                           onPressed: () async {
                             if (_controller.emailController.text.isEmpty) {
@@ -197,6 +206,7 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
+  // Custom input field
   Widget _buildTextField({
     required String hintText,
     required TextEditingController controller,
@@ -228,6 +238,7 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
+  // Reusable styled button
   Widget _buildButton({required String text, required VoidCallback onPressed}) {
     return SizedBox(
       width: double.infinity,

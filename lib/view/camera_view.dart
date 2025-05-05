@@ -17,30 +17,31 @@ class _CameraViewState extends State<CameraView> {
   final FlutterTts flutterTts = FlutterTts();
   bool isProcessing = false;
 
+  // Text to show and speak initially
   final String displayText = "التقط الكلمة أو الجملة لنتعلمها معا";
   final String spokenText = "اِلتقِطِ الكَلِمَةَ أَوِ الجُملَةَ لِنَتَعَلَّمَها مَعًا";
   final String errorDisplayText = "الكلمة أو الجملة غير واضحة، التقط مرة أخرى!";
-final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ غَيرُ واضِحَة، اِلتقِط مَرَّةً أُخرى!";
-
+  final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ غَيرُ واضِحَة، اِلتقِط مَرَّةً أُخرى!";
 
   @override
   void initState() {
     super.initState();
-    _initializeCamera();
-    _speak(spokenText);
+    _initializeCamera(); // Start the camera
+    _speak(spokenText);  // Say intro text
   }
 
   Future<void> _initializeCamera() async {
     await _cameraService.initializeCamera();
-    setState(() {});
+    setState(() {}); // Refresh UI after camera is ready
   }
 
   Future<void> _speak(String text) async {
     await flutterTts.setLanguage("ar-SA");
     await flutterTts.setPitch(1.0);
-    await flutterTts.speak(text);
+    await flutterTts.speak(text); // Read text out loud
   }
 
+  // Take picture and send it to server
   Future<void> _captureAndSendImage() async {
     if (isProcessing) return;
     setState(() {
@@ -52,9 +53,9 @@ final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ
       if (imagePath == null) return;
 
       String? recognizedText = await _sendImageToServer(imagePath);
-      print("📄 النص المستخرج: $recognizedText");
 
       if (recognizedText != null && recognizedText.isNotEmpty) {
+        // Show result page if text was found
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -65,7 +66,7 @@ final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ
           ),
         );
       } else {
-        print("🚫 لم يتم التعرف على نص.");
+        // Show error if no text found
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorDisplayText)),
         );
@@ -80,9 +81,8 @@ final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ
     }
   }
 
+  // Send image file to backend API
   Future<String?> _sendImageToServer(String imagePath) async {
-    print("🚀 نحاول نرسل الصورة للسيرفر...");
-
     try {
       var request = http.MultipartRequest(
         'POST',
@@ -93,18 +93,14 @@ final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ
       var response = await request.send();
       var responseBody = await response.stream.bytesToString();
 
-      print("📩 رد السيرفر بالكامل: $responseBody");
-
       if (response.statusCode == 200) {
         var jsonResponse = json.decode(responseBody);
-        print("✅ النص المستخرج: ${jsonResponse['text']}");
         return jsonResponse['text'];
       } else {
-        print("⚠️ السيرفر رجع خطأ: ${response.statusCode}");
-        print("❗️ تفاصيل الخطأ: $responseBody");
+        print("Server error: ${response.statusCode}");
       }
     } catch (e) {
-      print("❌ Exception أثناء الإرسال: $e");
+      print("Error sending to server: $e");
     }
 
     return null;
@@ -112,8 +108,8 @@ final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ
 
   @override
   void dispose() {
-    _cameraService.disposeCamera();
-    flutterTts.stop();
+    _cameraService.disposeCamera(); // Release camera
+    flutterTts.stop();              // Stop any speech
     super.dispose();
   }
 
@@ -137,6 +133,7 @@ final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ
         child: SafeArea(
           child: Column(
             children: [
+              // Back button
               Align(
                 alignment: Alignment.topRight,
                 child: IconButton(
@@ -144,6 +141,7 @@ final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
+              // Instruction text
               Padding(
                 padding: const EdgeInsets.only(top: 10, bottom: 10),
                 child: Center(
@@ -158,6 +156,7 @@ final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ
                   ),
                 ),
               ),
+              // Camera preview
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -170,6 +169,7 @@ final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ
                   ),
                 ),
               ),
+              // Camera button
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24.0),
                 child: GestureDetector(

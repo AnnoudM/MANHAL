@@ -32,6 +32,7 @@ class _ChildProfileViewState extends State<ChildProfileView> {
     _controller = ChildProfileController(childID: widget.childID);
   }
 
+  // Convert digits from English to Arabic
   String _convertToArabicNumber(String input) {
     const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -46,7 +47,7 @@ class _ChildProfileViewState extends State<ChildProfileView> {
     return Scaffold(
       body: Stack(
         children: [
-          // الخلفية
+          // Background image
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -56,7 +57,7 @@ class _ChildProfileViewState extends State<ChildProfileView> {
             ),
           ),
 
-          // زر الرجوع
+          // Back button
           Positioned(
             top: 40,
             right: 20,
@@ -72,7 +73,7 @@ class _ChildProfileViewState extends State<ChildProfileView> {
             ),
           ),
 
-          // المحتوى
+          // Real-time data from Firestore
           StreamBuilder<DocumentSnapshot>(
             stream: _controller.childStream(),
             builder: (context, snapshot) {
@@ -84,9 +85,7 @@ class _ChildProfileViewState extends State<ChildProfileView> {
               }
 
               var childData = snapshot.data!.data() as Map<String, dynamic>;
-              String updatedPhotoUrl =
-                  childData['photoUrl'] ?? 'assets/images/default_avatar.jpg';
-
+              String updatedPhotoUrl = childData['photoUrl'] ?? 'assets/images/default_avatar.jpg';
               String age = childData['age'] != null
                   ? _convertToArabicNumber(childData['age'].toString())
                   : 'غير محدد';
@@ -94,6 +93,7 @@ class _ChildProfileViewState extends State<ChildProfileView> {
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // Profile picture with edit button
                   Stack(
                     alignment: Alignment.topRight,
                     children: [
@@ -109,8 +109,7 @@ class _ChildProfileViewState extends State<ChildProfileView> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    SelectImageView(childID: widget.childID),
+                                builder: (context) => SelectImageView(childID: widget.childID),
                               ),
                             );
                           },
@@ -124,7 +123,10 @@ class _ChildProfileViewState extends State<ChildProfileView> {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 10),
+
+                  // Child name
                   Text(
                     childData['name'] ?? "غير معروف",
                     style: const TextStyle(
@@ -133,7 +135,10 @@ class _ChildProfileViewState extends State<ChildProfileView> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+
                   const SizedBox(height: 20),
+
+                  // Age and gender fields
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

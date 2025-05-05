@@ -8,6 +8,7 @@ class PersonalInfoController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Get current parent info from Firestore
   Future<PersonalInfoModel?> getUserInfo() async {
     try {
       User? user = _auth.currentUser;
@@ -24,164 +25,155 @@ class PersonalInfoController {
     return null;
   }
 
-  Future<void> updateUserName(BuildContext context, String newName, Function(String) onUpdate) async {
-  try {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      await _firestore.collection('Parent').doc(user.uid).update({'name': newName});
+  // Update parent name in Firestore
+  Future<void> updateUserName(
+      BuildContext context, String newName, Function(String) onUpdate) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('Parent').doc(user.uid).update({'name': newName});
+        onUpdate(newName);
 
-      // تحديث الاسم في الواجهة مباشرة
-      onUpdate(newName);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم تحديث الاسم بنجاح', style: TextStyle(fontFamily: 'alfont')),
-          backgroundColor: Colors.green[300], // تعديل لون السناك بار
-        ),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تم تحديث الاسم بنجاح', style: TextStyle(fontFamily: 'alfont')),
+            backgroundColor: Colors.green[300],
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error updating name: $e');
     }
-  } catch (e) {
-    debugPrint('Error updating name: $e');
   }
-}
 
+  // Update email with verification link and logout
+  Future<void> updateUserEmail(BuildContext context, String newEmail) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user == null) return;
 
+      // Check if email is already used
+      var emailCheck = await _firestore
+          .collection('Parent')
+          .where('email', isEqualTo: newEmail)
+          .get();
 
-Future<void> updateUserEmail(BuildContext context, String newEmail) async {
-  try {
-    User? user = _auth.currentUser;
-    if (user == null) return;
+      if (emailCheck.docs.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('البريد الإلكتروني مستخدم بالفعل', style: TextStyle(fontFamily: 'alfont')),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
 
-    // ✅ التأكد أن البريد الجديد غير مستخدم بالفعل
-    var emailCheck = await _firestore
-        .collection('Parent')
-        .where('email', isEqualTo: newEmail)
-        .get();
+      // Send verification link
+      await user.verifyBeforeUpdateEmail(newEmail);
 
-    if (emailCheck.docs.isNotEmpty) {
+      // Show confirmation dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: Color(0xFFF8F8F8),
+            title: Text('تم إرسال رابط التحقق', style: TextStyle(fontFamily: 'alfont')),
+            content: Text(
+              'تم إرسال رابط التحقق إلى بريدك الإلكتروني الجديد. الرجاء الضغط على الرابط المرسل قبل تسجيل الدخول مرة أخرى.',
+              style: TextStyle(fontFamily: 'alfont')),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => InitialPage()),
+                  );
+                },
+                child: Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('Error updating email: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('البريد الإلكتروني مستخدم بالفعل', style: TextStyle(fontFamily: 'alfont')),
+          content: Text('حدث خطأ أثناء تحديث البريد', style: TextStyle(fontFamily: 'alfont')),
           backgroundColor: Colors.red,
         ),
       );
-      return;
     }
-
-    // ✅ إرسال رابط التحقق إلى البريد الجديد
-    await user.verifyBeforeUpdateEmail(newEmail);
-
-    // ✅ إظهار ديالوج التأكيد
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Color(0xFFF8F8F8),
-          title: Text('تم إرسال رابط التحقق', style: TextStyle(fontFamily: 'alfont')),
-          content: Text(
-            'تم إرسال رابط التحقق إلى بريدك الإلكتروني الجديد. الرجاء الضغط على الرابط المرسل قبل تسجيل الدخول مرة أخرى.',
-            style: TextStyle(fontFamily: 'alfont')),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-
-                // ✅ تسجيل خروج المستخدم
-                await FirebaseAuth.instance.signOut();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => InitialPage(),
-                  ),
-                );
-              },
-              child: Text('حسناً', style: TextStyle(fontFamily: 'alfont')),
-            ),
-          ],
-        );
-      },
-    );
-
-  } catch (e) {
-    debugPrint('Error updating email: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('حدث خطأ أثناء تحديث البريد', style: TextStyle(fontFamily: 'alfont')),
-        backgroundColor: Colors.red,
-      ),
-    );
   }
-}
 
-
+  // Delete parent account and all linked children
   Future<void> deleteUserAccount(BuildContext context) async {
-  try {
-    User? user = _auth.currentUser;
-    if (user == null) return;
+    try {
+      User? user = _auth.currentUser;
+      if (user == null) return;
 
-    // عرض ديالوج التأكيد
-    bool confirmDelete = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Color(0xFFF8F8F8),
-          title: Text('تأكيد حذف الحساب', style: TextStyle(fontFamily: 'alfont')),
-          content: Text('هل أنت متأكد أنك تريد حذف حسابك؟ سيتم حذف جميع الأطفال المرتبطين به أيضًا.', style: TextStyle(fontFamily: 'alfont')),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text('حذف', style: TextStyle(color: Colors.red, fontFamily: 'alfont')),
-            ),
-          ],
-        );
-      },
-    );
+      // Confirm dialog
+      bool confirmDelete = await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: Color(0xFFF8F8F8),
+            title: Text('تأكيد حذف الحساب', style: TextStyle(fontFamily: 'alfont')),
+            content: Text(
+              'هل أنت متأكد أنك تريد حذف حسابك؟ سيتم حذف جميع الأطفال المرتبطين به أيضًا.',
+              style: TextStyle(fontFamily: 'alfont')),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text('حذف', style: TextStyle(color: Colors.red, fontFamily: 'alfont')),
+              ),
+            ],
+          );
+        },
+      );
 
-    if (!confirmDelete) return; // المستخدم ألغى العملية
+      if (!confirmDelete) return;
 
-    // حذف جميع الأطفال المرتبطين بحساب الوالد
-    QuerySnapshot childrenSnapshot = await _firestore
-        .collection('Children')
-        .where('parentId', isEqualTo: user.uid)
-        .get();
+      // Delete all linked children
+      QuerySnapshot childrenSnapshot = await _firestore
+          .collection('Children')
+          .where('parentId', isEqualTo: user.uid)
+          .get();
 
-    for (var childDoc in childrenSnapshot.docs) {
-      await _firestore.collection('Children').doc(childDoc.id).delete();
+      for (var childDoc in childrenSnapshot.docs) {
+        await _firestore.collection('Children').doc(childDoc.id).delete();
+      }
+
+      // Delete parent from Firestore and Firebase Auth
+      await _firestore.collection('Parent').doc(user.uid).delete();
+      await user.delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم حذف الحساب بنجاح', style: TextStyle(fontFamily: 'alfont')),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => InitialPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      debugPrint('Error deleting account: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('حدث خطأ أثناء حذف الحساب', style: TextStyle(fontFamily: 'alfont')),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-
-    // حذف حساب الوالد من Firestore
-    await _firestore.collection('Parent').doc(user.uid).delete();
-
-    // حذف حساب Firebase Authentication
-    await user.delete();
-
-    // إظهار رسالة النجاح
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('تم حذف الحساب بنجاح', style: TextStyle(fontFamily: 'alfont')),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    // الانتقال إلى صفحة البداية
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => InitialPage()),
-      (route) => false,
-    );
-  } catch (e) {
-    debugPrint('Error deleting account: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('حدث خطأ أثناء حذف الحساب', style: TextStyle(fontFamily: 'alfont')),
-        backgroundColor: Colors.red,
-      ),
-    );
   }
-}
-
 }

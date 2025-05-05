@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+// Result screen that shows recognized text and allows retake or pronunciation
 class ResultView extends StatelessWidget {
-  final String text;
-  final Function onRetake;
-  final FlutterTts tts = FlutterTts();
+  final String text; // the recognized text from the image
+  final Function onRetake; // callback to go back to the camera
+  final FlutterTts tts = FlutterTts(); // text-to-speech instance
 
   ResultView({
     required this.text,
@@ -13,13 +14,16 @@ class ResultView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // set header height to take around half the screen
     double headerHeight = MediaQuery.of(context).size.height * 0.52;
 
     return Scaffold(
       body: Stack(
         children: [
+          // background color
           Container(color: Color(0xFFD0ECE7)),
 
+          // top background image (decorative)
           Positioned(
             top: 30,
             left: 0,
@@ -31,15 +35,17 @@ class ResultView extends StatelessWidget {
             ),
           ),
 
+          // main UI content
           Column(
             children: [
+              // upper section with result text and sound button
               Container(
                 height: headerHeight,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.only(top: 60.0),
                 child: Column(
                   children: [
-                    // زر الرجوع في الأعلى
+                    // back button to go back to previous screen
                     Align(
                       alignment: Alignment.topRight,
                       child: IconButton(
@@ -48,6 +54,7 @@ class ResultView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 40),
+                    // recognized text display
                     Center(
                       child: Text(
                         text,
@@ -60,6 +67,7 @@ class ResultView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    // volume icon to play the recognized text using TTS
                     IconButton(
                       icon: Image.asset('assets/images/high-volume.png', width: 48, height: 48),
                       onPressed: () => tts.speak(text),
@@ -68,6 +76,7 @@ class ResultView extends StatelessWidget {
                 ),
               ),
 
+              // bottom section with retake (camera) button
               Expanded(
                 child: Container(
                   decoration: const BoxDecoration(
@@ -95,6 +104,7 @@ class ResultView extends StatelessWidget {
                             ),
                           ],
                         ),
+                        // camera icon to retake a picture
                         child: Icon(Icons.camera_alt_outlined, size: 42, color: Colors.black),
                       ),
                     ),

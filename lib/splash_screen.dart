@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../view/initialView.dart';
-import '../view/childlistview.dart'; // تأكد من استيراد الصفحة الصحيحة
+import '../view/childlistview.dart';
 import '../controller/HomePageController.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,55 +20,55 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
 
-    // إعداد الأنيميشن
+    // Set up fade-in animation
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 1), // مدة تأثير الفيد
+      duration: Duration(seconds: 1),
     );
 
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(_animationController);
-    _animationController.forward();  // بدء تأثير الفيد
+    _animationController.forward();
 
-    // التحقق من تسجيل الدخول
+    // Check if user is logged in
     _checkLoginStatus();
   }
 
   void _checkLoginStatus() async {
-  await Future.delayed(Duration(seconds: 3));
+    // Wait for splash delay
+    await Future.delayed(Duration(seconds: 3));
 
-  User? user = FirebaseAuth.instance.currentUser;
+    User? user = FirebaseAuth.instance.currentUser;
 
-  if (user != null) {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? selectedChildId = prefs.getString('selectedChildId');
+    if (user != null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? selectedChildId = prefs.getString('selectedChildId');
 
-    if (selectedChildId != null && selectedChildId.isNotEmpty) {
-      // ✅ عندنا طفل محفوظ → نوديه مباشرة على الصفحة الرئيسية
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => HomePageController(
-            parentId: user.uid,
-            childID: selectedChildId,
+      if (selectedChildId != null && selectedChildId.isNotEmpty) {
+        // If a child is already selected, go to HomePage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HomePageController(
+              parentId: user.uid,
+              childID: selectedChildId,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        // Logged in but no child selected → go to ChildList
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => ChildListView()),
+        );
+      }
     } else {
-      // ❌ ما فيه طفل محفوظ → نوديه على قائمة الأطفال
+      // Not logged in → go to initial screen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => ChildListView()),
+        MaterialPageRoute(builder: (_) => InitialPage()),
       );
     }
-  } else {
-    // ❌ مو مسجل دخول
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => InitialPage()),
-    );
   }
-}
-
 
   @override
   void dispose() {

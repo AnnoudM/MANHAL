@@ -22,21 +22,22 @@ class _AddChildViewState extends State<AddChildView> {
 
   final ChildController _controller = ChildController();
 
+  // Arabic numbers for age dropdown
   final List<Map<String, String>> _ageOptions = [
-  {'display': '٣', 'value': '٣'},
-  {'display': '٤', 'value': '٤'},
-  {'display': '٥', 'value': '٥'},
-  {'display': '٦', 'value': '٦'},
-  {'display': '٧', 'value': '٧'},
-  {'display': '٨', 'value': '٨'},
-];
-
+    {'display': '٣', 'value': '٣'},
+    {'display': '٤', 'value': '٤'},
+    {'display': '٥', 'value': '٥'},
+    {'display': '٦', 'value': '٦'},
+    {'display': '٧', 'value': '٧'},
+    {'display': '٨', 'value': '٨'},
+  ];
 
   late List<DropdownMenuItem<String>> _ageDropdownItems;
 
   @override
   void initState() {
     super.initState();
+    // Convert age list to dropdown items
     _ageDropdownItems = _ageOptions.map((item) {
       return DropdownMenuItem<String>(
         value: item['value'],
@@ -48,6 +49,7 @@ class _AddChildViewState extends State<AddChildView> {
     }).toList();
   }
 
+  // Called when submit button is pressed
   void _submit() async {
     if (_formKey.currentState!.validate()) {
       String childId = FirebaseFirestore.instance.collection('Children').doc().id;
@@ -55,7 +57,7 @@ class _AddChildViewState extends State<AddChildView> {
         id: childId,
         name: _nameController.text.trim(),
         gender: _selectedGender!,
-        age: int.parse(_arabicToEnglishNumber(_selectedAge!)),  // نحولها وقت الإرسال فقط
+        age: int.parse(_arabicToEnglishNumber(_selectedAge!)), // Convert Arabic number to English
         photoUrl: _selectedPhoto,
         parentId: widget.parentId,
       );
@@ -63,6 +65,7 @@ class _AddChildViewState extends State<AddChildView> {
     }
   }
 
+  // Reusable input field for name
   _buildTextField({
     required String hintText,
     required TextEditingController controller,
@@ -100,25 +103,28 @@ class _AddChildViewState extends State<AddChildView> {
       style: const TextStyle(fontFamily: 'alfont'),
     );
   }
-String _convertToArabicNumber(String input) {
-  const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-  const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-  for (int i = 0; i < english.length; i++) {
-    input = input.replaceAll(english[i], arabic[i]);
+
+  // Convert English digits to Arabic
+  String _convertToArabicNumber(String input) {
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    for (int i = 0; i < english.length; i++) {
+      input = input.replaceAll(english[i], arabic[i]);
+    }
+    return input;
   }
-  return input;
-}
 
-String _arabicToEnglishNumber(String input) {
-  const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-  const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-  for (int i = 0; i < arabic.length; i++) {
-    input = input.replaceAll(arabic[i], english[i]);
+  // Convert Arabic digits to English
+  String _arabicToEnglishNumber(String input) {
+    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    for (int i = 0; i < arabic.length; i++) {
+      input = input.replaceAll(arabic[i], english[i]);
+    }
+    return input;
   }
-  return input;
-}
 
-
+  // Reusable dropdown field (gender or age)
   Widget _buildDropdownField({
     required String hintText,
     required List<DropdownMenuItem<String>> items,
@@ -130,16 +136,15 @@ String _arabicToEnglishNumber(String input) {
       value: value,
       items: items,
       selectedItemBuilder: hintText == 'العمر'
-    ? (context) {
-        return items.map((DropdownMenuItem<String> item) {
-          return Text(
-            _convertToArabicNumber(item.value ?? ''),
-            style: const TextStyle(fontFamily: 'alfont', color: Colors.black),
-          );
-        }).toList();
-      }
-    : null,
-
+          ? (context) {
+              return items.map((DropdownMenuItem<String> item) {
+                return Text(
+                  _convertToArabicNumber(item.value ?? ''),
+                  style: const TextStyle(fontFamily: 'alfont', color: Colors.black),
+                );
+              }).toList();
+            }
+          : null,
       onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hintText,
@@ -158,6 +163,7 @@ String _arabicToEnglishNumber(String input) {
     );
   }
 
+  // Reusable submit button
   Widget _buildButton({required String text, required VoidCallback onPressed}) {
     return SizedBox(
       width: double.infinity,
@@ -191,6 +197,7 @@ String _arabicToEnglishNumber(String input) {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
+            // Background image
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
@@ -199,6 +206,7 @@ String _arabicToEnglishNumber(String input) {
                 ),
               ),
             ),
+            // Back button
             Positioned(
               top: 50,
               right: 20,
@@ -209,6 +217,7 @@ String _arabicToEnglishNumber(String input) {
                 },
               ),
             ),
+            // Main form
             Center(
               child: SingleChildScrollView(
                 child: Padding(
@@ -216,10 +225,9 @@ String _arabicToEnglishNumber(String input) {
                   child: Form(
                     key: _formKey,
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const SizedBox(height: 50),
+                        // Select photo
                         GestureDetector(
                           onTap: () async {
                             final selectedPhoto = await Navigator.push(
@@ -244,6 +252,7 @@ String _arabicToEnglishNumber(String input) {
                           ),
                         ),
                         const SizedBox(height: 20),
+                        // Name input
                         _buildTextField(
                           hintText: 'اسم الطفل باللغة العربية',
                           controller: _nameController,
@@ -253,6 +262,7 @@ String _arabicToEnglishNumber(String input) {
                           ],
                         ),
                         const SizedBox(height: 15),
+                        // Gender dropdown
                         _buildDropdownField(
                           hintText: 'الجنس',
                           items: ['ذكر', 'أنثى']
@@ -266,6 +276,7 @@ String _arabicToEnglishNumber(String input) {
                           validator: (value) => value == null ? 'هذا الحقل مطلوب' : null,
                         ),
                         const SizedBox(height: 15),
+                        // Age dropdown
                         _buildDropdownField(
                           hintText: 'العمر',
                           items: _ageDropdownItems,
@@ -274,6 +285,7 @@ String _arabicToEnglishNumber(String input) {
                           validator: (value) => value == null ? 'هذا الحقل مطلوب' : null,
                         ),
                         const SizedBox(height: 30),
+                        // Submit button
                         _buildButton(
                           text: 'إضافة',
                           onPressed: _submit,

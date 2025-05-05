@@ -5,68 +5,67 @@ import '../model/child_model.dart';
 class ChildController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
- Future<void> updateChildInfo(Child child, Function(Child) onUpdate) async {
-  try {
-    // إنشاء Map للتحديث
-    Map<String, dynamic> updateData = {
-      'name': child.name,
-      'age': child.age,
-      'photoUrl': child.photoUrl,
-      'gender': child.gender,
-      'parentId': child.parentId,
-    };
+  // Update child info in Firestore
+  Future<void> updateChildInfo(Child child, Function(Child) onUpdate) async {
+    try {
+      Map<String, dynamic> updateData = {
+        'name': child.name,
+        'age': child.age,
+        'photoUrl': child.photoUrl,
+        'gender': child.gender,
+        'parentId': child.parentId,
+      };
 
-    // التحديث في Firestore
-    await _firestore
-        .collection('Parent')
-        .doc(child.parentId)
-        .collection('Children')
-        .doc(child.id)
-        .set(updateData, SetOptions(merge: true));
+      await _firestore
+          .collection('Parent')
+          .doc(child.parentId)
+          .collection('Children')
+          .doc(child.id)
+          .set(updateData, SetOptions(merge: true));
 
-    debugPrint("✅ تم تحديث البيانات في Firebase: ${child.name}, ${child.age}");
+      debugPrint("✅ Updated child in Firebase: ${child.name}, ${child.age}");
 
-    // جلب البيانات المحدثة للتأكد من التحديث
-    DocumentSnapshot updatedDoc = await _firestore
-        .collection('Parent')
-        .doc(child.parentId)
-        .collection('Children')
-        .doc(child.id)
-        .get();
+      // Fetch updated child document
+      DocumentSnapshot updatedDoc = await _firestore
+          .collection('Parent')
+          .doc(child.parentId)
+          .collection('Children')
+          .doc(child.id)
+          .get();
 
-    if (updatedDoc.exists) {
-      Child updatedChild = Child.fromMap(
-        updatedDoc.id,
-        updatedDoc.data() as Map<String, dynamic>,
-      );
-      onUpdate(updatedChild);
+      if (updatedDoc.exists) {
+        Child updatedChild = Child.fromMap(
+          updatedDoc.id,
+          updatedDoc.data() as Map<String, dynamic>,
+        );
+        onUpdate(updatedChild);
+      }
+    } catch (e) {
+      debugPrint('❌ Error updating child: $e');
+      rethrow;
     }
-  } catch (e) {
-    debugPrint('❌ خطأ أثناء تحديث بيانات الطفل: $e');
-    rethrow;
   }
-}
 
+  // Get specific child info by ID
+  Future<Child?> getChildInfo(String parentId, String childId) async {
+    try {
+      DocumentSnapshot childDoc = await _firestore
+          .collection('Parent')
+          .doc(parentId)
+          .collection('Children')
+          .doc(childId)
+          .get();
 
-
-Future<Child?> getChildInfo(String parentId, String childId) async {
-  try {
-    DocumentSnapshot childDoc = await _firestore
-        .collection('Parent')
-        .doc(parentId)
-        .collection('Children')
-        .doc(childId)
-        .get();
-
-    if (childDoc.exists) {
-      return Child.fromMap(childDoc.id, childDoc.data() as Map<String, dynamic>);
+      if (childDoc.exists) {
+        return Child.fromMap(childDoc.id, childDoc.data() as Map<String, dynamic>);
+      }
+    } catch (e) {
+      debugPrint('Error fetching child info: $e');
     }
-  } catch (e) {
-    debugPrint('Error fetching child info: $e');
+    return null;
   }
-  return null;
-}
 
+  // Delete child from Firestore
   Future<void> deleteChild(String parentId, String childId) async {
     await _firestore
         .collection('Parent')
@@ -76,55 +75,53 @@ Future<Child?> getChildInfo(String parentId, String childId) async {
         .delete();
   }
 
-Future<void> deleteChildAndNavigate(BuildContext context, String parentId, String childId) async {
-  await deleteChild(parentId, childId);
-  Navigator.pushReplacementNamed(context, '/childListView');
-}
+  // Delete and navigate back to child list
+  Future<void> deleteChildAndNavigate(BuildContext context, String parentId, String childId) async {
+    await deleteChild(parentId, childId);
+    Navigator.pushReplacementNamed(context, '/childListView');
+  }
 
+  // Add new child under parent document
   Future<void> addChildToParent(BuildContext context, String parentId, Child child) async {
     try {
-      // الوصول إلى مجموعة الوالد ثم إضافة الطفل في مجموعة فرعية
       await _firestore
           .collection('Parent')
           .doc(parentId)
           .collection('Children')
-           .add({
-            ...child.toMap(), // ✅ إضافة بيانات الطفل
-            'level': 1, // ✅ تحديد المستوى الافتراضي للطفل الجديد
+          .add({
+            ...child.toMap(),
+            'level': 1, // default level
             'stickers': [],
-            'lockedContent': { 
-            'letters': <String>[],
-            'numbers': <String>[],
-            'words': <String>[],
-          },
-          'progress':{
-        'letters':<String>[],
-        'numbers':<String>[],
-        'words':<String>[],
-        'EthicalValue':<String>[],
-      },
-      'stickersProgress': {
-      'numbers': 0,
-      'letters': 0,
-      'videos': 0,
-      },
-
+            'lockedContent': {
+              'letters': <String>[],
+              'numbers': <String>[],
+              'words': <String>[],
+            },
+            'progress': {
+              'letters': <String>[],
+              'numbers': <String>[],
+              'words': <String>[],
+              'EthicalValue': <String>[],
+            },
+            'stickersProgress': {
+              'numbers': 0,
+              'letters': 0,
+              'videos': 0,
+            },
           });
 
-
       ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('تمت إضافة الطفل بنجاح'),
-              backgroundColor: Colors.green[300],
-              duration: const Duration(seconds: 2),
-            ),
+        SnackBar(
+          content: const Text('Child added successfully'),
+          backgroundColor: Colors.green[300],
+          duration: const Duration(seconds: 2),
+        ),
       );
 
-      // الرجوع بعد الإضافة الناجحة
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('حدث خطأ أثناء إضافة الطفل: $e')),
+        SnackBar(content: Text('Error adding child: $e')),
       );
     }
   }

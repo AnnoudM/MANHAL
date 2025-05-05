@@ -20,7 +20,7 @@ class SettingsFunctions {
 }
 
 
-// هذه القائمة تمثل خيارات الإعدادات
+
 List<SettingsModel> settingsOptions = [
   SettingsModel('معلوماتي الشخصية'),
   SettingsModel('معلومات الطفل'),

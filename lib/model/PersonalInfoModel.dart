@@ -4,7 +4,7 @@ class PersonalInfoModel {
 
   PersonalInfoModel({required this.name, required this.email});
 
-  // لتحويل البيانات إلى JSON لحفظها في Firebase
+  // Convert data to JSON for saving in Firebase
   Map<String, dynamic> toJson() {
     return {
       'name': name,
@@ -12,7 +12,7 @@ class PersonalInfoModel {
     };
   }
 
-  // لإنشاء كائن من البيانات المسترجعة من Firebase
+  // Create an instance from data retrieved from Firebase
   factory PersonalInfoModel.fromJson(Map<String, dynamic> json) {
     return PersonalInfoModel(
       name: json['name'] ?? '',

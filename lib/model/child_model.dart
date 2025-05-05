@@ -1,13 +1,13 @@
 class Child {
-  String id;       // معرف الطفل في Firestore
+  String id;       // Child's document ID in Firestore
   String name;
   String gender;
   int age;
   String? photoUrl;
-  String parentId; // معرف الوالد
+  String parentId; // Parent's document ID
 
   Child({
-    required this.id, 
+    required this.id,
     required this.name,
     required this.gender,
     required this.age,
@@ -15,7 +15,7 @@ class Child {
     required this.parentId,
   });
 
-  // تحويل البيانات إلى Map عند تخزينها في Firestore
+  // Convert object to Map for storing in Firestore
   Map<String, dynamic> toMap() {
     return {
       'name': name,
@@ -26,10 +26,10 @@ class Child {
     };
   }
 
-  // استرجاع البيانات من Firestore وتحويلها إلى Model
+  // Create a Child object from Firestore document
   factory Child.fromMap(String id, Map<String, dynamic> map) {
     return Child(
-      id: id, // تخزين ID الوثيقة
+      id: id, // Assign document ID
       name: map['name'] ?? '',
       gender: map['gender'] ?? '',
       age: map['age'] ?? 0,
@@ -38,7 +38,7 @@ class Child {
     );
   }
 
-  // دالة copyWith لتعديل بعض القيم دون إنشاء كائن جديد بالكامل
+  // Create a copy of the Child object with optional new values
   Child copyWith({
     String? id,
     String? name,
@@ -56,6 +56,4 @@ class Child {
       parentId: parentId ?? this.parentId,
     );
   }
-
-  
 }

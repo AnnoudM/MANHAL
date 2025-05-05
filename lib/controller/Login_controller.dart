@@ -7,6 +7,7 @@ class LoginController {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  // Handle user login with email and password
   Future<String?> loginUser({
     required String email,
     required String password,
@@ -18,7 +19,7 @@ class LoginController {
       );
 
       if (userCredential.user != null && userCredential.user!.emailVerified) {
-        return null; // تسجيل دخول ناجح بدون أخطاء
+        return null; // Login successful
       } else {
         return 'يرجى التحقق من بريدك الإلكتروني قبل تسجيل الدخول';
       }
@@ -33,10 +34,12 @@ class LoginController {
     }
   }
 
+  // Navigate to SignUp screen
   void navigateToSignUp(BuildContext context) {
     Navigator.pushNamed(context, '/signup');
   }
 
+  // Send reset password email
   Future<void> resetPassword(String email, BuildContext context) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);

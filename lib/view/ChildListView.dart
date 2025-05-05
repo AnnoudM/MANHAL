@@ -19,15 +19,16 @@ class _ChildListViewState extends State<ChildListView> {
   @override
   void initState() {
     super.initState();
-    parentId = _auth.currentUser?.uid ?? ''; // جلب معرف الوالد الحالي
+    parentId = _auth.currentUser?.uid ?? '';
   }
 
+  // Get real-time stream of children from Firestore
   Stream<QuerySnapshot> fetchChildrenStream() {
     return _firestore
         .collection('Parent')
         .doc(parentId)
         .collection('Children')
-        .snapshots(); // مراقبة التغيرات في قاعدة البيانات بشكل مباشر
+        .snapshots();
   }
 
   @override
@@ -38,7 +39,7 @@ class _ChildListViewState extends State<ChildListView> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
-            /// ✅ **إضافة الخلفية**
+            // Background image
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
@@ -48,20 +49,19 @@ class _ChildListViewState extends State<ChildListView> {
               ),
             ),
 
-            /// ✅ **زر الرجوع (بدون AppBar)**
+            // Back button
             Positioned(
-              top: 50, // لضبط موقع زر الرجوع مثل السابق
+              top: 50,
               right: 20,
               child: IconButton(
-                icon:
-                    const Icon(Icons.arrow_back, color: Colors.black, size: 30),
+                icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
                 onPressed: () {
                   Navigator.pop(context);
                 },
               ),
             ),
 
-            /// ✅ **العنوان**
+            // Title text
             Positioned(
               top: 50,
               left: 0,
@@ -79,12 +79,9 @@ class _ChildListViewState extends State<ChildListView> {
               ),
             ),
 
-            /// ✅ **المحتوى الرئيسي**
+            // List of children + add button
             Padding(
-              padding: const EdgeInsets.only(
-                  top: 100,
-                  left: 20,
-                  right: 20), // ✅ لضبط المحتوى بعد العنوان وزر الرجوع
+              padding: const EdgeInsets.only(top: 100, left: 20, right: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -92,8 +89,7 @@ class _ChildListViewState extends State<ChildListView> {
                     child: StreamBuilder<QuerySnapshot>(
                       stream: fetchChildrenStream(),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (snapshot.hasError) {
                           return const Text('حدث خطأ أثناء تحميل البيانات');
@@ -101,6 +97,7 @@ class _ChildListViewState extends State<ChildListView> {
                           var children = snapshot.data?.docs ?? [];
 
                           if (children.isEmpty) {
+                            // Show message if no children
                             return Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -118,9 +115,9 @@ class _ChildListViewState extends State<ChildListView> {
                             );
                           }
 
+                          // Display children in grid + "Add" button
                           return GridView.builder(
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
                               crossAxisSpacing: 20,
                               mainAxisSpacing: 20,
@@ -130,10 +127,8 @@ class _ChildListViewState extends State<ChildListView> {
                               if (index == children.length) {
                                 return _buildAddChildButton();
                               } else {
-                                var childData = children[index].data()
-                                    as Map<String, dynamic>;
-                                return _buildChildAvatar(
-                                    children[index].id, childData);
+                                var childData = children[index].data() as Map<String, dynamic>;
+                                return _buildChildAvatar(children[index].id, childData);
                               }
                             },
                           );
@@ -150,17 +145,14 @@ class _ChildListViewState extends State<ChildListView> {
     );
   }
 
-  /// بناء عنصر لكل طفل
+  // Widget to show a child’s avatar and name
   Widget _buildChildAvatar(String childId, Map<String, dynamic> childData) {
     return GestureDetector(
       onTap: () {
-        print(
-            "تم اختيار الطفل بمعرف: $childId"); // التحقق من معرف الطفل قبل الإرسال
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                HomePageController(childID: childId, parentId: parentId),
+            builder: (context) => HomePageController(childID: childId, parentId: parentId),
           ),
         );
       },
@@ -170,8 +162,7 @@ class _ChildListViewState extends State<ChildListView> {
             radius: 40,
             backgroundImage: childData['photoUrl']?.isNotEmpty == true
                 ? AssetImage(childData['photoUrl'])
-                : const AssetImage('assets/images/default_avatar.jpg')
-                    as ImageProvider,
+                : const AssetImage('assets/images/default_avatar.jpg') as ImageProvider,
             backgroundColor: Colors.yellow[100],
           ),
           const SizedBox(height: 10),
@@ -188,7 +179,7 @@ class _ChildListViewState extends State<ChildListView> {
     );
   }
 
-  /// بناء زر لإضافة طفل جديد
+  // Button to add a new child
   Widget _buildAddChildButton() {
     return GestureDetector(
       onTap: () {

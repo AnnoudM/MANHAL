@@ -6,6 +6,7 @@ import '../model/signup_model.dart';
 import '../view/InitialView.dart';
 import '../view/SelectImageView.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class ChildInfoView extends StatefulWidget {
   final SignUpModel? parentData;
@@ -27,6 +28,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
 
   final SignUpController _controller = SignUpController();
 
+  // List of age options in both display and value
   final List<Map<String, String>> _ageOptions = [
     {'display': '٣', 'value': '3'},
     {'display': '٤', 'value': '4'},
@@ -36,6 +38,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
     {'display': '٨', 'value': '8'},
   ];
 
+  // Convert English digits to Arabic
   String _convertToArabicNumber(String input) {
     const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -45,6 +48,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
     return input;
   }
 
+  // Convert Arabic digits to English
   String _arabicToEnglishNumber(String input) {
     const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
     const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -54,6 +58,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
     return input;
   }
 
+  // Called when user taps "تسجيل" button
   void _submit() async {
     if (_formKey.currentState!.validate()) {
       if (widget.parentData == null) {
@@ -100,6 +105,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
     }
   }
 
+  // Custom text field with validation
   _buildTextField({
     required String hintText,
     required TextEditingController controller,
@@ -138,6 +144,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
     );
   }
 
+  // Reusable dropdown field (for gender and age)
   Widget _buildDropdownField({
     required String hintText,
     required List<String> items,
@@ -174,6 +181,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
     );
   }
 
+  // Submit button
   Widget _buildButton({required String text, required VoidCallback onPressed}) {
     return SizedBox(
       width: double.infinity,
@@ -207,6 +215,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
+            // Background image
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
@@ -215,6 +224,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                 ),
               ),
             ),
+            // Back button
             Positioned(
               top: 50,
               right: 20,
@@ -242,6 +252,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                           ),
                         ),
                         const SizedBox(height: 30),
+                        // Select image
                         GestureDetector(
                           onTap: () async {
                             final selectedPhoto = await Navigator.push(
@@ -266,6 +277,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                           ),
                         ),
                         const SizedBox(height: 20),
+                        // Child name
                         _buildTextField(
                           hintText: 'اسم الطفل باللغة العربية',
                           controller: _nameController,
@@ -275,6 +287,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                           ],
                         ),
                         const SizedBox(height: 15),
+                        // Gender dropdown
                         _buildDropdownField(
                           hintText: 'الجنس',
                           items: ['ذكر', 'أنثى'],
@@ -283,6 +296,7 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                           validator: (value) => value == null ? 'هذا الحقل مطلوب' : null,
                         ),
                         const SizedBox(height: 15),
+                        // Age dropdown
                         _buildDropdownField(
                           hintText: 'العمر',
                           items: _ageOptions.map((e) => e['value']!).toList(),
@@ -291,9 +305,25 @@ class _ChildInfoViewState extends State<ChildInfoView> {
                           validator: (value) => value == null ? 'هذا الحقل مطلوب' : null,
                         ),
                         const SizedBox(height: 30),
+                        // Submit button
                         _buildButton(
                           text: 'تسجيل',
-                          onPressed: _submit,
+                          onPressed: () async {
+  final connectivityResult = await Connectivity().checkConnectivity();
+  if (connectivityResult == ConnectivityResult.none) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.',
+          style: TextStyle(fontFamily: 'alfont'),
+        ),
+      ),
+    );
+    return;
+  }
+
+  _submit();
+},
                         ),
                       ],
                     ),

@@ -15,7 +15,7 @@ class RecognitionController {
       var response = await request.send();
       var responseBody = await response.stream.bytesToString();
 
-      print("🔹 Response from server: $responseBody"); // ✅ طباعة الاستجابة للتحقق
+      print("🔹 Response from server: $responseBody"); 
 
       if (response.statusCode == 200) {
         var jsonResponse = json.decode(responseBody);

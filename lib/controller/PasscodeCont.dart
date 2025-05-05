@@ -3,42 +3,44 @@ import '../model/PasscodeModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PasscodeController with ChangeNotifier {
-    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final PasscodeModel _model = PasscodeModel();
-  String? _storedPasscode; // الباسكود المخزن في الداتابيس
+
+  String? _storedPasscode; // stored passcode from DB
   String enteredPasscode = "";
   String confirmPasscode = "";
-  bool hasPasscode = false; // هل يوجد باسكود مخزن؟
-  bool isConfirming = false; // هل نحن في مرحلة التأكيد؟
-  bool isLoading = true; // ✅ حالة التحميل
+  bool hasPasscode = false; // whether a passcode exists
+  bool isConfirming = false; // used for confirmation step
+  bool isLoading = true; // loading state
   String? errorMessage;
 
-  // ✅ جلب بيانات الباسكود عند فتح الصفحة
+  // Load stored passcode on screen open
   Future<void> checkPasscodeStatus(String parentId) async {
     try {
-      print("🔍 بدأ جلب البيانات من Firebase للوالد ID: $parentId");
+      print("🔍 Fetching passcode for parent ID: $parentId");
       isLoading = true;
       notifyListeners();
 
       _storedPasscode = await _model.getStoredPasscode(parentId);
       hasPasscode = _storedPasscode != null;
 
-      print("✅ تم جلب البيانات: ${_storedPasscode != null ? 'يوجد باسكود' : 'لا يوجد باسكود'}");
+      print("✅ Result: ${_storedPasscode != null ? 'Has passcode' : 'No passcode'}");
 
-      isLoading = false; // ✅ إنهاء التحميل بعد جلب البيانات
+      isLoading = false;
       notifyListeners();
     } catch (e) {
-      print("❌ خطأ أثناء جلب البيانات من Firestore: $e");
+      print("❌ Error while fetching passcode: $e");
       isLoading = false;
       notifyListeners();
     }
   }
 
-   Future<void> resetPasscode(String parentId, String newPasscode) async {
+  // Update passcode manually in Firestore
+  Future<void> resetPasscode(String parentId, String newPasscode) async {
     await _firestore.collection('Parent').doc(parentId).update({'Passcode': newPasscode});
   }
 
-  // ✅ تحديث إدخال المستخدم
+  // Update entered passcode on button tap
   void updateEnteredPasscode(String value) {
     if (enteredPasscode.length < 4) {
       enteredPasscode += value;
@@ -46,7 +48,7 @@ class PasscodeController with ChangeNotifier {
     }
   }
 
-  // ✅ حذف آخر رقم
+  // Remove last digit
   void deleteLastDigit() {
     if (enteredPasscode.isNotEmpty) {
       enteredPasscode = enteredPasscode.substring(0, enteredPasscode.length - 1);
@@ -54,11 +56,10 @@ class PasscodeController with ChangeNotifier {
     }
   }
 
-
-  // ✅ معالجة إدخال الباسكود
+  // Submit and validate passcode logic
   Future<bool> submitPasscode(String parentId) async {
     if (hasPasscode) {
-      // 🔐 التحقق من الباسكود المسجل
+      // Validate existing passcode
       if (enteredPasscode == _storedPasscode) {
         return true;
       } else {
@@ -68,14 +69,14 @@ class PasscodeController with ChangeNotifier {
         return false;
       }
     } else {
-      // 🆕 إدخال باسكود جديد
+      // Setting up new passcode
       if (enteredPasscode.length < 4) {
         errorMessage = "الرجاء إدخال 4 أرقام";
         notifyListeners();
         return false;
       }
 
-      // 🔁 التأكيد على الباسكود
+      // Start confirmation phase
       if (!isConfirming) {
         confirmPasscode = enteredPasscode;
         enteredPasscode = "";
@@ -85,7 +86,7 @@ class PasscodeController with ChangeNotifier {
         return false;
       }
 
-      // ❌ إذا لم تتطابق كلمة المرور مع التأكيد
+      // Mismatch between first and confirm passcode
       if (confirmPasscode != enteredPasscode) {
         errorMessage = "الرقم السري غير متطابق، حاول مرة أخرى";
         enteredPasscode = "";
@@ -95,7 +96,7 @@ class PasscodeController with ChangeNotifier {
         return false;
       }
 
-      // ✅ حفظ الباسكود الجديد
+      // Save new passcode
       await _model.savePasscode(parentId, confirmPasscode);
       return true;
     }

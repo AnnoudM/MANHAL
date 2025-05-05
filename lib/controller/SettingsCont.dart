@@ -6,9 +6,8 @@ import '../view/InitialView.dart';
 import '../view/ChildListView.dart';
 import '../view/PersonalInfoView.dart';
 import '../view/ChildPageView.dart';
-import '../view/ScreenLimitView.dart'; // ✅ استيراد صفحة الحد اليومي
-import '../view/manage_contnet_view.dart'; // ✅ استيراد إدارة المحتوى
-import '../view/ProgressView.dart'; 
+import '../view/ScreenLimitView.dart';
+import '../view/manage_contnet_view.dart';
 import '../model/PersonalInfoModel.dart';
 import '../model/child_model.dart';
 
@@ -16,21 +15,19 @@ class SettingsController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Handle settings tap
   void onSettingSelected(BuildContext context, String settingName,
       {String? childId, String? parentId}) async {
-    print('تم الضغط على: $settingName');
-    print('🔹 القيم الممررة: childId=$childId, parentId=$parentId');
+    print('Tapped: $settingName');
+    print('🔹 Params: childId=$childId, parentId=$parentId');
 
     if (settingName == 'أطفالي') {
       _navigateToChildList(context);
     } else if (settingName == 'معلوماتي الشخصية') {
       await _navigateToPersonalInfo(context);
     } else if (settingName == 'معلومات الطفل') {
-      if (childId == null ||
-          childId.isEmpty ||
-          parentId == null ||
-          parentId.isEmpty) {
-        print('❌ خطأ: childId أو parentId غير متوفرين');
+      if (childId == null || childId.isEmpty || parentId == null || parentId.isEmpty) {
+        print('❌ Missing childId or parentId');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("⚠️ لا يمكن عرض معلومات الطفل، المعرف غير صحيح!",
@@ -43,25 +40,21 @@ class SettingsController {
       await _navigateToChildPage(context, childId, parentId);
     } else if (settingName == 'الحد اليومي للاستخدام') {
       if (childId != null && parentId != null) {
-        _navigateToScreenLimit(
-            context, parentId, childId); // ✅ إضافة التنقل للحد اليومي
+        _navigateToScreenLimit(context, parentId, childId);
       }
     } else if (settingName == 'إدارة المحتوى') {
       if (childId != null && parentId != null) {
-        _navigateToManageContent(
-            context, parentId, childId); // ✅ إضافة التنقل لإدارة المحتوى
+        _navigateToManageContent(context, parentId, childId);
       }
     } else if (settingName == 'متابعة الطفل') {
       if (childId != null && parentId != null) {
-        _navigateToProgress(
-            context, parentId, childId); // ✅ إضافة التنقل 
-      } } else {
+        _navigateToProgress(context, parentId, childId);
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '$settingName تم النقر عليه!',
-            style: const TextStyle(fontFamily: 'alfont'),
-          ),
+          content: Text('$settingName clicked!',
+              style: const TextStyle(fontFamily: 'alfont')),
           backgroundColor: Colors.blueAccent,
           duration: const Duration(seconds: 1),
         ),
@@ -69,6 +62,7 @@ class SettingsController {
     }
   }
 
+  // Navigate to child list
   void _navigateToChildList(BuildContext context) {
     Navigator.push(
       context,
@@ -76,15 +70,15 @@ class SettingsController {
     );
   }
 
+  // Navigate to parent info page
   Future<void> _navigateToPersonalInfo(BuildContext context) async {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
-        DocumentSnapshot userDoc =
-            await _firestore.collection('Parent').doc(user.uid).get();
+        DocumentSnapshot userDoc = await _firestore.collection('Parent').doc(user.uid).get();
         if (userDoc.exists) {
-          PersonalInfoModel parentInfo = PersonalInfoModel.fromJson(
-              userDoc.data() as Map<String, dynamic>);
+          PersonalInfoModel parentInfo =
+              PersonalInfoModel.fromJson(userDoc.data() as Map<String, dynamic>);
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -94,10 +88,11 @@ class SettingsController {
         }
       }
     } catch (e) {
-      print('❌ خطأ أثناء جلب بيانات المستخدم: $e');
+      print('❌ Error fetching user info: $e');
     }
   }
 
+  // Navigate to specific child info
   Future<void> _navigateToChildPage(
       BuildContext context, String childId, String parentId) async {
     try {
@@ -109,8 +104,7 @@ class SettingsController {
           .get();
 
       if (childDoc.exists && childDoc.data() != null) {
-        Map<String, dynamic> childDataMap = childDoc.data()!;
-        Child childData = Child.fromMap(childId, childDataMap);
+        Child childData = Child.fromMap(childId, childDoc.data()!);
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -120,18 +114,18 @@ class SettingsController {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("⚠️ لم يتم العثور على معلومات الطفل!",
+            content: Text("⚠️ Child info not found!",
                 style: TextStyle(fontFamily: 'alfont')),
             backgroundColor: Colors.red,
           ),
         );
       }
     } catch (e) {
-      print('❌ خطأ أثناء جلب بيانات الطفل: $e');
+      print('❌ Error fetching child info: $e');
     }
   }
 
-  /// ✅ التنقل إلى شاشة الحد اليومي وتمرير `parentId` و `childId` فقط
+  // Navigate to daily screen limit page
   void _navigateToScreenLimit(
       BuildContext context, String parentId, String childId) {
     Navigator.push(
@@ -143,7 +137,7 @@ class SettingsController {
     );
   }
 
-  /// ✅ التنقل إلى إدارة المحتوى وتمرير `parentId` و `childId`
+  // Navigate to content management page
   void _navigateToManageContent(
       BuildContext context, String parentId, String childId) {
     Navigator.push(
@@ -154,8 +148,10 @@ class SettingsController {
       ),
     );
   }
+
+  // Navigate to child progress page
   void _navigateToProgress(
-      BuildContext context, String parentId,String childId) {
+      BuildContext context, String parentId, String childId) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -165,6 +161,7 @@ class SettingsController {
     );
   }
 
+  // Logout confirmation and action
   void logout(BuildContext context) {
     showDialog(
       context: context,
@@ -182,8 +179,7 @@ class SettingsController {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child:
-                  const Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
+              child: const Text('إلغاء', style: TextStyle(fontFamily: 'alfont')),
             ),
             TextButton(
               onPressed: () async {
@@ -199,6 +195,7 @@ class SettingsController {
     );
   }
 
+  // Sign out from Firebase and navigate to InitialPage
   Future<void> _signOutUser(BuildContext context) async {
     try {
       await _auth.signOut();
@@ -219,7 +216,7 @@ class SettingsController {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('⚠️ حدث خطأ أثناء تسجيل الخروج: $e',
+          content: Text('⚠️ Error during logout: $e',
               style: const TextStyle(fontFamily: 'alfont')),
           backgroundColor: Colors.red,
         ),
