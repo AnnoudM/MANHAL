@@ -275,7 +275,7 @@ else if (widget.type == "letter") {
 /// Shows a special dialog when the child has already answered this activity before.
 Future<void> _showRepeatedAnswerDialog() async {
   await flutterTts.setLanguage("ar-SA");
-  await flutterTts.speak("لَقَدْ أَجَبْتَ عَلَى هٰذَا السُّؤَالِ مِنْ قَبْلِ، جَرِّبْ سُؤَالًا جَدِيدًا!");
+  await flutterTts.speak(" لَقَدْ أَجَبْتَ عَلَى هٰذَا السُّؤَالِ مِنْ قَبْلِ، جَرِّبْ سُؤَالًا جَدِيدًا! للحصول على ملصق");
 
   Widget nextPage;
   switch (widget.type) {
@@ -304,7 +304,7 @@ Future<void> _showRepeatedAnswerDialog() async {
           style: TextStyle(color: Colors.orange, fontSize: 24, fontWeight: FontWeight.bold),
         ),
         content: const Text(
-          "لقد أجبت على هذا السؤال من قبل، جرّب سؤالًا جديدًا!",
+          " لقد أجبت على هذا السؤال من قبل، جرّب سؤالًا جديدًا! للحصول على ملصق",
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 18),
         ),
