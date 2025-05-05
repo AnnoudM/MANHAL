@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/NumbersModel.dart';
 
+// Controller responsible for handling number-related data operations
 class NumbersController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-// دالة لتحويل الأرقام الإنجليزية إلى أرقام عربية
+//  Helper method to convert Western (English) numerals to Arabic numerals
+// Example: 12 → '١٢'
   String _convertToArabicNumeral(int number) {
     const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
     return number
@@ -14,14 +16,14 @@ class NumbersController {
         .join();
   }
 
-  // Fetch number data from Firebase
+  // Fetches content related to a specific number from Firestore
   Future<Map<String, dynamic>> fetchData(int number) async {
     try {
       DocumentSnapshot doc = await _firestore
           .collection('Category')
           .doc('numbers')
           .collection('NumberContent')
-          .doc(_convertToArabicNumeral(number)) // تحويل الرقم إلى رقم عربي
+          .doc(_convertToArabicNumeral(number)) 
           .get();
 
       print("Fetched Data: ${doc.data()}");
@@ -35,10 +37,11 @@ class NumbersController {
       throw Exception("Error fetching number data: $e");
     }
   }
-
+//Stores which numbers are locked for the current child 
   List<String> lockedNumbers = [];
 
-  // 🔹 Fetch locked numbers through the model
+  // Fetch locked numbers through the model
+   // Returns a list of strings representing locked number IDs
   Future<List<String>> fetchLockedNumbers(
       String parentId, String childId) async {
     try {

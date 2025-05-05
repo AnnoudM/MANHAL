@@ -5,7 +5,7 @@ import '../controller/NumbersController.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import'../controller/HomePageController.dart';
 
-// Function to convert numbers to Arabic numerals
+// Helper function to convert English digits to Arabic numeral characters
 String convertToArabicNumbers(int number) {
   final arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
   return number.toString().split('').map((digit) {
@@ -38,12 +38,13 @@ class _ArabicNumberViewState extends State<ArabicNumberView> {
     _fetchLockedNumbers();
   }
 
+// Fetch list of locked numbers from Firestore
   Future<void> _fetchLockedNumbers() async {
     lockedNumbers =
         await _controller.fetchLockedNumbers(widget.parentId, widget.childId);
     setState(() {});
   }
-
+// Show popup + TTS when a locked number is tapped
   Future<void> _showLockedPopup(BuildContext context) async {
     showDialog(
       context: context,
@@ -66,6 +67,7 @@ class _ArabicNumberViewState extends State<ArabicNumberView> {
       },
     );
 
+// Set up and speak the Arabic warning message
     await flutterTts.setLanguage("ar-SA");
     await flutterTts.setVoice(
         {"name": "Microsoft Naayf - Arabic (Saudi)", "locale": "ar-SA"});
@@ -124,8 +126,8 @@ class _ArabicNumberViewState extends State<ArabicNumberView> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Container(
-                  width: 400, // Increased width
-                  height: 90, // Increased height
+                  width: 400, 
+                  height: 90, 
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     image: const DecorationImage(
