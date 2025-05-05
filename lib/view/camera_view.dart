@@ -86,7 +86,7 @@ final String errorSpokenText = "الكَلِمَةُ أَوِ الجُملَةُ
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.100.43:5000/recognize'),
+        Uri.parse('http://192.168.11.248:5000/recognize'),
       );
       request.files.add(await http.MultipartFile.fromPath('image', imagePath));
 

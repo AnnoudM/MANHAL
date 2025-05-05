@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 
 # إعداد Google Vision credentials
-CREDENTIAL_PATH = "manhal-457713-da87d830d727.json"
+CREDENTIAL_PATH = "manhal-457713-49155c265258.json"
 credentials = service_account.Credentials.from_service_account_file(CREDENTIAL_PATH)
 client = vision.ImageAnnotatorClient(credentials=credentials)
 

@@ -41,7 +41,7 @@ class ResultView extends StatelessWidget {
                   children: [
                     // زر الرجوع في الأعلى
                     Align(
-                      alignment: Alignment.topLeft,
+                      alignment: Alignment.topRight,
                       child: IconButton(
                         icon: Icon(Icons.arrow_back, size: 32, color: Colors.black),
                         onPressed: () => Navigator.pop(context),

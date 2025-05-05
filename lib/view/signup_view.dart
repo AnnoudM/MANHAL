@@ -18,6 +18,8 @@ class _SignUpViewState extends State<SignUpView> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String? _emailError;
+  String? _passwordLengthError;
+
 
   @override
   Widget build(BuildContext context) {
@@ -102,42 +104,51 @@ class _SignUpViewState extends State<SignUpView> {
                         ),
                         const SizedBox(height: 15),
                         _buildPasswordField(
-                          hintText: 'كلمة المرور',
-                          controller: controller.passwordController,
-                          obscureText: _obscurePassword,
-                          toggleVisibility: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                          validator: (value) {
-  if (value == null || value.isEmpty) {
-    return 'يرجى إدخال كلمة المرور';
-  }
-  if (value.length < 8) {
-    return 'يجب أن تتكون كلمة المرور من 8 خانات على الأقل';
-  }
+  hintText: 'كلمة المرور',
+  controller: controller.passwordController,
+  obscureText: _obscurePassword,
+  toggleVisibility: () {
+    setState(() {
+      _obscurePassword = !_obscurePassword;
+    });
+  },
+  validator: (value) {
+    if (value == null || value.isEmpty) {
+      return 'يرجى إدخال كلمة المرور';
+    }
+    if (value.length < 8) {
+      return 'يجب أن تتكون كلمة المرور من 8 خانات على الأقل';
+    }
+    if (value.length > 15) {
+      return 'يجب ألا تزيد كلمة المرور عن 15 خانة';
+    }
+    bool hasLetter = value.contains(RegExp(r'[a-zA-Z]'));
+    bool hasNumber = value.contains(RegExp(r'[0-9]'));
+    bool hasSymbol = value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
 
-  bool hasLetter = value.contains(RegExp(r'[a-zA-Z]'));
-  bool hasNumber = value.contains(RegExp(r'[0-9]'));
-  bool hasSymbol = value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
-
-  if (!(hasLetter && hasNumber && hasSymbol)) {
-    return 'يجب أن تحتوي كلمة المرور على حرف واحد على الأقل، ورقم، ورمز';
-  }
-
-  return null;
-},
-                        ),
+    if (!(hasLetter && hasNumber && hasSymbol)) {
+      return 'يجب أن تحتوي كلمة المرور على حرف واحد على الأقل، ورقم، ورمز';
+    }
+    return null;
+  },
+  onChanged: (value) {
+    setState(() {
+      _passwordLengthError = value.length > 15
+          ? 'يجب ألا تزيد كلمة المرور عن ١٥ خانة'
+          : null;
+    });
+  },
+  errorText: _passwordLengthError,
+),
                         const SizedBox(height: 5),
                         const Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            'يجب أن تحتوي كلمة المرور على 8 خانات على الأقل وتتضمن أحرف وأرقام ورموز.',
-                            style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'alfont'),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
+  alignment: Alignment.centerRight,
+  child: Text(
+    'يجب أن تحتوي كلمة المرور على ٨-١٥ خانة وتشمل حرف، رقم، ورمز.',
+    style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'alfont'),
+    textAlign: TextAlign.right,
+  ),
+),
                         const SizedBox(height: 15),
                         _buildPasswordField(
                           hintText: 'تأكيد كلمة المرور',
@@ -314,35 +325,43 @@ class _SignUpViewState extends State<SignUpView> {
   }
 
   Widget _buildPasswordField({
-    required String hintText,
-    required TextEditingController controller,
-    required bool obscureText,
-    required VoidCallback toggleVisibility,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: const TextStyle(fontFamily: 'alfont'),
-        filled: true,
-        fillColor: const Color(0xFFFFF5CC),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        suffixIcon: IconButton(
-          icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility),
-          onPressed: toggleVisibility,
-        ),
-        errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
+  required String hintText,
+  required TextEditingController controller,
+  required bool obscureText,
+  required VoidCallback toggleVisibility,
+  String? Function(String?)? validator,
+  void Function(String)? onChanged,
+  String? errorText,
+}) {
+  return TextFormField(
+    controller: controller,
+    obscureText: obscureText,
+    validator: validator,
+    onChanged: onChanged,
+    maxLength: 15,
+    maxLengthEnforcement: MaxLengthEnforcement.none,
+    decoration: InputDecoration(
+      hintText: hintText,
+      hintStyle: const TextStyle(fontFamily: 'alfont'),
+      filled: true,
+      fillColor: const Color(0xFFFFF5CC),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
       ),
-      style: const TextStyle(fontFamily: 'alfont'),
-    );
-  }
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      suffixIcon: IconButton(
+        icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility),
+        onPressed: toggleVisibility,
+      ),
+      errorText: errorText,
+      errorStyle: const TextStyle(fontFamily: 'alfont', color: Colors.red),
+      counterText: '', // لإخفاء عداد الحروف
+    ),
+    style: const TextStyle(fontFamily: 'alfont'),
+  );
+}
+
 
   Widget _buildButton({required String text, required VoidCallback onPressed}) {
     return SizedBox(
