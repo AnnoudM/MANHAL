@@ -70,7 +70,6 @@ class _ArabicNumberViewState extends State<ArabicNumberView> {
     await flutterTts.setVoice(
         {"name": "Microsoft Naayf - Arabic (Saudi)", "locale": "ar-SA"});
     await flutterTts.setPitch(0.6);
-    await flutterTts.setSpeechRate(1.0);
     await flutterTts.awaitSpeakCompletion(true);
     await flutterTts.speak(
         "هٰذَاالرَّقْمُ مُقْفَلٌ. لَا يُمْكِنُكَ الدُّخُولُ إِلَيْهِ الآنَ  ");
