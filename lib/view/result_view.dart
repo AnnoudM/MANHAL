@@ -3,13 +3,11 @@ import 'package:flutter_tts/flutter_tts.dart';
 
 class ResultView extends StatelessWidget {
   final String text;
-  final Function onHome;
   final Function onRetake;
   final FlutterTts tts = FlutterTts();
 
   ResultView({
     required this.text,
-    required this.onHome,
     required this.onRetake,
   });
 
@@ -38,10 +36,18 @@ class ResultView extends StatelessWidget {
               Container(
                 height: headerHeight,
                 alignment: Alignment.center,
-                padding: const EdgeInsets.only(top: 100.0),
+                padding: const EdgeInsets.only(top: 60.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // زر الرجوع في الأعلى
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back, size: 32, color: Colors.black),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
                     Center(
                       child: Text(
                         text,
@@ -72,48 +78,26 @@ class ResultView extends StatelessWidget {
                     ),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 32.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      GestureDetector(
-                        onTap: () => onHome(),
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.2),
-                                blurRadius: 6,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Icon(Icons.home, size: 42, color: Colors.black),
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: () => onRetake(),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              blurRadius: 6,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
                         ),
+                        child: Icon(Icons.camera_alt_outlined, size: 42, color: Colors.black),
                       ),
-                      GestureDetector(
-                        onTap: () => onRetake(),
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.2),
-                                blurRadius: 6,
-                                offset: Offset(0, 3),
-                                ),
-                            ],
-                          ),
-                          child: Icon(Icons.camera_alt_outlined, size: 42, color: Colors.black),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
