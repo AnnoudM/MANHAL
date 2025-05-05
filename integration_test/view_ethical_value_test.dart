@@ -21,35 +21,32 @@ Future<void> login(WidgetTester tester) async {
   expect(continueButton, findsOneWidget);
   await tester.tap(continueButton);
   await tester.pumpAndSettle(const Duration(seconds: 5));
-
-  print('التنقل بعد تسجيل الدخول...');
 }
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('التحقق من الضغط على القيمة الأخلاقية "الصدق"', (tester) async {
-  await login(tester);
+    await login(tester);
 
-  final raghadChild = find.text('لولو').first;
-  expect(raghadChild, findsOneWidget);
-  await tester.tap(raghadChild);
-  await tester.pumpAndSettle();
+    final raghadChild = find.text('لولو').first;
+    expect(raghadChild, findsOneWidget);
+    await tester.tap(raghadChild);
+    await tester.pumpAndSettle();
 
-  final ethicsButton = find.text('القيم الأخلاقية');
-  expect(ethicsButton, findsOneWidget);
-  await tester.tap(ethicsButton);
-  await tester.pumpAndSettle(const Duration(seconds: 5));  
+    final ethicsButton = find.text('القيم الأخلاقية');
+    expect(ethicsButton, findsOneWidget);
+    await tester.tap(ethicsButton);
+    await tester.pumpAndSettle(const Duration(seconds: 5));
 
-  await tester.pumpAndSettle(const Duration(seconds: 15)); 
+    await tester.pumpAndSettle(const Duration(seconds: 15));
 
-  final valueWidget = find.widgetWithText(Container, 'الصدق');
-  expect(valueWidget, findsOneWidget); 
+    final valueWidget = find.widgetWithText(Container, 'الصدق');
+    expect(valueWidget, findsOneWidget);
 
-  await tester.tap(valueWidget);  
-  await tester.pumpAndSettle(); 
+    await tester.tap(valueWidget);
+    await tester.pumpAndSettle();
 
-  expect(find.text('الصدق'), findsOneWidget);
-});
-
+    expect(find.text('الصدق'), findsOneWidget);
+  });
 }
