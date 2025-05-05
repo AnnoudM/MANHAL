@@ -50,7 +50,7 @@ class EthicalVideoController {
         if (videoController!.value.position >= videoController!.value.duration) {
         if (!videoCompleted) {
       videoCompleted = true;
-      print("🎥 الفيديو انتهى، يتم تحديث مستوى الطفل وت...");
+      print("🎥لفيديو انتهى، يتم تحديث مستوى الطفل ...");
       _updateChildLevelIfNeeded(updateUI);
       awardEthicalStickerOnceWithDialog(context); 
     }
@@ -161,8 +161,10 @@ Future<void> awardEthicalStickerOnceWithDialog(BuildContext context) async {
 
 /// Shows a dialog displaying the awarded sticker.
 Future<void> _showStickerDialog(BuildContext context, String link) async {
+Future.delayed(Duration(milliseconds: 200), () {
+    flutterTts.speak("أَحْسَنْتَ! لَقَدْ شَاهَدْتَ الفِيدْيُو التَّعْلِيمِيَّ ");
+  });
 
-await flutterTts.speak("أَحْسَنْتَ! لَقَدْ شَاهَدْتَ الفِيدْيُو التَّعْلِيمِيَّ بِالكَامِلِ");
   return showDialog(
     context: context,
     barrierDismissible: false,
@@ -175,13 +177,14 @@ await flutterTts.speak("أَحْسَنْتَ! لَقَدْ شَاهَدْتَ ا
         children: [
           Image.network(link, width: 100, height: 100),
           const SizedBox(height: 10),
-          const Text("لقد شاهدت الفيديو التعليمي بالكامل.", textAlign: TextAlign.center),
+          const Text("لقد شاهدت الفيديو التعليمي.", textAlign: TextAlign.center),
         ],
       ),
       actions: [
         Center(
            child: ElevatedButton(
-            onPressed: () {
+           onPressed: () async {
+              await flutterTts.stop(); 
               Navigator.of(context).pop(); 
               Navigator.of(context).pop(); 
             },
@@ -189,7 +192,7 @@ await flutterTts.speak("أَحْسَنْتَ! لَقَدْ شَاهَدْتَ ا
               backgroundColor: Colors.green.shade400,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(30),
               ),
             ),
             child: const Text(
