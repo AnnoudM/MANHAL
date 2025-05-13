@@ -26,7 +26,7 @@ class SelectImageController {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text(
-              " Image updated successfully!",
+              " تم تحديث الصورة بنجاح ! ",
               style: TextStyle(color: Colors.black),
             ),
             backgroundColor: Colors.green[300],
@@ -46,7 +46,7 @@ class SelectImageController {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            " Failed to update image: $e",
+            " فشل تحديث الصورة",
             style: const TextStyle(color: Colors.white),
           ),
           backgroundColor: Colors.red[300],
