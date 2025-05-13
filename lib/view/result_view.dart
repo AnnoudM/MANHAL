@@ -44,36 +44,44 @@ class ResultView extends StatelessWidget {
                 alignment: Alignment.center,
                 padding: const EdgeInsets.only(top: 60.0),
                 child: Column(
-                  children: [
-                    // back button to go back to previous screen
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        icon: Icon(Icons.arrow_back, size: 32, color: Colors.black),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    // recognized text display
-                    Center(
-                      child: Text(
-                        text,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 44,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Blabeloo',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // volume icon to play the recognized text using TTS
-                    IconButton(
-                      icon: Image.asset('assets/images/high-volume.png', width: 48, height: 48),
-                      onPressed: () => tts.speak(text),
-                    ),
-                  ],
-                ),
+  children: [
+    Align(
+      alignment: Alignment.topRight,
+      child: IconButton(
+        icon: Icon(Icons.arrow_back, size: 32, color: Colors.black),
+        onPressed: () => Navigator.pop(context),
+      ),
+    ),
+    const SizedBox(height: 20),
+
+    // النص القابل للتمدد
+    Expanded(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: Center(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 44,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Blabeloo',
+            ),
+          ),
+        ),
+      ),
+    ),
+
+    const SizedBox(height: 20),
+
+    // أيقونة الصوت
+    IconButton(
+      icon: Image.asset('assets/images/high-volume.png', width: 48, height: 48),
+      onPressed: () => tts.speak(text),
+    ),
+  ],
+),
+
               ),
 
               // bottom section with retake (camera) button

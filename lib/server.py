@@ -7,7 +7,7 @@ from google.cloud import vision
 from google.oauth2 import service_account
 
 # Google Vision API credentials
-CREDENTIAL_PATH = "manhal-457713-63bb22e0fbac.json"
+CREDENTIAL_PATH = "manhal-457713-07b47e784138.json"
 credentials = service_account.Credentials.from_service_account_file(CREDENTIAL_PATH)
 client = vision.ImageAnnotatorClient(credentials=credentials)
 

@@ -98,7 +98,7 @@ class _HomePageControllerState extends State<HomePageController> {
         }
         if (!snapshot.hasData || !snapshot.data!.exists) {
           return const Scaffold(
-            body: Center(child: Text(' No data for this child')),
+            body: Center(child: Text('لايوجد بيانات لهذا الطفل')),
           );
         }
         var childData = snapshot.data!.data() as Map<String, dynamic>;
