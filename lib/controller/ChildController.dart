@@ -112,7 +112,7 @@ class ChildController {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Child added successfully'),
+          content: const Text('تمت اضافة الطفل بنجاح!'),
           backgroundColor: Colors.green[300],
           duration: const Duration(seconds: 2),
         ),
@@ -121,7 +121,7 @@ class ChildController {
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding child: $e')),
+        SnackBar(content: Text('خطأ اثناء اضافة الطفل، حاول مرة أخرى')),
       );
     }
   }
