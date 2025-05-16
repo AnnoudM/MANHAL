@@ -273,7 +273,7 @@ else if (widget.type == "letter") {
         return;
       }
 }
-     //   await _controller.updateProgressWithAnswer(widget.parentId, widget.childId, widget.type, selectedAnswer);
+      await _controller.updateProgressWithAnswer(widget.parentId, widget.childId, widget.type, selectedAnswer);
       }
     }
 
